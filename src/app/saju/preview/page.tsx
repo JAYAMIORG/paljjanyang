@@ -26,13 +26,11 @@ const WUXING_KOREAN: Record<string, string> = {
 function PreviewContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { user, isConfigured } = useAuth()
+  const { user, loading: authLoading, isConfigured } = useAuth()
   const [result, setResult] = useState<SajuResult | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [coinBalance, setCoinBalance] = useState<number | null>(null)
-  const [isUsingCoin, setIsUsingCoin] = useState(false)
-  const [showInsufficientModal, setShowInsufficientModal] = useState(false)
 
   const type = searchParams.get('type') || 'personal'
 
@@ -83,9 +81,12 @@ function PreviewContent() {
     fetchSaju()
   }, [searchParams])
 
-  // 코인 잔액 조회
+  // 코인 잔액 조회 (인증 로딩 완료 후)
   useEffect(() => {
     const fetchCoinBalance = async () => {
+      // 인증 로딩 중이면 대기
+      if (authLoading) return
+
       if (!isConfigured || !user) {
         setCoinBalance(0)
         return
@@ -105,10 +106,13 @@ function PreviewContent() {
     }
 
     fetchCoinBalance()
-  }, [user, isConfigured])
+  }, [user, isConfigured, authLoading])
 
-  // 코인 사용하여 전체 해석 보기
-  const handleUseCoin = async () => {
+  // 전체 해석 보기 (결과 페이지에서 코인 차감)
+  const handleViewResult = () => {
+    // 인증 로딩 중이면 대기
+    if (authLoading) return
+
     if (!user) {
       // 로그인 안 된 경우 로그인 페이지로
       const currentUrl = `/saju/result?${searchParams.toString()}`
@@ -117,38 +121,15 @@ function PreviewContent() {
     }
 
     if (coinBalance !== null && coinBalance < 1) {
-      setShowInsufficientModal(true)
+      // 코인 부족 시 결제 페이지로 이동
+      const resultUrl = `/saju/result?${searchParams.toString()}`
+      router.push(`/coin?redirect=${encodeURIComponent(resultUrl)}`)
       return
     }
 
-    setIsUsingCoin(true)
-
-    try {
-      const response = await fetch('/api/saju/use-coin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        // 코인 차감 성공 - 결과 페이지로 이동
-        const params = new URLSearchParams(searchParams.toString())
-        router.push(`/saju/result?${params.toString()}`)
-      } else {
-        if (data.error?.code === 'INSUFFICIENT_COINS') {
-          setCoinBalance(data.error.currentBalance ?? 0)
-          setShowInsufficientModal(true)
-        } else {
-          alert(data.error?.message || '오류가 발생했습니다.')
-        }
-      }
-    } catch {
-      alert('서버 연결에 실패했습니다.')
-    } finally {
-      setIsUsingCoin(false)
-    }
+    // 결과 페이지로 이동 (코인 차감은 결과 페이지에서)
+    const params = new URLSearchParams(searchParams.toString())
+    router.push(`/saju/result?${params.toString()}`)
   }
 
   if (isLoading) {
@@ -177,7 +158,7 @@ function PreviewContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header showBack backHref="/home" title="내 만세력" />
+      <Header showBack useHistoryBack title="내 만세력" />
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
         {/* 사주팔자 카드 */}
@@ -236,88 +217,21 @@ function PreviewContent() {
           </div>
         </Card>
 
-        {/* 블러 처리된 상세 해석 */}
-        <Card className="relative overflow-hidden">
-          <div className="blur-sm select-none">
-            <h3 className="text-subheading font-semibold text-text mb-3">상세 해석</h3>
-            <p className="text-body text-text-muted leading-relaxed">
-              당신은 {result.dayMasterKorean}의 성향을 가진 사람입니다.
-              {result.dominantElement}이 강하여 추진력과 실행력이 뛰어납니다.
-              타고난 재능을 활용하면 큰 성공을 거둘 수 있으며...
-            </p>
-            <p className="text-body text-text-muted leading-relaxed mt-3">
-              대운의 흐름을 보면, 현재 좋은 시기가 다가오고 있습니다.
-              특히 올해는 새로운 기회가 많이 찾아올 것으로 보입니다...
-            </p>
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-background-cream/90 to-transparent">
-            <div className="text-center p-4">
-              <span className="text-3xl mb-2 block">🔒</span>
-              <p className="text-body font-semibold text-text">전체 해석 보기</p>
-            </div>
-          </div>
-        </Card>
-
-        {/* CTA 버튼들 */}
-        <div className="space-y-3 pt-4">
+        {/* CTA 버튼 */}
+        <div className="pt-4">
           <Button
             fullWidth
             size="lg"
-            onClick={handleUseCoin}
-            disabled={isUsingCoin}
+            onClick={handleViewResult}
           >
-            {isUsingCoin ? '처리 중...' : '🔮 전체 해석 보기 (1코인)'}
+            🔮 전체 해석 보기 (1코인)
           </Button>
-          <Button
-            variant="secondary"
-            fullWidth
-            onClick={() => router.push('/coin')}
-          >
-            💰 코인 충전하기
-          </Button>
+          {/* 보유 코인 표시 */}
+          <p className="text-center text-small text-text-light mt-2">
+            보유 코인: {coinBalance !== null ? coinBalance : '...'} 🪙
+          </p>
         </div>
-
-        {/* 보유 코인 표시 */}
-        <p className="text-center text-small text-text-light">
-          보유 코인: {coinBalance !== null ? coinBalance : '...'} 🪙
-        </p>
       </main>
-
-      {/* 코인 부족 모달 */}
-      {showInsufficientModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-2xl p-6 mx-4 max-w-sm w-full animate-in fade-in zoom-in duration-200">
-            <div className="text-center">
-              <span className="text-5xl block mb-4">😿</span>
-              <h3 className="text-heading font-semibold text-text mb-2">
-                코인이 부족해요
-              </h3>
-              <p className="text-body text-text-muted mb-6">
-                전체 해석을 보려면 1코인이 필요해요.<br />
-                현재 보유 코인: <span className="font-semibold text-primary">{coinBalance ?? 0}</span>
-              </p>
-              <div className="space-y-3">
-                <Button
-                  fullWidth
-                  onClick={() => {
-                    setShowInsufficientModal(false)
-                    router.push('/coin')
-                  }}
-                >
-                  💰 코인 충전하러 가기
-                </Button>
-                <Button
-                  variant="ghost"
-                  fullWidth
-                  onClick={() => setShowInsufficientModal(false)}
-                >
-                  닫기
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

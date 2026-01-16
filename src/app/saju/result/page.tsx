@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
+import { useEffect, useState, Suspense, useRef } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { Header } from '@/components/layout'
 import { Button, Card } from '@/components/ui'
 import { useAuth } from '@/hooks'
@@ -26,15 +25,19 @@ const WUXING_KOREAN: Record<string, string> = {
 
 function ResultContent() {
   const searchParams = useSearchParams()
-  const { user, isConfigured } = useAuth()
+  const router = useRouter()
+  const { user, loading: authLoading, isConfigured } = useAuth()
   const [result, setResult] = useState<SajuResult | null>(null)
   const [interpretation, setInterpretation] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isInterpretLoading, setIsInterpretLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
+  const [coinError, setCoinError] = useState<string | null>(null)
+  const [showInsufficientModal, setShowInsufficientModal] = useState(false)
+  const [coinBalance, setCoinBalance] = useState<number>(0)
+  const hasSavedRef = useRef(false)
+  const hasDeductedCoinRef = useRef(false)
+  const hasStartedRef = useRef(false)
 
   const type = searchParams.get('type') || 'personal'
   const gender = searchParams.get('gender') || 'female'
@@ -44,11 +47,11 @@ function ResultContent() {
   const hour = searchParams.get('hour')
   const lunar = searchParams.get('lunar')
 
-  const handleSave = async () => {
-    if (!result || !user) return
+  // 자동 저장 함수
+  const autoSave = async (sajuResult: SajuResult, interpretationText: string | null) => {
+    if (!user || hasSavedRef.current) return
 
-    setIsSaving(true)
-    setSaveError(null)
+    hasSavedRef.current = true
 
     try {
       const response = await fetch('/api/saju/save', {
@@ -56,8 +59,8 @@ function ResultContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type,
-          sajuResult: result,
-          interpretation,
+          sajuResult,
+          interpretation: interpretationText,
           gender,
           birthInfo: {
             year: parseInt(year!),
@@ -69,31 +72,75 @@ function ResultContent() {
         }),
       })
 
-      const data = await response.json()
-
-      if (data.success) {
-        setIsSaved(true)
-      } else {
-        setSaveError(data.error?.message || '저장에 실패했습니다.')
-      }
+      await response.json()
     } catch {
-      setSaveError('서버 연결에 실패했습니다.')
-    } finally {
-      setIsSaving(false)
+      // 저장 실패해도 결과는 보여줌
+      console.error('Auto-save failed')
     }
   }
 
-  useEffect(() => {
-    const fetchSaju = async () => {
-      try {
-        const year = searchParams.get('year')
-        const month = searchParams.get('month')
-        const day = searchParams.get('day')
-        const hour = searchParams.get('hour')
-        const lunar = searchParams.get('lunar')
+  // 코인 차감 함수
+  const deductCoin = async (): Promise<boolean> => {
+    if (hasDeductedCoinRef.current) return true
+    if (!user) {
+      setCoinError('로그인이 필요합니다.')
+      return false
+    }
 
+    try {
+      const response = await fetch('/api/saju/use-coin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        hasDeductedCoinRef.current = true
+        return true
+      } else {
+        if (data.error?.code === 'INSUFFICIENT_COINS') {
+          setCoinBalance(data.error.currentBalance ?? 0)
+          setShowInsufficientModal(true)
+        }
+        setCoinError(data.error?.message || '코인 차감에 실패했습니다.')
+        return false
+      }
+    } catch {
+      setCoinError('서버 연결에 실패했습니다.')
+      return false
+    }
+  }
+
+  // 사주 계산 및 코인 차감
+  useEffect(() => {
+    // 인증 로딩 중이면 대기
+    if (authLoading) return
+
+    // 이미 시작했으면 중복 실행 방지
+    if (hasStartedRef.current) return
+
+    const fetchSaju = async () => {
+      hasStartedRef.current = true
+
+      try {
         if (!year || !month || !day || !gender) {
           setError('필수 정보가 누락되었습니다.')
+          setIsLoading(false)
+          return
+        }
+
+        // 로그인 체크 (인증 로딩 완료 후)
+        if (!user) {
+          const currentUrl = `/saju/result?${searchParams.toString()}`
+          router.push(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`)
+          return
+        }
+
+        // 코인 차감 먼저 시도
+        const coinDeducted = await deductCoin()
+        if (!coinDeducted) {
           setIsLoading(false)
           return
         }
@@ -126,11 +173,12 @@ function ResultContent() {
     }
 
     fetchSaju()
-  }, [searchParams, gender])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user])
 
-  // LLM 해석 요청
+  // LLM 해석 요청 및 자동 저장
   useEffect(() => {
-    if (!result) return
+    if (!result || !user) return
 
     const fetchInterpretation = async () => {
       setIsInterpretLoading(true)
@@ -148,17 +196,45 @@ function ResultContent() {
         const data = await response.json()
         if (data.success) {
           setInterpretation(data.data.interpretation)
+          // 해석 완료 후 자동 저장
+          await autoSave(result, data.data.interpretation)
+        } else {
+          // LLM 실패해도 자동 저장 (기본 해석으로)
+          await autoSave(result, null)
         }
       } catch {
-        // LLM 실패 시 기본 텍스트 사용
         console.log('LLM interpretation failed, using fallback')
+        // LLM 실패해도 자동 저장
+        await autoSave(result, null)
       } finally {
         setIsInterpretLoading(false)
       }
     }
 
     fetchInterpretation()
-  }, [result, type, gender])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result])
+
+  // 링크 복사
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      alert('링크가 복사되었습니다!')
+    } catch {
+      alert('링크 복사에 실패했습니다.')
+    }
+  }
+
+  // 인스타 공유 (이미지 저장 안내)
+  const handleInstagramShare = () => {
+    alert('화면을 스크린샷하여 인스타그램에 공유해주세요!')
+  }
+
+  // 카카오 공유
+  const handleKakaoShare = () => {
+    // TODO: 카카오 SDK 연동
+    alert('카카오톡 공유 기능은 준비 중입니다.')
+  }
 
   if (isLoading) {
     return (
@@ -171,10 +247,59 @@ function ResultContent() {
     )
   }
 
+  // 코인 부족 모달
+  if (showInsufficientModal) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header showBack useHistoryBack />
+        <main className="px-4 py-6 max-w-lg mx-auto">
+          <div className="bg-white rounded-2xl p-6 text-center">
+            <span className="text-5xl block mb-4">😿</span>
+            <h3 className="text-heading font-semibold text-text mb-2">
+              코인이 부족해요
+            </h3>
+            <p className="text-body text-text-muted mb-6">
+              전체 해석을 보려면 1코인이 필요해요.<br />
+              현재 보유 코인: <span className="font-semibold text-primary">{coinBalance}</span>
+            </p>
+            <div className="space-y-3">
+              <Button
+                fullWidth
+                onClick={() => router.push('/coin')}
+              >
+                💰 코인 충전하러 가기
+              </Button>
+              <Button
+                variant="ghost"
+                fullWidth
+                onClick={() => router.push('/home')}
+              >
+                홈으로 돌아가기
+              </Button>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  if (coinError && !showInsufficientModal) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header showBack useHistoryBack />
+        <main className="px-4 py-6 max-w-lg mx-auto text-center">
+          <div className="text-6xl mb-4">😿</div>
+          <p className="text-body text-text mb-6">{coinError}</p>
+          <Button onClick={() => router.push('/home')}>홈으로 돌아가기</Button>
+        </main>
+      </div>
+    )
+  }
+
   if (error || !result) {
     return (
       <div className="min-h-screen bg-background">
-        <Header showBack backHref="/home" />
+        <Header showBack useHistoryBack />
         <main className="px-4 py-6 max-w-lg mx-auto text-center">
           <div className="text-6xl mb-4">😿</div>
           <p className="text-body text-text">{error || '결과를 불러올 수 없습니다.'}</p>
@@ -185,7 +310,7 @@ function ResultContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header showBack backHref="/home" title="사주 분석 결과" />
+      <Header showBack useHistoryBack title="사주 분석 결과" />
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
         {/* 요약 카드 */}
@@ -265,64 +390,55 @@ function ResultContent() {
           </div>
         </Card>
 
-        {/* 저장 및 공유 */}
+        {/* 공유 */}
         <Card>
           <h3 className="text-subheading font-semibold text-text mb-4">
-            결과 저장 & 공유
+            친구에게 공유하기
           </h3>
 
-          {/* 저장 버튼 */}
-          {isConfigured && (
-            <div className="mb-4">
-              {user ? (
-                isSaved ? (
-                  <div className="flex items-center justify-center gap-2 py-3 bg-green-50 rounded-lg">
-                    <span className="text-green-600">✓</span>
-                    <span className="text-body text-green-600">저장되었습니다!</span>
-                    <Link href="/mypage" className="text-small text-primary underline ml-2">
-                      마이페이지에서 보기
-                    </Link>
-                  </div>
-                ) : (
-                  <>
-                    <Button
-                      fullWidth
-                      onClick={handleSave}
-                      disabled={isSaving}
-                    >
-                      {isSaving ? '저장 중...' : '내 기록에 저장하기'}
-                    </Button>
-                    {saveError && (
-                      <p className="text-small text-red-500 text-center mt-2">{saveError}</p>
-                    )}
-                  </>
-                )
-              ) : (
-                <Link href={`/auth/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`}>
-                  <Button variant="secondary" fullWidth>
-                    로그인하고 저장하기
-                  </Button>
-                </Link>
-              )}
-            </div>
-          )}
+          {/* 공유 버튼들 - 아이콘만 */}
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={handleInstagramShare}
+              className="w-14 h-14 flex items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 text-white hover:opacity-90 transition-opacity"
+            >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+            </button>
 
-          {/* 공유 버튼들 */}
-          <div className="grid grid-cols-3 gap-3">
-            <Button variant="secondary" size="sm">
-              인스타
-            </Button>
-            <Button variant="secondary" size="sm">
-              링크복사
-            </Button>
-            <Button variant="secondary" size="sm">
-              카카오
-            </Button>
+            <button
+              onClick={handleKakaoShare}
+              className="w-14 h-14 flex items-center justify-center rounded-xl bg-[#FEE500] text-[#3C1E1E] hover:opacity-90 transition-opacity"
+            >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 3c-5.52 0-10 3.59-10 8 0 2.84 1.89 5.33 4.71 6.72-.17.64-.68 2.53-.78 2.92-.12.49.18.48.38.35.16-.1 2.49-1.68 3.49-2.36.72.11 1.46.17 2.2.17 5.52 0 10-3.59 10-8s-4.48-8-10-8z"/>
+              </svg>
+            </button>
+
+            <button
+              onClick={handleCopyLink}
+              className="w-14 h-14 flex items-center justify-center rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+            >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+            </button>
           </div>
           <p className="text-center text-small text-accent mt-3">
             공유하면 1코인 적립!
           </p>
         </Card>
+
+        {/* 다른 사주 보기 버튼 */}
+        <Button
+          variant="secondary"
+          fullWidth
+          onClick={() => router.push('/home')}
+        >
+          다른 사주 보러가기
+        </Button>
       </main>
     </div>
   )
@@ -330,7 +446,6 @@ function ResultContent() {
 
 // LLM 해석 표시 컴포넌트
 function InterpretationCard({ content }: { content: string }) {
-  // 마크다운을 간단히 파싱하여 섹션별로 표시
   const sections = parseMarkdownSections(content)
 
   return (
@@ -358,25 +473,20 @@ function parseMarkdownSections(markdown: string): { title: string | null; conten
   let currentSection: { title: string | null; content: string[] } = { title: null, content: [] }
 
   for (const line of lines) {
-    // ## 또는 ### 헤더 감지
     const headerMatch = line.match(/^#{1,3}\s+(.+)$/)
     if (headerMatch) {
-      // 이전 섹션 저장
       if (currentSection.content.length > 0 || currentSection.title) {
         sections.push({
           title: currentSection.title,
           content: currentSection.content.join('\n').trim(),
         })
       }
-      // 새 섹션 시작
       currentSection = { title: headerMatch[1], content: [] }
     } else {
-      // 일반 텍스트
       currentSection.content.push(line)
     }
   }
 
-  // 마지막 섹션 저장
   if (currentSection.content.length > 0 || currentSection.title) {
     sections.push({
       title: currentSection.title,
@@ -384,7 +494,6 @@ function parseMarkdownSections(markdown: string): { title: string | null; conten
     })
   }
 
-  // 빈 섹션 필터링
   return sections.filter(s => s.content.trim() || s.title)
 }
 

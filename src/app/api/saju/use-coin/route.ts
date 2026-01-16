@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export interface UseCoinRequest {
   type: 'personal' | 'yearly' | 'compatibility' | 'love'
@@ -67,12 +68,31 @@ export async function POST(request: Request) {
       )
     }
 
+    // Admin client 생성 (RLS 우회)
+    const adminClient = createAdminClient()
+    if (!adminClient) {
+      return NextResponse.json<UseCoinResponse>(
+        {
+          success: false,
+          error: {
+            code: 'CONFIG_ERROR',
+            message: 'Service Role Key가 설정되지 않았습니다.',
+          },
+        },
+        { status: 500 }
+      )
+    }
+
     // 현재 코인 잔액 확인
-    const { data: balanceData } = await supabase
+    const { data: balanceData, error: balanceError } = await adminClient
       .from('coin_balances')
-      .select('balance')
+      .select('balance, user_id')
       .eq('user_id', user.id)
       .single()
+
+    if (balanceError && balanceError.code !== 'PGRST116') {
+      console.error('Balance fetch error:', balanceError)
+    }
 
     const currentBalance = Number(balanceData?.balance ?? 0)
     const coinsRequired = 1
@@ -91,11 +111,11 @@ export async function POST(request: Request) {
       )
     }
 
-    // 코인 차감 (트랜잭션)
+    // 코인 차감
     const newBalance = currentBalance - coinsRequired
 
     // 잔액 업데이트
-    const { error: updateError } = await supabase
+    const { error: updateError } = await adminClient
       .from('coin_balances')
       .update({
         balance: newBalance,
@@ -125,7 +145,7 @@ export async function POST(request: Request) {
       love: '연애운',
     }
 
-    const { data: transactionData, error: transactionError } = await supabase
+    const { data: transactionData, error: transactionError } = await adminClient
       .from('coin_transactions')
       .insert({
         user_id: user.id,
@@ -142,7 +162,6 @@ export async function POST(request: Request) {
     if (transactionError) {
       console.error('Transaction record error:', transactionError)
       // 거래 기록 실패해도 코인 차감은 이미 됨
-      // 로그만 남기고 성공으로 처리
     }
 
     return NextResponse.json<UseCoinResponse>({

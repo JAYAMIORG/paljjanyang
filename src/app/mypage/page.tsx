@@ -29,6 +29,30 @@ export default function MyPage() {
   const [balance, setBalance] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  // 기록 삭제
+  const handleDelete = async (id: string) => {
+    if (!confirm('이 기록을 삭제하시겠습니까?')) return
+
+    setDeletingId(id)
+    try {
+      const response = await fetch(`/api/saju/history/${id}`, {
+        method: 'DELETE',
+      })
+      const data = await response.json()
+
+      if (data.success) {
+        setReadings(readings.filter(r => r.id !== id))
+      } else {
+        alert(data.error?.message || '삭제에 실패했습니다.')
+      }
+    } catch {
+      alert('서버 연결에 실패했습니다.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   useEffect(() => {
     if (!authLoading && !user && isConfigured) {
@@ -81,7 +105,7 @@ export default function MyPage() {
   if (!isConfigured) {
     return (
       <div className="min-h-screen bg-background">
-        <Header showBack backHref="/home" title="마이페이지" />
+        <Header showBack backHref="/home" title="마이페이지" hideMyPageLink />
         <main className="px-4 py-8 max-w-lg mx-auto text-center">
           <div className="text-6xl mb-4">🔧</div>
           <h2 className="text-heading font-semibold text-text mb-2">
@@ -97,7 +121,7 @@ export default function MyPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header showBack backHref="/home" title="마이페이지" />
+      <Header showBack backHref="/home" title="마이페이지" hideMyPageLink />
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
         {/* 프로필 섹션 */}
@@ -180,12 +204,24 @@ export default function MyPage() {
                         </span>
                       </div>
                       <p className="text-body font-medium text-text">
-                        {reading.personName}
-                      </p>
-                      <p className="text-small text-text-muted font-serif">
-                        {reading.koreanGanji}
+                        {reading.personName} - {reading.birthDate}
                       </p>
                     </div>
+                    <button
+                      onClick={() => handleDelete(reading.id)}
+                      disabled={deletingId === reading.id}
+                      className="p-2 text-text-light hover:text-red-500 transition-colors disabled:opacity-50"
+                    >
+                      {deletingId === reading.id ? (
+                        <span className="text-sm">...</span>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18" />
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                        </svg>
+                      )}
+                    </button>
                   </div>
                 </Card>
               ))}

@@ -17,6 +17,9 @@ function PaymentSuccessContent() {
     error?: string
   } | null>(null)
 
+  // 결제 후 이동할 URL
+  const redirectUrl = searchParams.get('redirect')
+
   useEffect(() => {
     const confirmPayment = async () => {
       const paymentKey = searchParams.get('paymentKey')
@@ -125,9 +128,15 @@ function PaymentSuccessContent() {
         </Card>
 
         <div className="space-y-3">
-          <Link href="/home">
-            <Button fullWidth>사주 보러가기</Button>
-          </Link>
+          {redirectUrl ? (
+            <Button fullWidth onClick={() => router.push(redirectUrl)}>
+              사주 결과 보러가기
+            </Button>
+          ) : (
+            <Link href="/home">
+              <Button fullWidth>사주 보러가기</Button>
+            </Link>
+          )}
           <Link href="/mypage">
             <Button variant="secondary" fullWidth>마이페이지</Button>
           </Link>

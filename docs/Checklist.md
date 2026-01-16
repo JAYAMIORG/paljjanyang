@@ -2,7 +2,7 @@
 
 > 작성일: 2025-01-15
 > 최종 업데이트: 2025-01-16
-> 상태: MVP 개발 중
+> 상태: MVP 개발 중 (코인 시스템 연동 완료)
 
 ---
 
@@ -79,6 +79,7 @@
   - 저장된 정보 없으면 → 바로 입력 폼
   - 저장된 정보 있으면 → 목록에서 선택 또는 새로 입력
 - [x] 궁합용 2인 선택 UI ✅ (2025-01-16)
+- [x] 사주 기록 삭제 API (DELETE /api/saju/history/[id]) ✅ (2025-01-16)
 
 ### 화면 개발
 - [x] 랜딩 페이지 ✅ (2025-01-16)
@@ -153,6 +154,7 @@
 - [x] client.ts (브라우저 클라이언트)
 - [x] server.ts (서버 클라이언트)
 - [x] middleware.ts (세션 갱신)
+- [x] admin.ts (Service Role 클라이언트 - RLS 우회용)
 
 ### LLM (`src/lib/llm/`)
 - [x] prompts.ts (시스템 프롬프트, 사주 유형별 프롬프트)
@@ -185,8 +187,9 @@
 /api/saju/calculate     - 사주팔자 계산
 /api/saju/interpret     - LLM 해석
 /api/saju/save          - 결과 저장
-/api/saju/history       - 조회 기록
-/api/saju/use-coin      - 코인 차감
+/api/saju/history       - 조회 기록 (GET)
+/api/saju/history/[id]  - 기록 삭제 (DELETE) ✅ NEW
+/api/saju/use-coin      - 코인 차감 ✅ 연동 완료
 /api/coin/balance       - 코인 잔액 조회
 /api/coin/packages      - 코인 패키지 목록
 /api/persons            - 인물 정보 저장/조회

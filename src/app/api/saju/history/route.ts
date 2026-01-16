@@ -6,6 +6,7 @@ export interface ReadingHistoryItem {
   type: 'personal' | 'yearly' | 'compatibility' | 'love'
   koreanGanji: string
   personName: string
+  birthDate: string // YYYY.M.D 형식
   createdAt: string
   interpretation?: string
 }
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = (page - 1) * limit
 
-    // 사주 기록 조회
+    // 사주 기록 조회 (person 정보 포함)
     const { data, error: readingsError } = await supabase
       .from('readings')
       .select(`
@@ -68,7 +69,14 @@ export async function GET(request: NextRequest) {
         type,
         korean_ganji,
         interpretation,
-        created_at
+        created_at,
+        person1_id,
+        persons:person1_id (
+          name,
+          birth_year,
+          birth_month,
+          birth_day
+        )
       `)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
@@ -89,16 +97,24 @@ export async function GET(request: NextRequest) {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const formattedReadings: ReadingHistoryItem[] = (data || []).map((r: any) => ({
-      id: r.id,
-      type: r.type as ReadingHistoryItem['type'],
-      koreanGanji: r.korean_ganji || '',
-      personName: '나',
-      createdAt: r.created_at,
-      interpretation: typeof r.interpretation === 'object' && r.interpretation !== null
-        ? r.interpretation.text
-        : undefined,
-    }))
+    const formattedReadings: ReadingHistoryItem[] = (data || []).map((r: any) => {
+      const person = r.persons
+      const birthDate = person
+        ? `${person.birth_year}.${person.birth_month}.${person.birth_day}`
+        : ''
+
+      return {
+        id: r.id,
+        type: r.type as ReadingHistoryItem['type'],
+        koreanGanji: r.korean_ganji || '',
+        personName: person?.name || '나',
+        birthDate,
+        createdAt: r.created_at,
+        interpretation: typeof r.interpretation === 'object' && r.interpretation !== null
+          ? r.interpretation.text
+          : undefined,
+      }
+    })
 
     return NextResponse.json<HistoryResponse>({
       success: true,

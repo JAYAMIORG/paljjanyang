@@ -82,14 +82,25 @@ bazi/
 
 ## API Structure
 
-모든 API는 Next.js API Routes로 구현 (`/pages/api/` 또는 `/app/api/`).
+모든 API는 Next.js API Routes로 구현 (`/app/api/`).
 
-### 주요 엔드포인트
+### 사주 분석
 - `POST /api/saju/calculate` - 사주팔자 계산
-- `POST /api/readings` - 사주 분석 요청 (코인 차감)
-- `GET /api/readings/:id` - 사주 결과 조회
-- `GET /api/coins/balance` - 코인 잔액
-- `POST /api/payments` - 결제 요청
+- `POST /api/saju/interpret` - LLM 해석
+- `POST /api/saju/save` - 결과 저장
+- `GET /api/saju/history` - 조회 기록
+- `DELETE /api/saju/history/[id]` - 기록 삭제
+- `POST /api/saju/use-coin` - 코인 차감
+
+### 인물 정보
+- `GET /api/persons` - 인물 목록 조회
+- `POST /api/persons` - 인물 저장
+
+### 코인/결제
+- `GET /api/coin/balance` - 코인 잔액
+- `GET /api/coin/packages` - 패키지 목록
+- `POST /api/payment/initiate` - 결제 시작
+- `POST /api/payment/confirm` - 결제 확인
 
 ## Coding Conventions
 

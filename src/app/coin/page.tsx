@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Header } from '@/components/layout'
 import { Card, Button } from '@/components/ui'
 import { useAuth } from '@/hooks'
@@ -9,17 +9,22 @@ import type { CoinPackage } from '@/app/api/coin/packages/route'
 
 export default function CoinPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, loading: authLoading, isConfigured } = useAuth()
   const [packages, setPackages] = useState<CoinPackage[]>([])
   const [balance, setBalance] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
 
+  // redirect 파라미터 가져오기 (결제 후 이동할 URL)
+  const redirectUrl = searchParams.get('redirect')
+
   useEffect(() => {
     if (!authLoading && !user && isConfigured) {
-      router.push('/auth/login?redirect=/coin')
+      const currentUrl = redirectUrl ? `/coin?redirect=${encodeURIComponent(redirectUrl)}` : '/coin'
+      router.push(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`)
     }
-  }, [authLoading, user, isConfigured, router])
+  }, [authLoading, user, isConfigured, router, redirectUrl])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,10 +79,13 @@ export default function CoinPage() {
       // 2. 토스페이먼츠 결제창 호출
       const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY
 
+      // redirect 파라미터 포함 URL 생성
+      const redirectParam = redirectUrl ? `&redirect=${encodeURIComponent(redirectUrl)}` : ''
+
       if (!clientKey) {
         // 테스트 모드: 결제 성공 페이지로 직접 이동
         alert('테스트 모드: 실제 결제 없이 충전됩니다.')
-        window.location.href = `/payment/success?paymentKey=test_${Date.now()}&orderId=${orderId}&amount=${amount}`
+        window.location.href = `/payment/success?paymentKey=test_${Date.now()}&orderId=${orderId}&amount=${amount}${redirectParam}`
         return
       }
 
@@ -90,7 +98,7 @@ export default function CoinPage() {
         orderId,
         orderName,
         customerEmail: user.email,
-        successUrl: `${window.location.origin}/payment/success`,
+        successUrl: `${window.location.origin}/payment/success${redirectParam ? `?redirect=${encodeURIComponent(redirectUrl!)}` : ''}`,
         failUrl: `${window.location.origin}/payment/fail`,
       })
     } catch (error) {

@@ -168,7 +168,17 @@ export default function SajuInputPage() {
   // 인물 선택 (단일 선택 - 개인사주, 신년운세, 연애운)
   const handleSelectPerson = (person: Person) => {
     if (info.needsTwoPeople) {
-      // 궁합인 경우
+      // 궁합인 경우 - 이미 선택된 사람이면 선택 취소
+      if (selectedPerson1?.id === person.id) {
+        setSelectedPerson1(null)
+        return
+      }
+      if (selectedPerson2?.id === person.id) {
+        setSelectedPerson2(null)
+        return
+      }
+
+      // 새로 선택
       if (selectingFor === 1) {
         setSelectedPerson1(person)
         setSelectingFor(null)
@@ -494,7 +504,12 @@ export default function SajuInputPage() {
             {/* 첫 번째 사람 */}
             <button
               onClick={() => {
-                setSelectingFor(1)
+                if (selectedPerson1) {
+                  // 이미 선택된 경우 선택 취소
+                  setSelectedPerson1(null)
+                } else {
+                  setSelectingFor(1)
+                }
               }}
               className={`
                 p-4 rounded-xl border-2 text-center transition-all
@@ -506,11 +521,12 @@ export default function SajuInputPage() {
             >
               {selectedPerson1 ? (
                 <>
-                  <span className="text-2xl block mb-1">👤</span>
+                  <span className={`text-2xl block mb-1 ${selectedPerson1.gender === 'male' ? 'text-blue-500' : 'text-red-500'}`}>{selectedPerson1.gender === 'male' ? '♂' : '♀'}</span>
                   <p className="font-semibold text-text">{selectedPerson1.name}</p>
                   <p className="text-small text-text-muted">
                     {selectedPerson1.birth_year}.{selectedPerson1.birth_month}.{selectedPerson1.birth_day}
                   </p>
+                  <p className="text-xs text-text-muted mt-1">탭하여 취소</p>
                 </>
               ) : (
                 <>
@@ -523,7 +539,12 @@ export default function SajuInputPage() {
             {/* 두 번째 사람 */}
             <button
               onClick={() => {
-                setSelectingFor(2)
+                if (selectedPerson2) {
+                  // 이미 선택된 경우 선택 취소
+                  setSelectedPerson2(null)
+                } else {
+                  setSelectingFor(2)
+                }
               }}
               className={`
                 p-4 rounded-xl border-2 text-center transition-all
@@ -535,11 +556,12 @@ export default function SajuInputPage() {
             >
               {selectedPerson2 ? (
                 <>
-                  <span className="text-2xl block mb-1">👤</span>
+                  <span className={`text-2xl block mb-1 ${selectedPerson2.gender === 'male' ? 'text-blue-500' : 'text-red-500'}`}>{selectedPerson2.gender === 'male' ? '♂' : '♀'}</span>
                   <p className="font-semibold text-text">{selectedPerson2.name}</p>
                   <p className="text-small text-text-muted">
                     {selectedPerson2.birth_year}.{selectedPerson2.birth_month}.{selectedPerson2.birth_day}
                   </p>
+                  <p className="text-xs text-text-muted mt-1">탭하여 취소</p>
                 </>
               ) : (
                 <>
@@ -598,8 +620,8 @@ export default function SajuInputPage() {
                     {person.is_lunar && ' (음력)'}
                   </p>
                 </div>
-                <span className="text-2xl">
-                  {person.gender === 'male' ? '👨' : '👩'}
+                <span className={`text-2xl ${person.gender === 'male' ? 'text-blue-500' : 'text-red-500'}`}>
+                  {person.gender === 'male' ? '♂' : '♀'}
                 </span>
               </div>
             </button>
@@ -626,7 +648,7 @@ export default function SajuInputPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header showBack backHref="/home" title={info.title} />
+      <Header showBack useHistoryBack title={info.title} />
 
       <main className="px-4 py-6 max-w-lg mx-auto">
         {showInputForm ? renderInputForm() : renderPersonList()}

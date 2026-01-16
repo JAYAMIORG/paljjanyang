@@ -13,7 +13,8 @@
 | POST /api/saju/interpret | ✅ 완료 | LLM 해석 |
 | POST /api/saju/save | ✅ 완료 | 결과 저장 |
 | GET /api/saju/history | ✅ 완료 | 조회 기록 |
-| POST /api/saju/use-coin | ✅ 완료 | 코인 차감 |
+| DELETE /api/saju/history/[id] | ✅ 완료 | 기록 삭제 |
+| POST /api/saju/use-coin | ✅ 연동 완료 | 코인 차감 |
 | GET /api/coin/balance | ✅ 완료 | 코인 잔액 |
 | GET /api/coin/packages | ✅ 완료 | 패키지 목록 |
 | GET /api/persons | ✅ 완료 | 인물 목록 |

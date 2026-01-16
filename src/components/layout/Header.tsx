@@ -10,9 +10,10 @@ interface HeaderProps {
   backHref?: string
   useHistoryBack?: boolean
   showAuth?: boolean
+  hideMyPageLink?: boolean
 }
 
-export function Header({ showBack = false, title, backHref = '/', useHistoryBack = false, showAuth = true }: HeaderProps) {
+export function Header({ showBack = false, title, backHref = '/', useHistoryBack = false, showAuth = true, hideMyPageLink = false }: HeaderProps) {
   const router = useRouter()
   const { user, loading, signOut, isConfigured } = useAuth()
 
@@ -88,12 +89,14 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
               <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-2">
-                <Link
-                  href="/mypage"
-                  className="text-small text-text-muted hover:text-primary transition-colors"
-                >
-                  마이페이지
-                </Link>
+                {!hideMyPageLink && (
+                  <Link
+                    href="/mypage"
+                    className="text-small text-text-muted hover:text-primary transition-colors"
+                  >
+                    마이페이지
+                  </Link>
+                )}
                 <button
                   onClick={handleSignOut}
                   className="text-small text-text-light hover:text-text-muted transition-colors"
