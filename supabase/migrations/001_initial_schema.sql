@@ -22,6 +22,7 @@ CREATE TYPE share_platform AS ENUM ('instagram', 'twitter', 'facebook', 'kakao',
 -- 2.1 profiles (사용자 프로필)
 CREATE TABLE profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT,
   nickname TEXT,
   avatar_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -407,8 +408,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id)
-  VALUES (NEW.id);
+  INSERT INTO public.profiles (id, email)
+  VALUES (NEW.id, NEW.email);
 
   -- 코인 잔액 0으로 초기화
   INSERT INTO public.coin_balances (user_id, balance)
