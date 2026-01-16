@@ -1,8 +1,25 @@
 # 팔자냥 API 명세서
 
 > 작성일: 2025-01-15
-> Backend: FastAPI (Python 3.11+)
-> Base URL: `https://api.paljjanyang.com/v1` (예정)
+> 최종 업데이트: 2025-01-16
+> Backend: Next.js API Routes (TypeScript)
+> Base URL: `https://bazi-azure.vercel.app/api`
+
+## 구현 현황
+
+| 엔드포인트 | 상태 | 설명 |
+|-----------|------|------|
+| POST /api/saju/calculate | ✅ 완료 | 사주팔자 계산 |
+| POST /api/saju/interpret | ✅ 완료 | LLM 해석 |
+| POST /api/saju/save | ✅ 완료 | 결과 저장 |
+| GET /api/saju/history | ✅ 완료 | 조회 기록 |
+| POST /api/saju/use-coin | ✅ 완료 | 코인 차감 |
+| GET /api/coin/balance | ✅ 완료 | 코인 잔액 |
+| GET /api/coin/packages | ✅ 완료 | 패키지 목록 |
+| GET /api/persons | ✅ 완료 | 인물 목록 |
+| POST /api/persons | ✅ 완료 | 인물 저장 |
+| POST /api/payment/initiate | ✅ 완료 | 결제 시작 |
+| POST /api/payment/confirm | ✅ 완료 | 결제 확인 |
 
 ---
 
