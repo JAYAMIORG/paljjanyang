@@ -1,0 +1,173 @@
+'use client'
+
+import { useState, Suspense } from 'react'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { Header } from '@/components/layout'
+import { Button, Input, Card } from '@/components/ui'
+import { useAuth } from '@/hooks'
+
+function SignupContent() {
+  const searchParams = useSearchParams()
+  const { signUpWithEmail } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+
+  const redirect = searchParams.get('redirect') || '/home'
+
+  const handleEmailSignup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+
+    // 비밀번호 확인
+    if (password !== confirmPassword) {
+      setError('비밀번호가 일치하지 않아요')
+      return
+    }
+
+    // 비밀번호 길이 확인
+    if (password.length < 6) {
+      setError('비밀번호는 6자 이상이어야 해요')
+      return
+    }
+
+    setIsLoading(true)
+
+    const { error } = await signUpWithEmail(email, password)
+
+    if (error) {
+      if (error.message.includes('already registered')) {
+        setError('이미 가입된 이메일이에요')
+      } else {
+        setError(error.message)
+      }
+      setIsLoading(false)
+      return
+    }
+
+    setIsSuccess(true)
+    setIsLoading(false)
+  }
+
+  const emailLoginHref = redirect !== '/home'
+    ? `/auth/email-login?redirect=${encodeURIComponent(redirect)}`
+    : '/auth/email-login'
+
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header showBack useHistoryBack title="회원가입" showAuth={false} />
+        <main className="px-4 py-8 max-w-lg mx-auto text-center">
+          <span className="text-6xl block mb-4">📧</span>
+          <h2 className="text-heading font-semibold text-text mb-4">
+            이메일을 확인해주세요!
+          </h2>
+          <p className="text-body text-text-muted mb-6">
+            <span className="text-primary font-medium">{email}</span>으로
+            인증 메일을 보냈어요.
+            <br />
+            메일의 링크를 클릭하면 가입이 완료돼요.
+          </p>
+          <Link href={emailLoginHref}>
+            <Button variant="secondary">로그인하러 가기</Button>
+          </Link>
+        </main>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header showBack useHistoryBack title="이메일로 회원가입" showAuth={false} />
+
+      <main className="px-4 py-8 max-w-lg mx-auto">
+        <div className="text-center mb-8">
+          <span className="text-5xl block mb-4">🐱</span>
+          <h1 className="font-serif text-heading text-primary">팔자냥</h1>
+          <p className="text-body text-text-muted mt-2">
+            사주로 나를 알아가는 여정을 시작해요
+          </p>
+        </div>
+
+        {/* 이메일 회원가입 */}
+        <Card>
+          <form onSubmit={handleEmailSignup} className="space-y-4">
+            <Input
+              label="이메일"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="email@example.com"
+              required
+            />
+            <Input
+              label="비밀번호"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="6자 이상 입력하세요"
+              hint="6자 이상 입력해주세요"
+              required
+            />
+            <Input
+              label="비밀번호 확인"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="비밀번호를 다시 입력하세요"
+              required
+            />
+
+            {error && (
+              <p className="text-small text-red-500 text-center">{error}</p>
+            )}
+
+            <Button
+              type="submit"
+              fullWidth
+              disabled={isLoading}
+            >
+              {isLoading ? '가입 중...' : '회원가입'}
+            </Button>
+          </form>
+        </Card>
+
+        {/* 로그인 링크 */}
+        <p className="text-center text-body text-text-muted mt-6">
+          이미 계정이 있으신가요?{' '}
+          <Link href={emailLoginHref} className="text-primary font-medium hover:underline">
+            이메일로 로그인
+          </Link>
+        </p>
+
+        {/* 약관 동의 문구 */}
+        <p className="text-center text-caption text-text-light mt-4">
+          가입 시{' '}
+          <a href="#" className="underline">이용약관</a>과{' '}
+          <a href="#" className="underline">개인정보처리방침</a>에 동의하게 됩니다.
+        </p>
+      </main>
+    </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-6xl mb-4 animate-bounce">🐱</div>
+            <p className="text-body text-text-muted">로딩 중...</p>
+          </div>
+        </div>
+      }
+    >
+      <SignupContent />
+    </Suspense>
+  )
+}
