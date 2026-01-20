@@ -432,28 +432,36 @@ function ResultContent() {
         <div
           ref={shareCardRef}
           style={{
-            width: '360px',
+            width: '400px',
             padding: '24px',
-            borderRadius: '24px',
-            background: 'linear-gradient(135deg, #FFF8F0 0%, #FFE4D6 100%)',
+            background: 'linear-gradient(180deg, #FFF8F0 0%, #FFFFFF 100%)',
             fontFamily: 'system-ui, -apple-system, sans-serif',
           }}
         >
-          {/* 로고 */}
-          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-            <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#D4A574' }}>팔자냥</span>
+          {/* 헤더 */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px',
+            paddingBottom: '16px',
+            borderBottom: '1px solid #E5E7EB'
+          }}>
+            <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#D4A574' }}>🐱 팔자냥</span>
+            <span style={{ fontSize: '12px', color: '#9CA3AF' }}>AI 사주 분석</span>
           </div>
 
-          {/* 메인 컨텐츠 */}
+          {/* 요약 카드 */}
           <div style={{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: '#FFF8F0',
             borderRadius: '16px',
             padding: '20px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            marginBottom: '16px',
+            border: '1px solid #F3E8DE'
           }}>
             <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: '60px', display: 'block', marginBottom: '12px' }}>{result.zodiacEmoji}</span>
-              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1F2937', marginBottom: '4px' }}>
+              <span style={{ fontSize: '48px', display: 'block', marginBottom: '8px' }}>{result.zodiacEmoji}</span>
+              <h2 style={{ fontSize: '22px', fontWeight: 'bold', color: '#1F2937', marginBottom: '4px' }}>
                 {result.dayMasterKorean}의 기운
               </h2>
               <p style={{ color: '#6B7280', marginBottom: '16px', fontSize: '14px' }}>
@@ -461,7 +469,7 @@ function ResultContent() {
               </p>
 
               {/* 오행 차트 */}
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
                 {(Object.entries(result.wuXing) as [keyof typeof result.wuXing, number][]).map(
                   ([element, value]) => (
                     <div
@@ -475,38 +483,107 @@ function ResultContent() {
                     >
                       <div
                         style={{
-                          width: '40px',
-                          height: '40px',
+                          width: '36px',
+                          height: '36px',
                           borderRadius: '50%',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           color: '#FFFFFF',
-                          fontSize: '14px',
+                          fontSize: '13px',
                           fontWeight: 'bold',
                           backgroundColor: WUXING_COLORS[element],
                         }}
                       >
                         {value}
                       </div>
-                      <span style={{ fontSize: '12px', color: '#6B7280', marginTop: '4px' }}>
+                      <span style={{ fontSize: '11px', color: '#6B7280', marginTop: '4px' }}>
                         {WUXING_KOREAN[element].charAt(0)}
                       </span>
                     </div>
                   )
                 )}
               </div>
-
-              {/* 한 줄 요약 */}
-              <p style={{ fontSize: '14px', color: '#4B5563', lineHeight: '1.5' }}>
-                {result.dominantElement}이 강한 {result.dayMasterKorean} 일간
-              </p>
             </div>
           </div>
 
-          {/* 하단 */}
-          <div style={{ textAlign: 'center', marginTop: '16px' }}>
-            <p style={{ fontSize: '12px', color: '#9CA3AF' }}>나도 사주 보러가기 → paljjanyang.com</p>
+          {/* 해석 내용 */}
+          {interpretation && (
+            <div style={{ marginBottom: '16px' }}>
+              {parseMarkdownSections(interpretation).slice(0, 4).map((section, index) => (
+                <div
+                  key={index}
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    marginBottom: '12px',
+                    border: '1px solid #E5E7EB'
+                  }}
+                >
+                  {section.title && (
+                    <h3 style={{
+                      fontSize: '15px',
+                      fontWeight: 'bold',
+                      color: '#D4A574',
+                      marginBottom: '8px'
+                    }}>
+                      {section.title}
+                    </h3>
+                  )}
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#4B5563',
+                    lineHeight: '1.6',
+                    whiteSpace: 'pre-wrap'
+                  }}>
+                    {section.content.length > 300
+                      ? section.content.slice(0, 300) + '...'
+                      : section.content}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 폴백 해석 (LLM 해석 없을 때) */}
+          {!interpretation && (
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '12px',
+              padding: '16px',
+              marginBottom: '16px',
+              border: '1px solid #E5E7EB'
+            }}>
+              <h3 style={{
+                fontSize: '15px',
+                fontWeight: 'bold',
+                color: '#D4A574',
+                marginBottom: '8px'
+              }}>
+                핵심 요약
+              </h3>
+              <p style={{ fontSize: '13px', color: '#4B5563', lineHeight: '1.6' }}>
+                {result.dayMasterKorean}의 성향을 가진 사주입니다.
+                {result.dominantElement}이 강하여 추진력과 에너지가 넘치는 특징이 있습니다.
+              </p>
+            </div>
+          )}
+
+          {/* 하단 CTA */}
+          <div style={{
+            textAlign: 'center',
+            padding: '16px',
+            backgroundColor: '#D4A574',
+            borderRadius: '12px',
+            marginTop: '8px'
+          }}>
+            <p style={{ fontSize: '14px', color: '#FFFFFF', fontWeight: 'bold', marginBottom: '4px' }}>
+              나도 내 사주가 궁금하다면?
+            </p>
+            <p style={{ fontSize: '12px', color: '#FFF8F0' }}>
+              paljjanyang.com
+            </p>
           </div>
         </div>
       </div>
