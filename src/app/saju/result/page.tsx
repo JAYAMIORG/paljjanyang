@@ -41,6 +41,7 @@ function ResultContent() {
   const [coinError, setCoinError] = useState<string | null>(null)
   const [showInsufficientModal, setShowInsufficientModal] = useState(false)
   const [coinBalance, setCoinBalance] = useState<number>(0)
+  const [readingId, setReadingId] = useState<string | null>(null)
   const hasSavedRef = useRef(false)
   const hasDeductedCoinRef = useRef(false)
   const hasStartedRef = useRef(false)
@@ -78,7 +79,10 @@ function ResultContent() {
         }),
       })
 
-      await response.json()
+      const data = await response.json()
+      if (data.success && data.data?.readingId) {
+        setReadingId(data.data.readingId)
+      }
     } catch {
       // 저장 실패해도 결과는 보여줌
       console.error('Auto-save failed')
@@ -224,7 +228,8 @@ function ResultContent() {
   // 링크 복사
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(window.location.href)
+      const shareUrl = getShareUrl()
+      await navigator.clipboard.writeText(shareUrl)
       alert('링크가 복사되었습니다!')
     } catch {
       alert('링크 복사에 실패했습니다.')
@@ -304,14 +309,25 @@ function ResultContent() {
     }
   }
 
+  // 공유 URL 생성
+  const getShareUrl = () => {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    if (readingId) {
+      return `${baseUrl}/saju/shared/${readingId}`
+    }
+    return typeof window !== 'undefined' ? window.location.href : ''
+  }
+
   // 카카오 공유
   const handleKakaoShare = async () => {
     if (!result) return
 
+    const shareUrl = getShareUrl()
+
     // 데스크톱에서는 안내 모달 표시
     if (!isMobile) {
       try {
-        await navigator.clipboard.writeText(window.location.href)
+        await navigator.clipboard.writeText(shareUrl)
         setCopiedLink(true)
       } catch {
         setCopiedLink(false)
@@ -330,7 +346,8 @@ function ResultContent() {
     shareKakao({
       title: `${result.dayMasterKorean}의 ${typeLabel} 결과`,
       description: `${result.koreanGanji} - 나의 사주를 확인해보세요!`,
-      buttonText: '나도 사주 보러가기',
+      buttonText: '결과 보러가기',
+      shareUrl,
     })
   }
 
@@ -653,7 +670,7 @@ function ResultContent() {
             <div className="space-y-2">
               {copiedLink && (
                 <p className="text-small text-text-light bg-gray-50 p-3 rounded-lg break-all">
-                  {typeof window !== 'undefined' ? window.location.href : ''}
+                  {getShareUrl()}
                 </p>
               )}
               <Button

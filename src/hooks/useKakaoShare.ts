@@ -7,6 +7,7 @@ interface ShareContent {
   description: string
   imageUrl?: string
   buttonText?: string
+  shareUrl?: string
 }
 
 // 모바일 디바이스 감지
@@ -65,13 +66,13 @@ export function useKakaoShare() {
   }, [])
 
   const share = useCallback(
-    ({ title, description, imageUrl, buttonText = '사주 보러가기' }: ShareContent) => {
+    ({ title, description, imageUrl, buttonText = '사주 보러가기', shareUrl }: ShareContent) => {
       if (!isReady || !window.Kakao) {
         return false
       }
 
-      const currentUrl = window.location.href
       const baseUrl = window.location.origin
+      const contentUrl = shareUrl || window.location.href
 
       try {
         // Kakao.Share가 없으면 Kakao.Link 사용 (구버전 호환)
@@ -88,16 +89,16 @@ export function useKakaoShare() {
             description,
             imageUrl: imageUrl || `${baseUrl}/og-image.png`,
             link: {
-              mobileWebUrl: currentUrl,
-              webUrl: currentUrl,
+              mobileWebUrl: contentUrl,
+              webUrl: contentUrl,
             },
           },
           buttons: [
             {
               title: buttonText,
               link: {
-                mobileWebUrl: baseUrl,
-                webUrl: baseUrl,
+                mobileWebUrl: contentUrl,
+                webUrl: contentUrl,
               },
             },
           ],
