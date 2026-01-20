@@ -410,47 +410,69 @@ function ResultContent() {
     <div className="min-h-screen bg-background">
       <Header showBack useHistoryBack title="사주 분석 결과" />
 
-      {/* 공유용 카드 (화면 밖에 숨김) */}
-      <div className="fixed -left-[9999px] -top-[9999px]">
+      {/* 공유용 카드 (화면 밖에 숨김) - 인라인 스타일 사용 (html2canvas 호환) */}
+      <div style={{ position: 'fixed', left: '-9999px', top: '-9999px' }}>
         <div
           ref={shareCardRef}
-          className="w-[360px] p-6 rounded-3xl"
           style={{
+            width: '360px',
+            padding: '24px',
+            borderRadius: '24px',
             background: 'linear-gradient(135deg, #FFF8F0 0%, #FFE4D6 100%)',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
           }}
         >
           {/* 로고 */}
-          <div className="text-center mb-4">
-            <span className="text-2xl font-bold text-primary">팔자냥</span>
+          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+            <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#D4A574' }}>팔자냥</span>
           </div>
 
           {/* 메인 컨텐츠 */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <div className="text-center">
-              <span className="text-6xl mb-3 block">{result.zodiacEmoji}</span>
-              <h2 className="text-2xl font-bold text-gray-800 mb-1">
+          <div style={{
+            backgroundColor: '#FFFFFF',
+            borderRadius: '16px',
+            padding: '20px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ fontSize: '60px', display: 'block', marginBottom: '12px' }}>{result.zodiacEmoji}</span>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1F2937', marginBottom: '4px' }}>
                 {result.dayMasterKorean}의 기운
               </h2>
-              <p className="text-gray-500 mb-4">
+              <p style={{ color: '#6B7280', marginBottom: '16px', fontSize: '14px' }}>
                 {result.koreanGanji}
               </p>
 
               {/* 오행 차트 */}
-              <div className="flex justify-center gap-3 mb-4">
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '16px' }}>
                 {(Object.entries(result.wuXing) as [keyof typeof result.wuXing, number][]).map(
                   ([element, value]) => (
                     <div
                       key={element}
-                      className="flex flex-col items-center"
-                      style={{ opacity: value > 10 ? 1 : 0.5 }}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        opacity: value > 10 ? 1 : 0.5,
+                      }}
                     >
                       <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
-                        style={{ backgroundColor: WUXING_COLORS[element] }}
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#FFFFFF',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          backgroundColor: WUXING_COLORS[element],
+                        }}
                       >
                         {value}
                       </div>
-                      <span className="text-xs text-gray-500 mt-1">
+                      <span style={{ fontSize: '12px', color: '#6B7280', marginTop: '4px' }}>
                         {WUXING_KOREAN[element].charAt(0)}
                       </span>
                     </div>
@@ -459,15 +481,15 @@ function ResultContent() {
               </div>
 
               {/* 한 줄 요약 */}
-              <p className="text-sm text-gray-600 leading-relaxed">
+              <p style={{ fontSize: '14px', color: '#4B5563', lineHeight: '1.5' }}>
                 {result.dominantElement}이 강한 {result.dayMasterKorean} 일간
               </p>
             </div>
           </div>
 
           {/* 하단 */}
-          <div className="text-center mt-4">
-            <p className="text-xs text-gray-400">나도 사주 보러가기 → paljjanyang.com</p>
+          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+            <p style={{ fontSize: '12px', color: '#9CA3AF' }}>나도 사주 보러가기 → paljjanyang.com</p>
           </div>
         </div>
       </div>
