@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Header } from '@/components/layout'
 import { Card, Button } from '@/components/ui'
 import { useAuth } from '@/hooks'
 import type { CoinPackage } from '@/app/api/coin/packages/route'
 
-export default function CoinPage() {
+function CoinContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, loading: authLoading, isConfigured } = useAuth()
@@ -234,5 +234,22 @@ export default function CoinPage() {
         </p>
       </main>
     </div>
+  )
+}
+
+export default function CoinPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-6xl mb-4 animate-bounce">🐱</div>
+            <p className="text-body text-text-muted">로딩 중...</p>
+          </div>
+        </div>
+      }
+    >
+      <CoinContent />
+    </Suspense>
   )
 }
