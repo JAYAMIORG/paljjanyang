@@ -48,18 +48,25 @@ export interface DeleteResponse {
   }
 }
 
-// 일간(day master)에 따른 한글명과 이모지 매핑
-const DAY_MASTER_MAP: Record<string, { korean: string; emoji: string }> = {
-  '甲': { korean: '갑목', emoji: '🌳' },
-  '乙': { korean: '을목', emoji: '🌿' },
-  '丙': { korean: '병화', emoji: '☀️' },
-  '丁': { korean: '정화', emoji: '🕯️' },
-  '戊': { korean: '무토', emoji: '⛰️' },
-  '己': { korean: '기토', emoji: '🏔️' },
-  '庚': { korean: '경금', emoji: '⚔️' },
-  '辛': { korean: '신금', emoji: '💎' },
-  '壬': { korean: '임수', emoji: '🌊' },
-  '癸': { korean: '계수', emoji: '💧' },
+// 일간(day master)에 따른 한글명 매핑
+const DAY_MASTER_MAP: Record<string, string> = {
+  '甲': '갑목',
+  '乙': '을목',
+  '丙': '병화',
+  '丁': '정화',
+  '戊': '무토',
+  '己': '기토',
+  '庚': '경금',
+  '辛': '신금',
+  '壬': '임수',
+  '癸': '계수',
+}
+
+// 띠 이모지 매핑
+const ZODIAC_EMOJI: Record<string, string> = {
+  '鼠': '🐀', '牛': '🐂', '虎': '🐅', '兔': '🐇',
+  '龙': '🐉', '蛇': '🐍', '马': '🐴', '羊': '🐑',
+  '猴': '🐵', '鸡': '🐔', '狗': '🐕', '猪': '🐷',
 }
 
 // 오행 한글명 매핑
@@ -150,7 +157,7 @@ export async function GET(
 
     // 일간 정보 가져오기
     const dayMaster = reading.person1_day_master || ''
-    const dayMasterInfo = DAY_MASTER_MAP[dayMaster] || { korean: dayMaster, emoji: '🐱' }
+    const dayMasterKorean = DAY_MASTER_MAP[dayMaster] || dayMaster
 
     // 오행에서 가장 강한/약한 요소 찾기
     const wuXing = reading.person1_wuxing || { wood: 20, fire: 20, earth: 20, metal: 20, water: 20 }
@@ -160,8 +167,9 @@ export async function GET(
     const dominantElement = WUXING_KOREAN[dominantEntry[0]] || dominantEntry[0]
     const weakElement = WUXING_KOREAN[weakEntry[0]] || weakEntry[0]
 
-    // 대운 재계산
+    // 대운 재계산 및 띠 이모지 계산
     let daYun: Array<{ startAge: number; endAge: number; ganZhi: string }> = []
+    let zodiacEmoji = '🐱' // 기본값
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const person = reading.persons as any
@@ -176,6 +184,10 @@ export async function GET(
           const solar = Solar.fromYmd(person.birth_year, person.birth_month, person.birth_day)
           lunar = solar.getLunar()
         }
+
+        // 띠 계산
+        const zodiacChar = lunar.getYearShengXiao()
+        zodiacEmoji = ZODIAC_EMOJI[zodiacChar] || '🐾'
 
         // 시간이 있으면 시간 포함하여 계산
         let eightChar
@@ -219,8 +231,8 @@ export async function GET(
         bazi: reading.person1_bazi || { year: '', month: '', day: '', time: null },
         wuXing,
         dayMaster,
-        dayMasterKorean: dayMasterInfo.korean,
-        zodiacEmoji: dayMasterInfo.emoji,
+        dayMasterKorean,
+        zodiacEmoji,
         dominantElement,
         weakElement,
         daYun,
