@@ -27,8 +27,10 @@ function ResultContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
-  const { share: shareKakao, isReady: isKakaoReady } = useKakaoShare()
+  const { share: shareKakao, isReady: isKakaoReady, isMobile } = useKakaoShare()
   const [result, setResult] = useState<SajuResult | null>(null)
+  const [showMobileOnlyModal, setShowMobileOnlyModal] = useState(false)
+  const [copiedLink, setCopiedLink] = useState(false)
   const [interpretation, setInterpretation] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isInterpretLoading, setIsInterpretLoading] = useState(false)
@@ -232,8 +234,20 @@ function ResultContent() {
   }
 
   // 카카오 공유
-  const handleKakaoShare = () => {
+  const handleKakaoShare = async () => {
     if (!result) return
+
+    // 데스크톱에서는 안내 모달 표시
+    if (!isMobile) {
+      try {
+        await navigator.clipboard.writeText(window.location.href)
+        setCopiedLink(true)
+      } catch {
+        setCopiedLink(false)
+      }
+      setShowMobileOnlyModal(true)
+      return
+    }
 
     const typeLabel = {
       personal: '개인 사주',
@@ -456,6 +470,40 @@ function ResultContent() {
           다른 사주 보러가기
         </Button>
       </main>
+
+      {/* 모바일 전용 안내 모달 */}
+      {showMobileOnlyModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center">
+            <span className="text-5xl block mb-4">📱</span>
+            <h3 className="text-heading font-semibold text-text mb-2">
+              모바일에서 이용해주세요
+            </h3>
+            <p className="text-body text-text-muted mb-4">
+              카카오톡 공유는 모바일에서만 가능해요.
+              {copiedLink && (
+                <>
+                  <br />
+                  <span className="text-primary font-medium">링크가 복사되었어요!</span>
+                </>
+              )}
+            </p>
+            <div className="space-y-2">
+              {copiedLink && (
+                <p className="text-small text-text-light bg-gray-50 p-3 rounded-lg break-all">
+                  {typeof window !== 'undefined' ? window.location.href : ''}
+                </p>
+              )}
+              <Button
+                fullWidth
+                onClick={() => setShowMobileOnlyModal(false)}
+              >
+                확인
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

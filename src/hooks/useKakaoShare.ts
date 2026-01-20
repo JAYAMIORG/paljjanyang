@@ -66,20 +66,7 @@ export function useKakaoShare() {
 
   const share = useCallback(
     ({ title, description, imageUrl, buttonText = '사주 보러가기' }: ShareContent) => {
-      // 데스크톱에서는 안내 메시지 표시
-      if (!isMobile) {
-        const currentUrl = window.location.href
-        // 클립보드에 URL 복사 시도
-        navigator.clipboard.writeText(currentUrl).then(() => {
-          alert('📱 카카오톡 공유는 모바일에서 이용해주세요!\n\n링크가 클립보드에 복사되었습니다.')
-        }).catch(() => {
-          alert('📱 카카오톡 공유는 모바일에서 이용해주세요!')
-        })
-        return false
-      }
-
       if (!isReady || !window.Kakao) {
-        alert('카카오톡 공유 기능을 불러오는 중입니다. 잠시 후 다시 시도해주세요.')
         return false
       }
 
@@ -91,8 +78,6 @@ export function useKakaoShare() {
         const shareMethod = window.Kakao.Share?.sendDefault || window.Kakao.Link?.sendDefault
 
         if (!shareMethod) {
-          console.error('[Kakao] Share/Link API를 찾을 수 없습니다')
-          alert('카카오톡 공유에 실패했습니다.')
           return false
         }
 
@@ -118,13 +103,11 @@ export function useKakaoShare() {
           ],
         })
         return true
-      } catch (error) {
-        console.error('[Kakao] 공유 실패:', error)
-        alert('카카오톡 공유에 실패했습니다.')
+      } catch {
         return false
       }
     },
-    [isReady, isMobile]
+    [isReady]
   )
 
   return { isReady, isLoading, isMobile, share }
