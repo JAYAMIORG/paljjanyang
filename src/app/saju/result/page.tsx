@@ -507,10 +507,10 @@ function ResultContent() {
             </div>
           </div>
 
-          {/* 해석 내용 */}
+          {/* 해석 내용 - 전체 표시 */}
           {interpretation && (
             <div style={{ marginBottom: '16px' }}>
-              {parseMarkdownSections(interpretation).slice(0, 4).map((section, index) => (
+              {parseMarkdownSections(interpretation).map((section, index) => (
                 <div
                   key={index}
                   style={{
@@ -537,9 +537,7 @@ function ResultContent() {
                     lineHeight: '1.6',
                     whiteSpace: 'pre-wrap'
                   }}>
-                    {section.content.length > 300
-                      ? section.content.slice(0, 300) + '...'
-                      : section.content}
+                    {section.content}
                   </p>
                 </div>
               ))}
