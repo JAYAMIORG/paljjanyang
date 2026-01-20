@@ -63,12 +63,13 @@ export async function POST() {
       )
     }
 
-    // 이미 공유 보상을 받았는지 확인
+    // 이미 공유 보상을 받았는지 확인 (type='reward', description='공유 보상')
     const { data: existingReward } = await adminClient
       .from('coin_transactions')
       .select('id')
       .eq('user_id', user.id)
-      .eq('type', 'share_reward')
+      .eq('type', 'reward')
+      .eq('description', '공유 보상')
       .single()
 
     if (existingReward) {
@@ -119,16 +120,39 @@ export async function POST() {
     }
 
     // 거래 내역 추가
-    await adminClient
+    const { error: insertError } = await adminClient
       .from('coin_transactions')
       .insert({
         user_id: user.id,
         amount: rewardAmount,
-        type: 'share_reward',
+        type: 'reward',
         description: '공유 보상',
         balance_before: currentBalance,
         balance_after: newBalance,
       })
+
+    if (insertError) {
+      console.error('Failed to insert transaction:', insertError)
+      // 롤백: 잔액 원복
+      await adminClient
+        .from('coin_balances')
+        .update({
+          balance: currentBalance,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id)
+
+      return NextResponse.json<ShareRewardResponse>(
+        {
+          success: false,
+          error: {
+            code: 'DB_ERROR',
+            message: '보상 지급에 실패했습니다.',
+          },
+        },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json<ShareRewardResponse>({
       success: true,
