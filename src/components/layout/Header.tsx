@@ -19,7 +19,7 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
 
   const handleSignOut = async () => {
     await signOut()
-    router.refresh()
+    router.push('/')
   }
 
   const handleBack = () => {

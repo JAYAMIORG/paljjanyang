@@ -293,6 +293,25 @@ function ResultContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result])
 
+  // 공유 보상 수령 여부 확인
+  useEffect(() => {
+    if (!user) return
+
+    const checkShareRewardStatus = async () => {
+      try {
+        const response = await fetch('/api/share/reward')
+        const data = await response.json()
+        if (data.success && data.data?.alreadyClaimed) {
+          setShareRewardClaimed(true)
+        }
+      } catch {
+        // 실패해도 무시 (기본값 false 유지)
+      }
+    }
+
+    checkShareRewardStatus()
+  }, [user])
+
   // 공유 보상 요청
   const claimShareReward = async () => {
     if (shareRewardClaimed) return
@@ -464,12 +483,15 @@ function ResultContent() {
     await claimShareReward()
   }
 
-  if (isLoading) {
+  // 사주 계산 중이거나 LLM 해석 로딩 중일 때 전체 로딩 화면 표시
+  if (isLoading || isInterpretLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4 animate-bounce">🐱</div>
-          <p className="text-body text-text-muted">사주를 분석하고 있어요...</p>
+          <p className="text-body text-text-muted">
+            {isLoading ? '사주를 계산하고 있어요...' : '운명을 해석하고 있어요...'}
+          </p>
         </div>
       </div>
     )
@@ -736,17 +758,8 @@ function ResultContent() {
           </div>
         </Card>
 
-        {/* 전문가 해석 또는 로딩/폴백 */}
-        {isInterpretLoading ? (
-          <Card>
-            <div className="flex items-center justify-center py-8">
-              <div className="text-center">
-                <div className="text-4xl mb-3 animate-pulse">🐱</div>
-                <p className="text-body text-text-muted">전문가가 사주를 해석하고 있어요...</p>
-              </div>
-            </div>
-          </Card>
-        ) : interpretation ? (
+        {/* 전문가 해석 또는 폴백 */}
+        {interpretation ? (
           <InterpretationCard content={interpretation} />
         ) : (
           <FallbackInterpretation result={result} />

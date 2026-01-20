@@ -15,6 +15,79 @@ export interface ShareRewardResponse {
   }
 }
 
+export interface ShareRewardStatusResponse {
+  success: boolean
+  data?: {
+    alreadyClaimed: boolean
+  }
+  error?: {
+    code: string
+    message: string
+  }
+}
+
+// GET: 공유 보상 수령 여부 확인
+export async function GET() {
+  try {
+    const supabase = await createClient()
+
+    if (!supabase) {
+      return NextResponse.json<ShareRewardStatusResponse>(
+        {
+          success: false,
+          error: {
+            code: 'CONFIG_ERROR',
+            message: 'Supabase가 설정되지 않았습니다.',
+          },
+        },
+        { status: 500 }
+      )
+    }
+
+    // 인증 확인
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json<ShareRewardStatusResponse>(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: '로그인이 필요합니다.',
+          },
+        },
+        { status: 401 }
+      )
+    }
+
+    // profiles에서 share_reward_claimed 확인
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('share_reward_claimed')
+      .eq('id', user.id)
+      .single()
+
+    return NextResponse.json<ShareRewardStatusResponse>({
+      success: true,
+      data: {
+        alreadyClaimed: profile?.share_reward_claimed ?? false,
+      },
+    })
+  } catch (error) {
+    console.error('Share reward status check error:', error)
+    return NextResponse.json<ShareRewardStatusResponse>(
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: '서버 오류가 발생했습니다.',
+        },
+      },
+      { status: 500 }
+    )
+  }
+}
+
 export async function POST() {
   try {
     const supabase = await createClient()
@@ -63,16 +136,14 @@ export async function POST() {
       )
     }
 
-    // 이미 공유 보상을 받았는지 확인 (type='reward', description='공유 보상')
-    const { data: existingReward } = await adminClient
-      .from('coin_transactions')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('type', 'reward')
-      .eq('description', '공유 보상')
+    // profiles에서 이미 공유 보상을 받았는지 확인
+    const { data: profile } = await adminClient
+      .from('profiles')
+      .select('share_reward_claimed')
+      .eq('id', user.id)
       .single()
 
-    if (existingReward) {
+    if (profile?.share_reward_claimed) {
       // 이미 받은 경우 - 현재 잔액만 반환
       const { data: balanceData } = await adminClient
         .from('coin_balances')
@@ -153,6 +224,12 @@ export async function POST() {
         { status: 500 }
       )
     }
+
+    // profiles에 공유 보상 수령 완료 표시
+    await adminClient
+      .from('profiles')
+      .update({ share_reward_claimed: true })
+      .eq('id', user.id)
 
     return NextResponse.json<ShareRewardResponse>({
       success: true,

@@ -146,20 +146,21 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-6 border-t border-gray-100">
-        <div className="max-w-lg mx-auto text-center">
-          <div className="flex justify-center gap-4 text-caption text-text-light mb-4">
-            <Link href="/terms" className="hover:text-text-muted transition-colors">이용약관</Link>
-            <span>|</span>
-            <Link href="/privacy" className="hover:text-text-muted transition-colors">개인정보처리방침</Link>
-            <span>|</span>
-            <Link href="/refund" className="hover:text-text-muted transition-colors">환불 정책</Link>
+      <footer className="py-8 px-6 bg-gray-50 border-t border-gray-200">
+        <div className="max-w-lg mx-auto">
+          <div className="text-caption text-text-light space-y-1 mb-4">
+            <p className="font-medium text-text-muted">ChartIQ</p>
+            <p>대표자: 박재호 | 사업자등록번호: 794-29-01712</p>
+            <p>주소: 경기도 화성시 동탄지성로 295</p>
+            <p>전화: 010-5148-4187</p>
           </div>
-          <p className="text-caption text-text-light">
-            ChartIQ | 대표: 박재호
-          </p>
-          <p className="text-caption text-text-light mt-1">
-            문의: abc@abc.com | 010-5148-4187
+          <div className="flex gap-4 pt-4 border-t border-gray-200">
+            <Link href="/terms" className="text-caption text-text-light hover:text-text-muted transition-colors">이용약관</Link>
+            <Link href="/privacy" className="text-caption text-text-light hover:text-text-muted transition-colors">개인정보처리방침</Link>
+            <Link href="/refund" className="text-caption text-text-light hover:text-text-muted transition-colors">환불정책</Link>
+          </div>
+          <p className="text-caption text-text-light mt-4">
+            © 2025 ChartIQ. All rights reserved.
           </p>
         </div>
       </footer>

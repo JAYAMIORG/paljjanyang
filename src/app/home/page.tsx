@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Header } from '@/components/layout'
+import { Header, Footer } from '@/components/layout'
 import { Card } from '@/components/ui'
 import { useAuth } from '@/hooks'
 
@@ -53,10 +53,10 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
-      <main className="px-4 py-6 max-w-lg mx-auto">
+      <main className="px-4 py-6 max-w-lg mx-auto flex-1">
         {/* Hero Section */}
         <section className="text-center mb-8">
           <h2 className="text-heading text-text mb-2">
@@ -78,6 +78,8 @@ export default function HomePage() {
           ))}
         </section>
       </main>
+
+      <Footer />
     </div>
   )
 }

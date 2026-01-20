@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Header } from '@/components/layout'
+import { Header, Footer } from '@/components/layout'
 import { Card, Button } from '@/components/ui'
 import { useAuth } from '@/hooks'
 import type { ReadingHistoryItem } from '@/app/api/saju/history/route'
@@ -120,10 +120,10 @@ export default function MyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header showBack backHref="/home" title="마이페이지" hideMyPageLink />
 
-      <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
+      <main className="px-4 py-6 max-w-lg mx-auto space-y-6 flex-1">
         {/* 프로필 섹션 */}
         <Card>
           <div className="flex items-center gap-4">
@@ -251,20 +251,9 @@ export default function MyPage() {
           </Link>
         </div>
 
-        {/* Footer */}
-        <footer className="pt-6 border-t border-gray-100 text-center">
-          <div className="flex justify-center gap-4 text-caption text-text-light">
-            <Link href="/terms" className="hover:text-text-muted transition-colors">이용약관</Link>
-            <span>|</span>
-            <Link href="/privacy" className="hover:text-text-muted transition-colors">개인정보처리방침</Link>
-            <span>|</span>
-            <Link href="/refund" className="hover:text-text-muted transition-colors">환불 정책</Link>
-          </div>
-          <p className="text-caption text-text-light mt-2">
-            ChartIQ | 대표: 박재호
-          </p>
-        </footer>
       </main>
+
+      <Footer />
     </div>
   )
 }
