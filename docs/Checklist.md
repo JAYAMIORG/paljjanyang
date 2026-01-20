@@ -2,7 +2,7 @@
 
 > 작성일: 2025-01-15
 > 최종 업데이트: 2025-01-20
-> 상태: MVP 개발 중 (공유 기능 및 결과 캐싱 완료)
+> 상태: MVP 개발 중 (공유 리워드 및 UX 개선 완료)
 
 ---
 
@@ -114,7 +114,10 @@
 - [x] 새로고침 시 결과 캐싱 ✅ (2025-01-20)
   - 결과 저장 후 URL에 id 파라미터 추가
   - 새로고침 시 저장된 결과 불러오기 (코인 재차감 방지)
-- [ ] 공유 리워드 로직
+- [x] 공유 리워드 로직 ✅ (2025-01-20)
+  - 공유 시 1코인 적립 (최초 1회 한정)
+  - profiles 테이블에서 share_reward_claimed로 관리 (성능 최적화)
+  - 이미 받은 경우 "친구에게 결과를 공유해보세요" 문구 표시
 
 ---
 
@@ -168,6 +171,7 @@
 
 ### 레이아웃 컴포넌트 (`src/components/layout/`)
 - [x] Header (로고, 뒤로가기, 로그인 상태)
+- [x] Footer (사업자 정보, 이용약관/개인정보/환불정책 링크) ✅ NEW
 
 ### Supabase (`src/lib/supabase/`)
 - [x] client.ts (브라우저 클라이언트)
@@ -213,17 +217,18 @@
 /api/saju/interpret     - LLM 해석
 /api/saju/save          - 결과 저장
 /api/saju/history       - 조회 기록 (GET)
-/api/saju/history/[id]  - 기록 조회/삭제 (GET/DELETE) ✅ NEW
+/api/saju/history/[id]  - 기록 조회/삭제 (GET/DELETE)
 /api/saju/use-coin      - 코인 차감
-/api/saju/shared/[id]   - 공유 결과 조회 (공개) ✅ NEW
+/api/saju/shared/[id]   - 공유 결과 조회 (공개)
 /api/coin/balance       - 코인 잔액 조회
 /api/coin/packages      - 코인 패키지 목록
 /api/persons            - 인물 정보 저장/조회
 /api/payment/initiate   - 결제 시작 (토스페이먼츠)
 /api/payment/confirm    - 결제 확인 (토스페이먼츠)
-/api/payment/kakaopay/ready   - 카카오페이 결제 준비 ✅ NEW
-/api/payment/kakaopay/approve - 카카오페이 결제 승인 ✅ NEW
-/api/payment/kakaopay/cancel  - 카카오페이 결제 취소 ✅ NEW
+/api/payment/kakaopay/ready   - 카카오페이 결제 준비
+/api/payment/kakaopay/approve - 카카오페이 결제 승인
+/api/payment/kakaopay/cancel  - 카카오페이 결제 취소
+/api/share/reward       - 공유 리워드 (GET: 수령 여부, POST: 지급) ✅ NEW
 ```
 
 ### SQL 마이그레이션
@@ -259,8 +264,13 @@
 - [x] 인스타 공유 기능 (전체 해석 포함) ✅ (2025-01-20)
 - [x] 새로고침 시 결과 캐싱 ✅ (2025-01-20)
 - [x] 카카오페이 결제 추가 ✅ (2025-01-20)
+- [x] 공유 리워드 (공유 시 코인 적립) ✅ (2025-01-20)
+- [x] 사업자 정보 푸터 추가 ✅ (2025-01-20)
+- [x] UX 개선 ✅ (2025-01-20)
+  - 사주 결과 페이지 전체 로딩 화면으로 변경
+  - 로그아웃 시 랜딩페이지로 이동
+  - 법적 페이지 뒤로가기 히스토리 사용
 - [ ] 푸시 알림
-- [ ] 공유 리워드 (공유 시 코인 적립)
 
 ---
 
