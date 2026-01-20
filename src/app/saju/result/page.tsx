@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState, Suspense, useRef } from 'react'
+import { useEffect, useState, Suspense, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import html2canvas from 'html2canvas'
 import { Header } from '@/components/layout'
 import { Button, Card } from '@/components/ui'
 import { useAuth, useKakaoShare } from '@/hooks'
@@ -31,7 +32,9 @@ function ResultContent() {
   const [result, setResult] = useState<SajuResult | null>(null)
   const [showMobileOnlyModal, setShowMobileOnlyModal] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
+  const [isShareLoading, setIsShareLoading] = useState(false)
   const [interpretation, setInterpretation] = useState<string | null>(null)
+  const shareCardRef = useRef<HTMLDivElement>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isInterpretLoading, setIsInterpretLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -228,9 +231,77 @@ function ResultContent() {
     }
   }
 
-  // 인스타 공유 (이미지 저장 안내)
-  const handleInstagramShare = () => {
-    alert('화면을 스크린샷하여 인스타그램에 공유해주세요!')
+  // 공유 카드 이미지 생성
+  const generateShareImage = useCallback(async (): Promise<Blob | null> => {
+    if (!shareCardRef.current) return null
+
+    try {
+      const canvas = await html2canvas(shareCardRef.current, {
+        scale: 2,
+        backgroundColor: '#FFF8F0',
+        logging: false,
+        useCORS: true,
+      })
+
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0)
+      })
+    } catch (error) {
+      console.error('이미지 생성 실패:', error)
+      return null
+    }
+  }, [])
+
+  // 인스타그램 공유
+  const handleInstagramShare = async () => {
+    if (!result) return
+
+    setIsShareLoading(true)
+
+    try {
+      const imageBlob = await generateShareImage()
+
+      if (!imageBlob) {
+        alert('이미지 생성에 실패했습니다.')
+        setIsShareLoading(false)
+        return
+      }
+
+      // Web Share API 지원 확인 (모바일)
+      if (navigator.share && navigator.canShare) {
+        const file = new File([imageBlob], 'saju-result.png', { type: 'image/png' })
+
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: '나의 사주 결과',
+            text: `${result.dayMasterKorean}의 사주 결과를 확인해보세요!`,
+            files: [file],
+          })
+          setIsShareLoading(false)
+          return
+        }
+      }
+
+      // Web Share API 미지원 시 이미지 다운로드
+      const url = URL.createObjectURL(imageBlob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'saju-result.png'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      alert('이미지가 저장되었습니다. 인스타그램에서 직접 업로드해주세요!')
+    } catch (error) {
+      // 사용자가 공유 취소한 경우는 에러 아님
+      if ((error as Error).name !== 'AbortError') {
+        console.error('공유 실패:', error)
+        alert('공유에 실패했습니다.')
+      }
+    } finally {
+      setIsShareLoading(false)
+    }
   }
 
   // 카카오 공유
@@ -339,6 +410,68 @@ function ResultContent() {
     <div className="min-h-screen bg-background">
       <Header showBack useHistoryBack title="사주 분석 결과" />
 
+      {/* 공유용 카드 (화면 밖에 숨김) */}
+      <div className="fixed -left-[9999px] -top-[9999px]">
+        <div
+          ref={shareCardRef}
+          className="w-[360px] p-6 rounded-3xl"
+          style={{
+            background: 'linear-gradient(135deg, #FFF8F0 0%, #FFE4D6 100%)',
+          }}
+        >
+          {/* 로고 */}
+          <div className="text-center mb-4">
+            <span className="text-2xl font-bold text-primary">팔자냥</span>
+          </div>
+
+          {/* 메인 컨텐츠 */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <div className="text-center">
+              <span className="text-6xl mb-3 block">{result.zodiacEmoji}</span>
+              <h2 className="text-2xl font-bold text-gray-800 mb-1">
+                {result.dayMasterKorean}의 기운
+              </h2>
+              <p className="text-gray-500 mb-4">
+                {result.koreanGanji}
+              </p>
+
+              {/* 오행 차트 */}
+              <div className="flex justify-center gap-3 mb-4">
+                {(Object.entries(result.wuXing) as [keyof typeof result.wuXing, number][]).map(
+                  ([element, value]) => (
+                    <div
+                      key={element}
+                      className="flex flex-col items-center"
+                      style={{ opacity: value > 10 ? 1 : 0.5 }}
+                    >
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                        style={{ backgroundColor: WUXING_COLORS[element] }}
+                      >
+                        {value}
+                      </div>
+                      <span className="text-xs text-gray-500 mt-1">
+                        {WUXING_KOREAN[element].charAt(0)}
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
+
+              {/* 한 줄 요약 */}
+              <p className="text-sm text-gray-600 leading-relaxed">
+                {result.dominantElement}이 강한 {result.dayMasterKorean} 일간
+              </p>
+            </div>
+          </div>
+
+          {/* 하단 */}
+          <div className="text-center mt-4">
+            <p className="text-xs text-gray-400">나도 사주 보러가기 → paljjanyang.com</p>
+          </div>
+        </div>
+      </div>
+
       <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
         {/* 요약 카드 */}
         <Card variant="highlighted">
@@ -427,11 +560,18 @@ function ResultContent() {
           <div className="flex justify-center gap-4">
             <button
               onClick={handleInstagramShare}
-              className="w-14 h-14 flex items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 text-white hover:opacity-90 transition-opacity"
+              disabled={isShareLoading}
+              className={`w-14 h-14 flex items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 text-white transition-opacity ${
+                isShareLoading ? 'opacity-50 cursor-wait' : 'hover:opacity-90'
+              }`}
             >
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-              </svg>
+              {isShareLoading ? (
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+              )}
             </button>
 
             <button
