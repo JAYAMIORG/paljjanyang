@@ -22,10 +22,26 @@ function PaymentSuccessContent() {
 
   useEffect(() => {
     const confirmPayment = async () => {
+      const paymentType = searchParams.get('paymentType')
       const paymentKey = searchParams.get('paymentKey')
       const orderId = searchParams.get('orderId')
       const amount = searchParams.get('amount')
 
+      // 카카오페이 결제: 이미 approve 단계에서 코인 충전 완료됨
+      if (paymentType === 'kakaopay') {
+        const coins = searchParams.get('coins')
+        const balance = searchParams.get('balance')
+
+        setResult({
+          success: true,
+          balance: balance ? parseInt(balance) : 0,
+          coinsAdded: coins ? parseInt(coins) : 0,
+        })
+        setIsProcessing(false)
+        return
+      }
+
+      // 토스페이먼츠 결제
       if (!paymentKey || !orderId || !amount) {
         setResult({ success: false, error: '결제 정보가 올바르지 않습니다.' })
         setIsProcessing(false)
@@ -103,7 +119,7 @@ function PaymentSuccessContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header title="결제 완료" />
+      <Header />
       <main className="px-4 py-8 max-w-lg mx-auto">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🎉</div>
@@ -127,17 +143,17 @@ function PaymentSuccessContent() {
           </div>
         </Card>
 
-        <div className="space-y-3">
+        <div>
           {redirectUrl ? (
             <Button fullWidth onClick={() => router.push(redirectUrl)}>
               사주 결과 보러가기
             </Button>
           ) : (
-            <Link href="/home">
+            <Link href="/home" className="block">
               <Button fullWidth>사주 보러가기</Button>
             </Link>
           )}
-          <Link href="/mypage">
+          <Link href="/mypage" className="block mt-2">
             <Button variant="secondary" fullWidth>마이페이지</Button>
           </Link>
         </div>

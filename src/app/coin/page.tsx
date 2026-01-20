@@ -15,6 +15,7 @@ function CoinContent() {
   const [balance, setBalance] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
+  const [paymentMethod, setPaymentMethod] = useState<'카드' | '카카오페이' | null>(null)
 
   // redirect 파라미터 가져오기 (결제 후 이동할 URL)
   const redirectUrl = searchParams.get('redirect')
@@ -57,9 +58,38 @@ function CoinContent() {
   }, [authLoading, user])
 
   const handlePurchase = async () => {
-    if (!selectedPackage || !user) return
+    if (!selectedPackage || !user || !paymentMethod) return
 
     try {
+      // 카카오페이 결제
+      if (paymentMethod === '카카오페이') {
+        console.log('Calling KakaoPay ready API with packageId:', selectedPackage)
+        const response = await fetch('/api/payment/kakaopay/ready', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ packageId: selectedPackage }),
+        })
+
+        const data = await response.json()
+        console.log('KakaoPay ready response:', JSON.stringify(data, null, 2))
+
+        if (!data.success) {
+          console.error('KakaoPay error:', data.error)
+          alert(`[${data.error?.code}] ${data.error?.message || '카카오페이 결제 준비에 실패했습니다.'}`)
+          return
+        }
+
+        // 카카오페이 결제 페이지로 리다이렉트
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        const redirectUrl = isMobile
+          ? data.data.next_redirect_mobile_url
+          : data.data.next_redirect_pc_url
+
+        window.location.href = redirectUrl
+        return
+      }
+
+      // 토스페이먼츠 결제 (카드, 토스페이, 휴대폰)
       // 1. 결제 초기화 API 호출
       const response = await fetch('/api/payment/initiate', {
         method: 'POST',
@@ -93,7 +123,7 @@ function CoinContent() {
       const { loadTossPayments } = await import('@tosspayments/payment-sdk')
       const tossPayments = await loadTossPayments(clientKey)
 
-      await tossPayments.requestPayment('카드', {
+      await tossPayments.requestPayment(paymentMethod, {
         amount,
         orderId,
         orderName,
@@ -213,25 +243,50 @@ function CoinContent() {
           )}
         </div>
 
+        {/* 결제 수단 선택 */}
+        <div>
+          <h3 className="text-subheading font-semibold text-text mb-4">
+            결제 수단 선택
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { id: '카드', label: '신용카드', icon: '💳' },
+              { id: '카카오페이', label: '카카오페이', icon: '🟡' },
+            ].map((method) => (
+              <button
+                key={method.id}
+                onClick={() => setPaymentMethod(method.id as typeof paymentMethod)}
+                className={`
+                  p-4 rounded-xl border-2 transition-all text-center bg-white
+                  ${paymentMethod === method.id
+                    ? 'border-primary'
+                    : 'border-gray-200 hover:border-gray-300'
+                  }
+                `}
+              >
+                <span className="text-2xl block mb-1">{method.icon}</span>
+                <span className="text-small font-medium text-text">{method.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* 결제 버튼 */}
         <div className="sticky bottom-4">
           <Button
             fullWidth
             size="lg"
-            disabled={!selectedPackage}
+            disabled={!selectedPackage || !paymentMethod}
             onClick={handlePurchase}
           >
-            {selectedPackage
-              ? `${formatPrice(packages.find(p => p.id === selectedPackage)?.price || 0)}원 결제하기`
-              : '패키지를 선택해주세요'
+            {!selectedPackage
+              ? '패키지를 선택해주세요'
+              : !paymentMethod
+                ? '결제 수단을 선택해주세요'
+                : `${formatPrice(packages.find(p => p.id === selectedPackage)?.price || 0)}원 결제하기`
             }
           </Button>
         </div>
-
-        {/* 결제 수단 안내 */}
-        <p className="text-center text-caption text-text-light">
-          카드, 카카오페이, 토스페이 결제 가능
-        </p>
       </main>
     </div>
   )
