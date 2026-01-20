@@ -231,25 +231,39 @@ export default function MyPage() {
 
         {/* 메뉴 */}
         <div className="space-y-2">
-          <button className="w-full flex items-center justify-between p-4 bg-white rounded-xl hover:bg-gray-50 transition-colors">
+          <Link href="/terms" className="w-full flex items-center justify-between p-4 bg-white rounded-xl hover:bg-gray-50 transition-colors">
             <span className="text-body text-text">이용약관</span>
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M7 5l5 5-5 5" />
             </svg>
-          </button>
-          <button className="w-full flex items-center justify-between p-4 bg-white rounded-xl hover:bg-gray-50 transition-colors">
+          </Link>
+          <Link href="/privacy" className="w-full flex items-center justify-between p-4 bg-white rounded-xl hover:bg-gray-50 transition-colors">
             <span className="text-body text-text">개인정보처리방침</span>
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M7 5l5 5-5 5" />
             </svg>
-          </button>
-          <button className="w-full flex items-center justify-between p-4 bg-white rounded-xl hover:bg-gray-50 transition-colors">
-            <span className="text-body text-text">문의하기</span>
+          </Link>
+          <Link href="/refund" className="w-full flex items-center justify-between p-4 bg-white rounded-xl hover:bg-gray-50 transition-colors">
+            <span className="text-body text-text">환불 정책</span>
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M7 5l5 5-5 5" />
             </svg>
-          </button>
+          </Link>
         </div>
+
+        {/* Footer */}
+        <footer className="pt-6 border-t border-gray-100 text-center">
+          <div className="flex justify-center gap-4 text-caption text-text-light">
+            <Link href="/terms" className="hover:text-text-muted transition-colors">이용약관</Link>
+            <span>|</span>
+            <Link href="/privacy" className="hover:text-text-muted transition-colors">개인정보처리방침</Link>
+            <span>|</span>
+            <Link href="/refund" className="hover:text-text-muted transition-colors">환불 정책</Link>
+          </div>
+          <p className="text-caption text-text-light mt-2">
+            ChartIQ | 대표: 박재호
+          </p>
+        </footer>
       </main>
     </div>
   )

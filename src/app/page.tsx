@@ -148,11 +148,18 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="py-8 px-6 border-t border-gray-100">
         <div className="max-w-lg mx-auto text-center">
+          <div className="flex justify-center gap-4 text-caption text-text-light mb-4">
+            <Link href="/terms" className="hover:text-text-muted transition-colors">이용약관</Link>
+            <span>|</span>
+            <Link href="/privacy" className="hover:text-text-muted transition-colors">개인정보처리방침</Link>
+            <span>|</span>
+            <Link href="/refund" className="hover:text-text-muted transition-colors">환불 정책</Link>
+          </div>
           <p className="text-caption text-text-light">
-            팔자냥 | 만세력 기반 사주 분석 서비스
+            ChartIQ | 대표: 박재호
           </p>
           <p className="text-caption text-text-light mt-1">
-            문의: contact@paljjanyang.com
+            문의: abc@abc.com | 010-5148-4187
           </p>
         </div>
       </footer>

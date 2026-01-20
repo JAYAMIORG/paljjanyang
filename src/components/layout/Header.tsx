@@ -69,7 +69,7 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-gray-100">
       <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {showBack ? (
             useHistoryBack ? <BackButton /> : <BackLink />
           ) : (
