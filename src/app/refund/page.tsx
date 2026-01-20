@@ -6,7 +6,7 @@ import { Card } from '@/components/ui'
 export default function RefundPage() {
   return (
     <div className="min-h-screen bg-background">
-      <Header showBack title="환불 정책" />
+      <Header showBack title="환불 정책" showAuth={false} />
       <main className="px-4 py-6 max-w-3xl mx-auto">
         <div className="prose prose-sm max-w-none text-text">
           <p className="text-text-muted mb-6">시행일: 2025년 1월 20일</p>

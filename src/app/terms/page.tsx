@@ -5,7 +5,7 @@ import { Header } from '@/components/layout'
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-background">
-      <Header showBack title="서비스 이용약관" />
+      <Header showBack title="서비스 이용약관" showAuth={false} />
       <main className="px-4 py-6 max-w-3xl mx-auto">
         <div className="prose prose-sm max-w-none text-text">
           <p className="text-text-muted mb-6">시행일: 2025년 1월 20일</p>
