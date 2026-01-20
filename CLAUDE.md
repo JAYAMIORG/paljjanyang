@@ -164,4 +164,7 @@ TOSS_SECRET_KEY=
 
 # AI (Claude)
 ANTHROPIC_API_KEY=
+
+# Kakao (공유 기능)
+NEXT_PUBLIC_KAKAO_JS_KEY=
 ```

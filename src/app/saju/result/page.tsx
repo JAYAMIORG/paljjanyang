@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Header } from '@/components/layout'
 import { Button, Card } from '@/components/ui'
-import { useAuth } from '@/hooks'
+import { useAuth, useKakaoShare } from '@/hooks'
 import type { SajuResult } from '@/types/saju'
 
 const WUXING_COLORS: Record<string, string> = {
@@ -26,7 +26,8 @@ const WUXING_KOREAN: Record<string, string> = {
 function ResultContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { user, loading: authLoading, isConfigured } = useAuth()
+  const { user, loading: authLoading } = useAuth()
+  const { share: shareKakao, isReady: isKakaoReady } = useKakaoShare()
   const [result, setResult] = useState<SajuResult | null>(null)
   const [interpretation, setInterpretation] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -232,8 +233,20 @@ function ResultContent() {
 
   // 카카오 공유
   const handleKakaoShare = () => {
-    // TODO: 카카오 SDK 연동
-    alert('카카오톡 공유 기능은 준비 중입니다.')
+    if (!result) return
+
+    const typeLabel = {
+      personal: '개인 사주',
+      yearly: '신년운세',
+      compatibility: '궁합',
+      love: '연애운',
+    }[type] || '사주'
+
+    shareKakao({
+      title: `${result.dayMasterKorean}의 ${typeLabel} 결과`,
+      description: `${result.koreanGanji} - 나의 사주를 확인해보세요!`,
+      buttonText: '나도 사주 보러가기',
+    })
   }
 
   if (isLoading) {
@@ -409,7 +422,10 @@ function ResultContent() {
 
             <button
               onClick={handleKakaoShare}
-              className="w-14 h-14 flex items-center justify-center rounded-xl bg-[#FEE500] text-[#3C1E1E] hover:opacity-90 transition-opacity"
+              disabled={!isKakaoReady}
+              className={`w-14 h-14 flex items-center justify-center rounded-xl bg-[#FEE500] text-[#3C1E1E] transition-opacity ${
+                isKakaoReady ? 'hover:opacity-90' : 'opacity-50 cursor-not-allowed'
+              }`}
             >
               <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 3c-5.52 0-10 3.59-10 8 0 2.84 1.89 5.33 4.71 6.72-.17.64-.68 2.53-.78 2.92-.12.49.18.48.38.35.16-.1 2.49-1.68 3.49-2.36.72.11 1.46.17 2.2.17 5.52 0 10-3.59 10-8s-4.48-8-10-8z"/>
