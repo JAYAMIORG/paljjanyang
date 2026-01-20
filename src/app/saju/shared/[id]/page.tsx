@@ -22,6 +22,98 @@ const WUXING_KOREAN: Record<string, string> = {
   water: '수(水)',
 }
 
+// 마크다운 섹션 파싱
+function parseMarkdownSections(markdown: string): { title: string | null; content: string }[] {
+  const lines = markdown.split('\n')
+  const sections: { title: string | null; content: string }[] = []
+  let currentSection: { title: string | null; content: string[] } = { title: null, content: [] }
+
+  for (const line of lines) {
+    const headerMatch = line.match(/^#{1,3}\s+(.+)$/)
+    if (headerMatch) {
+      if (currentSection.content.length > 0 || currentSection.title) {
+        sections.push({
+          title: currentSection.title,
+          content: currentSection.content.join('\n').trim(),
+        })
+      }
+      currentSection = { title: headerMatch[1], content: [] }
+    } else {
+      currentSection.content.push(line)
+    }
+  }
+
+  if (currentSection.content.length > 0 || currentSection.title) {
+    sections.push({
+      title: currentSection.title,
+      content: currentSection.content.join('\n').trim(),
+    })
+  }
+
+  return sections.filter(s => s.content.trim() || s.title)
+}
+
+// LLM 해석 표시 컴포넌트
+function InterpretationCard({ content }: { content: string }) {
+  const sections = parseMarkdownSections(content)
+
+  return (
+    <div className="space-y-4">
+      {sections.map((section, index) => (
+        <Card key={index}>
+          {section.title && (
+            <h3 className="text-subheading font-semibold text-text mb-3">
+              {section.title}
+            </h3>
+          )}
+          <div className="text-body text-text-muted leading-relaxed whitespace-pre-wrap">
+            {section.content}
+          </div>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+// 폴백 해석
+function FallbackInterpretation({ data }: { data: NonNullable<SharedReadingResponse['data']> }) {
+  const getPersonalityByElement = (element: string): string => {
+    const traits: Record<string, string> = {
+      '목(木)': '성장과 발전을 추구하는 진취적인 성격입니다',
+      '화(火)': '열정적이고 활동적인 에너지가 넘칩니다',
+      '토(土)': '안정적이고 신뢰감을 주는 성격입니다',
+      '금(金)': '결단력이 있고 원칙을 중시합니다',
+      '수(水)': '지혜롭고 유연한 사고를 가지고 있습니다',
+    }
+    return traits[element] || '균형 잡힌 성격입니다'
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <h3 className="text-subheading font-semibold text-text mb-3">
+          핵심 요약
+        </h3>
+        <p className="text-body text-text-muted leading-relaxed">
+          <span className="font-semibold text-primary">{data.dayMasterKorean}</span>의
+          성향을 가진 사주입니다. {data.dominantElement}이 강하여
+          추진력과 에너지가 넘치는 특징이 있습니다.
+        </p>
+      </Card>
+
+      <Card>
+        <h3 className="text-subheading font-semibold text-text mb-3">
+          성격과 기질
+        </h3>
+        <p className="text-body text-text-muted leading-relaxed">
+          {data.dayMasterKorean}의 성향을 가진 사람은 {getPersonalityByElement(data.dominantElement)}.
+          목표를 향해 꾸준히 나아가는 성격이며, 주변 사람들에게 신뢰를 주는 편입니다.
+        </p>
+      </Card>
+    </div>
+  )
+}
+
 export default function SharedResultPage() {
   const params = useParams()
   const router = useRouter()
@@ -157,38 +249,11 @@ export default function SharedResultPage() {
           </div>
         </Card>
 
-        {/* 해석 요약 */}
-        {data.interpretation && (
-          <Card>
-            <h3 className="text-subheading font-semibold text-text mb-3">
-              사주 해석
-            </h3>
-            <div className="text-body text-text-muted leading-relaxed">
-              {data.interpretation.length > 500
-                ? `${data.interpretation.slice(0, 500)}...`
-                : data.interpretation
-              }
-              {data.interpretation.length > 500 && (
-                <p className="text-small text-primary mt-3 font-medium">
-                  전체 내용은 직접 분석해보세요!
-                </p>
-              )}
-            </div>
-          </Card>
-        )}
-
-        {/* 기본 해석 (LLM 해석이 없는 경우) */}
-        {!data.interpretation && (
-          <Card>
-            <h3 className="text-subheading font-semibold text-text mb-3">
-              핵심 요약
-            </h3>
-            <p className="text-body text-text-muted leading-relaxed">
-              <span className="font-semibold text-primary">{data.dayMasterKorean}</span>의
-              성향을 가진 사주입니다. {data.dominantElement}이 강하여
-              추진력과 에너지가 넘치는 특징이 있습니다.
-            </p>
-          </Card>
+        {/* 해석 - 원본과 동일한 형태로 표시 */}
+        {data.interpretation ? (
+          <InterpretationCard content={data.interpretation} />
+        ) : (
+          <FallbackInterpretation data={data} />
         )}
 
         {/* CTA 영역 */}
