@@ -24,6 +24,20 @@ const WUXING_KOREAN: Record<string, string> = {
   water: '수(水)',
 }
 
+// 일간 오행 이모지 매핑
+const DAY_MASTER_EMOJI: Record<string, string> = {
+  '甲': '🌳', '乙': '🌿',
+  '丙': '☀️', '丁': '🕯️',
+  '戊': '⛰️', '己': '🏔️',
+  '庚': '⚔️', '辛': '💎',
+  '壬': '🌊', '癸': '💧',
+}
+
+// 일간에서 이모지 가져오기
+const getDayMasterEmoji = (dayMaster: string): string => {
+  return DAY_MASTER_EMOJI[dayMaster] || '🐱'
+}
+
 function ResultContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -526,7 +540,7 @@ function ResultContent() {
             border: '1px solid #F3E8DE'
           }}>
             <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: '48px', display: 'block', marginBottom: '8px' }}>{result.zodiacEmoji}</span>
+              <span style={{ fontSize: '48px', display: 'block', marginBottom: '8px' }}>{getDayMasterEmoji(result.dayMaster)}</span>
               <h2 style={{ fontSize: '22px', fontWeight: 'bold', color: '#1F2937', marginBottom: '4px' }}>
                 {result.dayMasterKorean}의 기운
               </h2>
@@ -656,7 +670,7 @@ function ResultContent() {
         {/* 요약 카드 */}
         <Card variant="highlighted">
           <div className="text-center">
-            <span className="text-5xl mb-3 block">{result.zodiacEmoji}</span>
+            <span className="text-5xl mb-3 block">{getDayMasterEmoji(result.dayMaster)}</span>
             <h2 className="text-heading font-semibold text-text mb-2">
               {result.dayMasterKorean}의 기운
             </h2>
