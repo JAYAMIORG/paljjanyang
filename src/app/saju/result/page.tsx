@@ -53,6 +53,7 @@ function ResultContent() {
   const day = searchParams.get('day')
   const hour = searchParams.get('hour')
   const lunar = searchParams.get('lunar')
+  const savedId = searchParams.get('id') // 저장된 결과 ID
 
   // 자동 저장 함수
   const autoSave = async (sajuResult: SajuResult, interpretationText: string | null) => {
@@ -82,6 +83,10 @@ function ResultContent() {
       const data = await response.json()
       if (data.success && data.data?.readingId) {
         setReadingId(data.data.readingId)
+        // URL에 id 추가하여 새로고침 시 저장된 결과 사용
+        const newUrl = new URL(window.location.href)
+        newUrl.searchParams.set('id', data.data.readingId)
+        window.history.replaceState({}, '', newUrl.toString())
       }
     } catch {
       // 저장 실패해도 결과는 보여줌
@@ -123,6 +128,40 @@ function ResultContent() {
     }
   }
 
+  // 저장된 결과 불러오기
+  const fetchSavedReading = async (id: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/saju/history/${id}`)
+      const data = await response.json()
+
+      if (data.success && data.data) {
+        setResult({
+          bazi: data.data.bazi,
+          wuXing: data.data.wuXing,
+          dayMaster: data.data.dayMaster,
+          dayMasterKorean: data.data.dayMasterKorean,
+          koreanGanji: data.data.koreanGanji,
+          zodiacEmoji: data.data.zodiacEmoji,
+          dominantElement: data.data.dominantElement,
+          weakElement: data.data.weakElement,
+          daYun: data.data.daYun || [],
+          // 저장되지 않은 필드는 기본값 사용
+          shiShen: { yearGan: '', monthGan: '', hourGan: null },
+          zodiac: '',
+          naYin: '',
+        })
+        setInterpretation(data.data.interpretation)
+        setReadingId(id)
+        hasSavedRef.current = true // 이미 저장된 결과
+        hasDeductedCoinRef.current = true // 이미 코인 차감됨
+        return true
+      }
+      return false
+    } catch {
+      return false
+    }
+  }
+
   // 사주 계산 및 코인 차감
   useEffect(() => {
     // 인증 로딩 중이면 대기
@@ -135,16 +174,26 @@ function ResultContent() {
       hasStartedRef.current = true
 
       try {
-        if (!year || !month || !day || !gender) {
-          setError('필수 정보가 누락되었습니다.')
-          setIsLoading(false)
-          return
-        }
-
         // 로그인 체크 (인증 로딩 완료 후)
         if (!user) {
           const currentUrl = `/saju/result?${searchParams.toString()}`
           router.push(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`)
+          return
+        }
+
+        // 저장된 결과가 있으면 불러오기
+        if (savedId) {
+          const loaded = await fetchSavedReading(savedId)
+          if (loaded) {
+            setIsLoading(false)
+            return
+          }
+        }
+
+        // 새로 계산하는 경우
+        if (!year || !month || !day || !gender) {
+          setError('필수 정보가 누락되었습니다.')
+          setIsLoading(false)
           return
         }
 
@@ -186,9 +235,12 @@ function ResultContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, user])
 
-  // LLM 해석 요청 및 자동 저장
+  // LLM 해석 요청 및 자동 저장 (저장된 결과가 아닌 경우만)
   useEffect(() => {
     if (!result || !user) return
+
+    // 이미 저장된 결과를 불러온 경우 스킵
+    if (hasSavedRef.current) return
 
     const fetchInterpretation = async () => {
       setIsInterpretLoading(true)
