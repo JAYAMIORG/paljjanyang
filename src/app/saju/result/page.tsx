@@ -241,12 +241,26 @@ function ResultContent() {
     if (!shareCardRef.current) return null
 
     try {
-      const canvas = await html2canvas(shareCardRef.current, {
+      // 캡처 전 요소를 화면에 임시로 표시 (오프스크린 렌더링 문제 해결)
+      const element = shareCardRef.current
+      const originalStyle = element.parentElement?.getAttribute('style') || ''
+      if (element.parentElement) {
+        element.parentElement.style.cssText = 'position: fixed; left: 0; top: 0; z-index: -1; opacity: 0;'
+      }
+
+      const canvas = await html2canvas(element, {
         scale: 2,
         backgroundColor: '#FFF8F0',
         logging: false,
         useCORS: true,
+        height: element.scrollHeight,
+        windowHeight: element.scrollHeight + 100,
       })
+
+      // 원래 스타일로 복원
+      if (element.parentElement) {
+        element.parentElement.style.cssText = originalStyle
+      }
 
       return new Promise((resolve) => {
         canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0)
