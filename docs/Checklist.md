@@ -201,7 +201,10 @@
 ├── /saju/shared/[id] (공유된 결과 - 로그인 불필요) ✅ NEW
 ├── /mypage (마이페이지)
 ├── /coin (코인 충전)
-└── /payment/success, /payment/fail (결제 결과)
+├── /payment/success, /payment/fail (결제 결과)
+├── /terms (서비스 이용약관) ✅ NEW
+├── /privacy (개인정보처리방침) ✅ NEW
+└── /refund (환불 정책) ✅ NEW
 ```
 
 ### API Routes
@@ -220,6 +223,7 @@
 /api/payment/confirm    - 결제 확인 (토스페이먼츠)
 /api/payment/kakaopay/ready   - 카카오페이 결제 준비 ✅ NEW
 /api/payment/kakaopay/approve - 카카오페이 결제 승인 ✅ NEW
+/api/payment/kakaopay/cancel  - 카카오페이 결제 취소 ✅ NEW
 ```
 
 ### SQL 마이그레이션
@@ -241,7 +245,12 @@
 ### 중간 우선순위
 - [ ] 궁합 계산 API 및 결과 페이지
 - [ ] 신년운세 월별 결과 페이지
-- [ ] 이용약관/개인정보처리방침 페이지
+- [x] 이용약관/개인정보처리방침 페이지 ✅ (2025-01-20)
+  - /terms - 서비스 이용약관
+  - /privacy - 개인정보처리방침
+  - /refund - 환불 정책
+- [x] 결제 취소 API ✅ (2025-01-20)
+  - /api/payment/kakaopay/cancel - 카카오페이 결제 취소
 - [ ] 에러 처리 및 로딩 상태 개선
 
 ### 낮은 우선순위 (출시 후)

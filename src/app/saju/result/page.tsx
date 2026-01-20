@@ -56,6 +56,8 @@ function ResultContent() {
   const [showInsufficientModal, setShowInsufficientModal] = useState(false)
   const [coinBalance, setCoinBalance] = useState<number>(0)
   const [readingId, setReadingId] = useState<string | null>(null)
+  const [shareRewardClaimed, setShareRewardClaimed] = useState(false)
+  const [showRewardToast, setShowRewardToast] = useState(false)
   const hasSavedRef = useRef(false)
   const hasDeductedCoinRef = useRef(false)
   const hasStartedRef = useRef(false)
@@ -291,11 +293,36 @@ function ResultContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result])
 
+  // 공유 보상 요청
+  const claimShareReward = async () => {
+    if (shareRewardClaimed) return
+
+    try {
+      const response = await fetch('/api/share/reward', {
+        method: 'POST',
+      })
+      const data = await response.json()
+
+      if (data.success) {
+        if (data.data.rewarded) {
+          // 보상 지급됨
+          setShowRewardToast(true)
+          setTimeout(() => setShowRewardToast(false), 3000)
+        }
+        setShareRewardClaimed(true)
+      }
+    } catch {
+      // 보상 실패해도 공유는 진행
+      console.error('Share reward failed')
+    }
+  }
+
   // 링크 복사
   const handleCopyLink = async () => {
     try {
       const shareUrl = getShareUrl()
       await navigator.clipboard.writeText(shareUrl)
+      await claimShareReward()
       alert('링크가 복사되었습니다!')
     } catch {
       alert('링크 복사에 실패했습니다.')
@@ -362,6 +389,7 @@ function ResultContent() {
             text: `${result.dayMasterKorean}의 사주 결과를 확인해보세요!`,
             files: [file],
           })
+          await claimShareReward()
           setIsShareLoading(false)
           return
         }
@@ -377,6 +405,7 @@ function ResultContent() {
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
 
+      await claimShareReward()
       alert('이미지가 저장되었습니다. 인스타그램에서 직접 업로드해주세요!')
     } catch (error) {
       // 사용자가 공유 취소한 경우는 에러 아님
@@ -409,6 +438,7 @@ function ResultContent() {
       try {
         await navigator.clipboard.writeText(shareUrl)
         setCopiedLink(true)
+        await claimShareReward()
       } catch {
         setCopiedLink(false)
       }
@@ -429,6 +459,9 @@ function ResultContent() {
       buttonText: '결과 보러가기',
       shareUrl,
     })
+
+    // 카카오 공유 시 보상 지급 (실제 공유 여부 확인 불가)
+    await claimShareReward()
   }
 
   if (isLoading) {
@@ -790,9 +823,15 @@ function ResultContent() {
               </svg>
             </button>
           </div>
-          <p className="text-center text-small text-accent mt-3">
-            공유하면 1코인 적립!
-          </p>
+          {!shareRewardClaimed ? (
+            <p className="text-center text-small text-accent mt-3">
+              공유하면 1코인 적립!
+            </p>
+          ) : (
+            <p className="text-center text-small text-text-muted mt-3">
+              친구에게 결과를 공유해보세요
+            </p>
+          )}
         </Card>
 
         {/* 다른 사주 보기 버튼 */}
@@ -835,6 +874,16 @@ function ResultContent() {
                 확인
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 공유 보상 토스트 */}
+      {showRewardToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 animate-bounce">
+          <div className="bg-primary text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2">
+            <span className="text-xl">🎉</span>
+            <span className="font-medium">1코인 적립 완료!</span>
           </div>
         </div>
       )}

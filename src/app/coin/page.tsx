@@ -174,7 +174,7 @@ function CoinContent() {
           </h3>
           <ul className="text-small text-text-muted space-y-1">
             <li>• 사주 1회 분석 = 1 코인</li>
-            <li>• 결과 공유하면 1 코인 적립 (월 1회)</li>
+            <li>• 결과 공유하면 1 코인 적립 (최초 1회)</li>
             <li>• 충전한 코인은 환불되지 않아요</li>
           </ul>
         </div>
