@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui'
 
 export default function LandingPage() {
@@ -8,40 +9,50 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative px-6 pt-16 pb-12 text-center">
-        {/* 배경 데코레이션 */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-10 left-10 text-6xl opacity-10">✨</div>
-          <div className="absolute top-20 right-8 text-4xl opacity-10">🌙</div>
-          <div className="absolute bottom-20 left-6 text-5xl opacity-10">⭐</div>
+        {/* 배경 이미지 */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-90"
+          style={{ backgroundImage: "url('/images/main-bg-4.png')" }}
+        />
+        <div className="relative max-w-[500px] mx-auto">
+          {/* 로고 */}
+          <div className="mb-8 w-full flex justify-center">
+            <Image
+              src="/images/logo.png"
+              alt="팔자냥"
+              width={0}
+              height={0}
+              sizes="100vw"
+              className="w-full h-auto"
+              priority
+            />
+          </div>
+          <div className="mb-2 w-full flex justify-center pl-[20px]">
+            <Image
+              src="/images/main-desc-1.png"
+              alt="요즘 다들 이걸로 사주 본대"
+              width={0}
+              height={0}
+              sizes="100vw"
+              className="w-full h-auto"
+            />
+          </div>
+          <p className="text-body text-text-muted mb-8">
+            만세력 기반 정통 사주 분석
+          </p>
+
+          {/* CTA 버튼 */}
+          <Link href="/home" className="block w-full">
+            <Button variant="cartoon" size="lg" fullWidth>
+              🔮 내 사주 보러가기
+            </Button>
+          </Link>
         </div>
-
-        {/* 로고 */}
-        <div className="mb-8">
-          <span className="text-6xl">🐱</span>
-        </div>
-
-        {/* 메인 카피 */}
-        <h1 className="font-serif text-display text-primary mb-4">
-          팔자냥
-        </h1>
-        <p className="text-heading text-text mb-2">
-          요즘 다들 이걸로 사주 본대
-        </p>
-        <p className="text-body text-text-muted mb-8">
-          만세력 기반 정통 사주 분석
-        </p>
-
-        {/* CTA 버튼 */}
-        <Link href="/home">
-          <Button size="lg" className="px-12">
-            🔮 내 사주 보러가기
-          </Button>
-        </Link>
       </section>
 
       {/* 소셜 프루프 */}
-      <section className="py-8 bg-primary/5">
-        <div className="max-w-lg mx-auto px-6 text-center">
+      <section className="py-8 px-6 bg-primary/5">
+        <div className="max-w-[500px] mx-auto text-center">
           <p className="text-body text-text-muted">
             벌써 <span className="font-bold text-primary">10,000+</span>명이 함께했어요
           </p>
@@ -49,38 +60,40 @@ export default function LandingPage() {
       </section>
 
       {/* 특징 섹션 */}
-      <section className="py-12 px-6 max-w-lg mx-auto">
-        <h2 className="text-heading font-semibold text-text text-center mb-8">
-          왜 팔자냥일까요?
-        </h2>
+      <section className="py-12 px-6">
+        <div className="max-w-[500px] mx-auto">
+          <h2 className="text-heading font-semibold text-text text-center mb-8">
+            왜 팔자냥일까요?
+          </h2>
 
-        <div className="space-y-6">
-          <FeatureCard
-            icon="📚"
-            title="만세력 기반 정통 분석"
-            description="전통 명리학에 기반한 정확한 사주팔자 계산"
-          />
-          <FeatureCard
-            icon="👨‍🏫"
-            title="전문가 맞춤 해석"
-            description="당신만을 위한 개인화된 상세 해석 제공"
-          />
-          <FeatureCard
-            icon="🎯"
-            title="쉽고 명확한 결과"
-            description="어려운 사주 용어 없이 누구나 이해할 수 있는 설명"
-          />
-          <FeatureCard
-            icon="💕"
-            title="다양한 운세"
-            description="개인 사주, 신년운세, 궁합, 연애운까지"
-          />
+          <div className="space-y-6">
+            <FeatureCard
+              icon="📚"
+              title="만세력 기반 정통 분석"
+              description="전통 명리학에 기반한 정확한 사주팔자 계산"
+            />
+            <FeatureCard
+              icon="👨‍🏫"
+              title="전문가 맞춤 해석"
+              description="당신만을 위한 개인화된 상세 해석 제공"
+            />
+            <FeatureCard
+              icon="🎯"
+              title="쉽고 명확한 결과"
+              description="어려운 사주 용어 없이 누구나 이해할 수 있는 설명"
+            />
+            <FeatureCard
+              icon="💕"
+              title="다양한 운세"
+              description="개인 사주, 신년운세, 궁합, 연애운까지"
+            />
+          </div>
         </div>
       </section>
 
       {/* 서비스 미리보기 */}
       <section className="py-12 px-6 bg-background-cream">
-        <div className="max-w-lg mx-auto text-center">
+        <div className="max-w-[500px] mx-auto text-center">
           <h2 className="text-heading font-semibold text-text mb-4">
             이런 것들을 알 수 있어요
           </h2>
@@ -101,7 +114,7 @@ export default function LandingPage() {
 
       {/* 후기 섹션 */}
       <section className="py-12 px-6">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-[500px] mx-auto">
           <h2 className="text-heading font-semibold text-text text-center mb-8">
             이용 후기
           </h2>
@@ -128,7 +141,7 @@ export default function LandingPage() {
 
       {/* 최종 CTA */}
       <section className="py-16 px-6 bg-gradient-to-b from-primary/5 to-primary/10">
-        <div className="max-w-lg mx-auto text-center">
+        <div className="max-w-[500px] mx-auto text-center">
           <span className="text-5xl mb-4 block">🐱✨</span>
           <h2 className="text-heading font-semibold text-text mb-2">
             지금 바로 시작하세요
@@ -137,8 +150,8 @@ export default function LandingPage() {
             나의 사주팔자가 궁금하다면
           </p>
 
-          <Link href="/home">
-            <Button size="lg" className="px-12">
+          <Link href="/home" className="block w-full">
+            <Button variant="cartoon" size="lg" fullWidth>
               🔮 내 사주 보러가기
             </Button>
           </Link>
@@ -147,7 +160,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="py-8 px-6 bg-gray-50 border-t border-gray-200">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-[500px] mx-auto">
           <div className="text-caption text-text-light space-y-1 mb-4">
             <p className="font-medium text-text-muted">ChartIQ</p>
             <p>대표자: 박재호 | 사업자등록번호: 794-29-01712</p>

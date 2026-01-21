@@ -2,7 +2,7 @@
 
 import { forwardRef, ButtonHTMLAttributes } from 'react'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost'
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'cartoon'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -29,6 +29,13 @@ const variantStyles: Record<ButtonVariant, string> = {
     bg-transparent text-text-muted
     hover:text-primary
     hover:bg-primary/5
+  `,
+  cartoon: `
+    bg-primary text-white
+    border-b-4 border-primary-dark
+    rounded-full
+    shadow-lg
+    active:translate-y-0 active:border-b-2 active:shadow-md
   `,
 }
 

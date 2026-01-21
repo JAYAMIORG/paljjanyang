@@ -45,7 +45,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <main className="mx-auto max-w-md min-h-screen">
+        <main className="mx-auto max-w-[500px] min-h-screen">
           {children}
         </main>
       </body>
