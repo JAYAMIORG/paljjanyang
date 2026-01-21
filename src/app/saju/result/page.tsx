@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import html2canvas from 'html2canvas'
 import { Header } from '@/components/layout'
 import { Button, Card, LoadingScreen, ErrorScreen, InsufficientCoinsModal } from '@/components/ui'
-import { YearlyResultContent, CompatibilityResultContent } from '@/components/result'
+import { YearlyResultContent, CompatibilityResultContent, DailyResultContent } from '@/components/result'
 import { useAuth, useKakaoShare } from '@/hooks'
 import type { SajuResult } from '@/types/saju'
 
@@ -60,6 +60,7 @@ function ResultContent() {
   const [readingId, setReadingId] = useState<string | null>(null)
   const [shareRewardClaimed, setShareRewardClaimed] = useState(false)
   const [showRewardToast, setShowRewardToast] = useState(false)
+  const [isDailyNew, setIsDailyNew] = useState(true) // 오늘의 운세가 새로 생성된 것인지
   const hasSavedRef = useRef(false)
   const hasDeductedCoinRef = useRef(false)
   const hasStartedRef = useRef(false)
@@ -73,8 +74,9 @@ function ResultContent() {
   const lunar = searchParams.get('lunar')
   const savedId = searchParams.get('id') // 저장된 결과 ID
 
-  // 궁합용 파라미터 (두 번째 사람)
+  // 타입별 분기
   const isCompatibility = type === 'compatibility'
+  const isDaily = type === 'daily'
   const name1 = searchParams.get('name1') || '첫 번째 사람'
   const name2 = searchParams.get('name2') || '두 번째 사람'
   const gender2 = searchParams.get('gender2') || 'female'
@@ -260,7 +262,57 @@ function ResultContent() {
           return
         }
 
-        // 코인 차감 먼저 시도
+        // 오늘의 운세는 무료 - 별도 API 사용
+        if (isDaily) {
+          // 먼저 사주 계산
+          const calcResponse = await fetch('/api/saju/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              birthYear: parseInt(year),
+              birthMonth: parseInt(month),
+              birthDay: parseInt(day),
+              birthHour: hour && parseInt(hour) >= 0 ? parseInt(hour) : null,
+              isLunar: lunar === '1',
+              isLeapMonth: false,
+              gender,
+            }),
+          })
+
+          const calcData = await calcResponse.json()
+          if (!calcData.success) {
+            setError(calcData.error?.message || '사주 계산 중 오류가 발생했습니다.')
+            setIsLoading(false)
+            return
+          }
+
+          // daily API 호출 (하루 1회 제한 + LLM 해석)
+          const dailyResponse = await fetch('/api/saju/daily', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sajuResult: calcData.data,
+              gender,
+            }),
+          })
+
+          const dailyData = await dailyResponse.json()
+          if (!dailyData.success) {
+            setError(dailyData.error?.message || '오늘의 운세 조회 중 오류가 발생했습니다.')
+            setIsLoading(false)
+            return
+          }
+
+          setResult(calcData.data)
+          setInterpretation(dailyData.data.interpretation)
+          setIsDailyNew(dailyData.data.isNew)
+          hasSavedRef.current = true // daily는 API에서 자동 저장
+          hasDeductedCoinRef.current = true // 무료이지만 중복 방지용
+          setIsLoading(false)
+          return
+        }
+
+        // 코인 차감 먼저 시도 (daily 외 타입)
         const coinDeducted = await deductCoin()
         if (!coinDeducted) {
           setIsLoading(false)
@@ -627,6 +679,7 @@ function ResultContent() {
     yearly: '신년운세 결과',
     compatibility: '궁합 분석 결과',
     love: '연애운 결과',
+    daily: '오늘의 운세',
   }[type] || '사주 분석 결과'
 
   return (
@@ -793,8 +846,8 @@ function ResultContent() {
       </div>
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
-        {/* 요약 카드 - 신년운세/궁합 외 타입에서만 표시 */}
-        {type !== 'yearly' && type !== 'compatibility' && (
+        {/* 요약 카드 - 신년운세/궁합/오늘의운세 외 타입에서만 표시 */}
+        {type !== 'yearly' && type !== 'compatibility' && type !== 'daily' && (
           <Card variant="highlighted">
             <div className="text-center">
               <span className="text-5xl mb-3 block">{getDayMasterEmoji(result.dayMaster)}</span>
@@ -832,7 +885,13 @@ function ResultContent() {
         )}
 
         {/* 전문가 해석 또는 폴백 - 타입별 분기 */}
-        {type === 'yearly' ? (
+        {type === 'daily' ? (
+          <DailyResultContent
+            result={result}
+            interpretation={interpretation}
+            isNew={isDailyNew}
+          />
+        ) : type === 'yearly' ? (
           <YearlyResultContent result={result} interpretation={interpretation} />
         ) : type === 'compatibility' && result2 ? (
           <CompatibilityResultContent
@@ -850,8 +909,8 @@ function ResultContent() {
           <FallbackInterpretation result={result} />
         )}
 
-        {/* 대운 흐름 - 신년운세/궁합 외 타입에서만 표시 */}
-        {type !== 'yearly' && type !== 'compatibility' && (
+        {/* 대운 흐름 - 신년운세/궁합/오늘의운세 외 타입에서만 표시 */}
+        {type !== 'yearly' && type !== 'compatibility' && type !== 'daily' && (
           <Card>
             <h3 className="text-subheading font-semibold text-text mb-4">
               대운 흐름
@@ -877,7 +936,8 @@ function ResultContent() {
           </Card>
         )}
 
-        {/* 공유 */}
+        {/* 공유 - 오늘의 운세 제외 */}
+        {type !== 'daily' && (
         <Card>
           <h3 className="text-subheading font-semibold text-text mb-4">
             친구에게 공유하기
@@ -933,6 +993,7 @@ function ResultContent() {
             </p>
           )}
         </Card>
+        )}
 
         {/* 다른 사주 보기 버튼 */}
         <Button

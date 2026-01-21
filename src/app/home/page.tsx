@@ -120,8 +120,12 @@ function SajuTypeCard({
           <div className="flex-1">
             <div className="flex items-start justify-between mb-1">
               <h3 className="text-subheading font-semibold text-text">{title}</h3>
-              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
-                {coinCost} 코인
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
+                coinCost === 0
+                  ? 'bg-green-100 text-green-600'
+                  : 'bg-primary/10 text-primary'
+              }`}>
+                {coinCost === 0 ? '무료' : `${coinCost} 코인`}
               </span>
             </div>
             <p className="text-small text-text-muted mb-3">{description}</p>

@@ -19,11 +19,12 @@ interface Person {
   created_at: string
 }
 
-const sajuTypeInfo: Record<string, { title: string; icon: string; needsTwoPeople: boolean }> = {
+const sajuTypeInfo: Record<string, { title: string; icon: string; needsTwoPeople: boolean; skipPreview?: boolean }> = {
   personal: { title: '개인 사주', icon: '🔮', needsTwoPeople: false },
   yearly: { title: '신년운세', icon: '📅', needsTwoPeople: false },
   compatibility: { title: '궁합', icon: '💕', needsTwoPeople: true },
   love: { title: '연애운', icon: '💝', needsTwoPeople: false },
+  daily: { title: '오늘의 운세', icon: '☀️', needsTwoPeople: false, skipPreview: true },
 }
 
 const relationshipOptions = [
@@ -200,7 +201,9 @@ export default function SajuInputPage() {
       // 단일 선택
       const params = personToParams(person)
       const searchParams = new URLSearchParams({ ...params, type })
-      router.push(`/saju/preview?${searchParams.toString()}`)
+      // 오늘의 운세는 preview 스킵하고 바로 결과 페이지로
+      const targetPage = info.skipPreview ? '/saju/result' : '/saju/preview'
+      router.push(`${targetPage}?${searchParams.toString()}`)
     }
   }
 
@@ -283,7 +286,9 @@ export default function SajuInputPage() {
       if (!info.needsTwoPeople) {
         const params = formToParams()
         const searchParams = new URLSearchParams({ ...params, type })
-        router.push(`/saju/preview?${searchParams.toString()}`)
+        // 오늘의 운세는 preview 스킵하고 바로 결과 페이지로
+        const targetPage = info.skipPreview ? '/saju/result' : '/saju/preview'
+        router.push(`${targetPage}?${searchParams.toString()}`)
       }
     } catch (error) {
       console.error('Submit error:', error)

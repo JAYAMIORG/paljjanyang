@@ -277,3 +277,42 @@ export function buildLoveSajuPrompt(result: SajuResult, gender: string): string 
 
 응답은 마크다운 형식으로 작성해주세요.`
 }
+
+export function buildDailySajuPrompt(result: SajuResult, gender: string): string {
+  const today = new Date()
+  const month = today.getMonth() + 1
+  const day = today.getDate()
+  const weekday = ['일', '월', '화', '수', '목', '금', '토'][today.getDay()]
+
+  return `## 사주 정보
+
+성별: ${gender === 'male' ? '남성' : '여성'}
+일간: ${result.dayMaster} (${result.dayMasterKorean})
+
+### 오행 분포
+- 목(木): ${result.wuXing.wood}%
+- 화(火): ${result.wuXing.fire}%
+- 토(土): ${result.wuXing.earth}%
+- 금(金): ${result.wuXing.metal}%
+- 수(水): ${result.wuXing.water}%
+
+오늘 날짜: ${month}월 ${day}일 (${weekday}요일)
+
+---
+
+## 요청
+
+오늘의 운세를 **짧고 간결하게** 분석해주세요 (3-4문장):
+
+1. **오늘의 총운** (1문장)
+   - 오늘 하루의 전체적인 분위기
+
+2. **행운 키워드** (1-2개)
+   - 오늘의 행운 색상 또는 숫자 또는 방향
+
+3. **오늘의 조언** (1-2문장)
+   - 오늘 하면 좋은 일 또는 주의할 점
+
+**중요: 전체 응답을 4문장 이내로 간결하게 작성해주세요.**
+응답은 마크다운 형식으로 작성해주세요.`
+}

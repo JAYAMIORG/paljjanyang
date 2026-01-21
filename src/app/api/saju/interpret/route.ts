@@ -8,6 +8,7 @@ import {
   buildYearlySajuPrompt,
   buildCompatibilitySajuPrompt,
   buildLoveSajuPrompt,
+  buildDailySajuPrompt,
 } from '@/lib/llm/prompts'
 
 // OpenAI 클라이언트를 lazy하게 생성
@@ -21,7 +22,7 @@ function getOpenAIClient() {
 }
 
 export interface InterpretRequest {
-  type: 'personal' | 'yearly' | 'love' | 'compatibility'
+  type: 'personal' | 'yearly' | 'love' | 'compatibility' | 'daily'
   sajuResult: SajuResult
   gender: 'male' | 'female'
   // 궁합용 추가 필드
@@ -140,6 +141,9 @@ export async function POST(request: NextRequest) {
         break
       case 'love':
         userPrompt = buildLoveSajuPrompt(sajuResult, gender)
+        break
+      case 'daily':
+        userPrompt = buildDailySajuPrompt(sajuResult, gender)
         break
       default:
         userPrompt = buildPersonalSajuPrompt(sajuResult, gender)
