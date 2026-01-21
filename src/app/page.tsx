@@ -18,7 +18,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative px-6 pt-16 pb-12 text-center">
+      <section className="relative px-6 pt-16 pb-12 text-center min-h-svh flex flex-col justify-center">
         {/* 배경 이미지 */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-90"
@@ -37,7 +37,7 @@ export default function LandingPage() {
               priority
             />
           </div>
-          <p className="mb-2 text-lg sm:text-xl text-text" style={{ fontFamily: 'GanaChocolate, sans-serif' }}>
+          <p className="mb-2 text-xl max-[400px]:text-base sm:text-2xl text-text" style={{ fontFamily: 'GanaChocolate, sans-serif' }}>
             40년 경력 역술가의 노하우를 담았습니다.
           </p>
           <p className="text-body text-text-muted mb-8">
