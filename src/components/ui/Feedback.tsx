@@ -84,6 +84,86 @@ export function LoadingSpinner({ size = 'md', className = '' }: LoadingSpinnerPr
 }
 
 // ============================================
+// Skeleton Components
+// ============================================
+
+interface SkeletonProps {
+  className?: string
+}
+
+export function Skeleton({ className = '' }: SkeletonProps) {
+  return (
+    <div
+      className={`animate-pulse bg-gray-200 rounded ${className}`}
+      aria-hidden="true"
+    />
+  )
+}
+
+interface SkeletonTextProps {
+  lines?: number
+  className?: string
+}
+
+export function SkeletonText({ lines = 3, className = '' }: SkeletonTextProps) {
+  return (
+    <div className={`space-y-2 ${className}`} aria-hidden="true">
+      {Array.from({ length: lines }).map((_, i) => (
+        <div
+          key={i}
+          className={`h-4 bg-gray-200 rounded animate-pulse ${i === lines - 1 ? 'w-3/4' : 'w-full'}`}
+        />
+      ))}
+    </div>
+  )
+}
+
+interface SkeletonCardProps {
+  className?: string
+  hasHeader?: boolean
+  hasImage?: boolean
+}
+
+export function SkeletonCard({ className = '', hasHeader = true, hasImage = false }: SkeletonCardProps) {
+  return (
+    <div
+      className={`bg-white rounded-2xl p-4 ${className}`}
+      aria-busy="true"
+      aria-label="로딩 중"
+    >
+      {hasImage && (
+        <div className="h-40 bg-gray-200 rounded-xl mb-4 animate-pulse" />
+      )}
+      {hasHeader && (
+        <div className="h-6 w-1/2 bg-gray-200 rounded mb-3 animate-pulse" />
+      )}
+      <SkeletonText lines={3} />
+    </div>
+  )
+}
+
+interface SkeletonListProps {
+  count?: number
+  className?: string
+}
+
+export function SkeletonList({ count = 3, className = '' }: SkeletonListProps) {
+  return (
+    <div className={`space-y-3 ${className}`} aria-busy="true" aria-label="목록 로딩 중">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3 p-4 bg-white rounded-xl">
+          <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-1/3 bg-gray-200 rounded animate-pulse" />
+            <div className="h-3 w-2/3 bg-gray-200 rounded animate-pulse" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ============================================
 // Error Components
 // ============================================
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Header } from '@/components/layout'
-import { Button, Card, Select, Input, LoadingScreen } from '@/components/ui'
+import { Button, Card, Select, Input, LoadingScreen, AlertDialog } from '@/components/ui'
 import { useAuth } from '@/hooks'
 
 interface Person {
@@ -114,6 +114,7 @@ export default function SajuInputPage() {
   })
 
   const [isLoading, setIsLoading] = useState(false)
+  const [alertMessage, setAlertMessage] = useState<string | null>(null)
 
   // 저장된 인물 목록 조회
   useEffect(() => {
@@ -292,7 +293,7 @@ export default function SajuInputPage() {
       }
     } catch (error) {
       console.error('Submit error:', error)
-      alert('오류가 발생했습니다.')
+      setAlertMessage('오류가 발생했습니다.')
     } finally {
       setIsLoading(false)
     }
@@ -690,6 +691,15 @@ export default function SajuInputPage() {
       <main className="px-4 py-6 max-w-lg mx-auto">
         {showInputForm ? renderInputForm() : renderPersonList()}
       </main>
+
+      {/* 에러 알림 모달 */}
+      <AlertDialog
+        isOpen={!!alertMessage}
+        onClose={() => setAlertMessage(null)}
+        title="알림"
+        message={alertMessage || ''}
+        variant="error"
+      />
     </div>
   )
 }

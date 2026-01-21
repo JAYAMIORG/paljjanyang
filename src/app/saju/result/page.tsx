@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import html2canvas from 'html2canvas'
 import { Header } from '@/components/layout'
-import { Button, Card, LoadingScreen, ErrorScreen, InsufficientCoinsModal } from '@/components/ui'
+import { Button, Card, LoadingScreen, ErrorScreen, InsufficientCoinsModal, AlertDialog } from '@/components/ui'
 import { YearlyResultContent, CompatibilityResultContent, DailyResultContent } from '@/components/result'
 import { useAuth, useKakaoShare } from '@/hooks'
 import type { SajuResult } from '@/types/saju'
@@ -61,6 +61,7 @@ function ResultContent() {
   const [shareRewardClaimed, setShareRewardClaimed] = useState(false)
   const [showRewardToast, setShowRewardToast] = useState(false)
   const [isDailyNew, setIsDailyNew] = useState(true) // 오늘의 운세가 새로 생성된 것인지
+  const [alertState, setAlertState] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
   const hasSavedRef = useRef(false)
   const hasDeductedCoinRef = useRef(false)
   const hasStartedRef = useRef(false)
@@ -439,13 +440,13 @@ function ResultContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, result2])
 
-  // 공유 보상 수령 여부 확인 (readingId 기반)
+  // 공유 보상 수령 여부 확인 (계정당 1회)
   useEffect(() => {
-    if (!user || !readingId) return
+    if (!user) return
 
     const checkShareRewardStatus = async () => {
       try {
-        const response = await fetch(`/api/share/reward?readingId=${readingId}`)
+        const response = await fetch('/api/share/reward')
         const data = await response.json()
         if (data.success && data.data?.alreadyClaimed) {
           setShareRewardClaimed(true)
@@ -456,17 +457,17 @@ function ResultContent() {
     }
 
     checkShareRewardStatus()
-  }, [user, readingId])
+  }, [user])
 
-  // 공유 보상 요청 (readingId 기반)
+  // 공유 보상 요청 (계정당 1회)
   const claimShareReward = async () => {
-    if (shareRewardClaimed || !readingId) return
+    if (shareRewardClaimed) return
 
     try {
       const response = await fetch('/api/share/reward', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ readingId }),
+        body: JSON.stringify({}),
       })
       const data = await response.json()
 
@@ -490,9 +491,9 @@ function ResultContent() {
       const shareUrl = getShareUrl()
       await navigator.clipboard.writeText(shareUrl)
       await claimShareReward()
-      alert('링크가 복사되었습니다!')
+      setAlertState({ message: '링크가 복사되었습니다!', variant: 'success' })
     } catch {
-      alert('링크 복사에 실패했습니다.')
+      setAlertState({ message: '링크 복사에 실패했습니다.', variant: 'error' })
     }
   }
 
@@ -541,7 +542,7 @@ function ResultContent() {
       const imageBlob = await generateShareImage()
 
       if (!imageBlob) {
-        alert('이미지 생성에 실패했습니다.')
+        setAlertState({ message: '이미지 생성에 실패했습니다.', variant: 'error' })
         setIsShareLoading(false)
         return
       }
@@ -573,12 +574,12 @@ function ResultContent() {
       URL.revokeObjectURL(url)
 
       await claimShareReward()
-      alert('이미지가 저장되었습니다. 인스타그램에서 직접 업로드해주세요!')
+      setAlertState({ message: '이미지가 저장되었습니다. 인스타그램에서 직접 업로드해주세요!', variant: 'success' })
     } catch (error) {
       // 사용자가 공유 취소한 경우는 에러 아님
       if ((error as Error).name !== 'AbortError') {
         console.error('공유 실패:', error)
-        alert('공유에 실패했습니다.')
+        setAlertState({ message: '공유에 실패했습니다.', variant: 'error' })
       }
     } finally {
       setIsShareLoading(false)
@@ -1050,6 +1051,15 @@ function ResultContent() {
           </div>
         </div>
       )}
+
+      {/* 알림 모달 */}
+      <AlertDialog
+        isOpen={!!alertState}
+        onClose={() => setAlertState(null)}
+        title="알림"
+        message={alertState?.message || ''}
+        variant={alertState?.variant || 'default'}
+      />
     </div>
   )
 }

@@ -26,8 +26,8 @@ export interface ShareRewardStatusResponse {
   }
 }
 
-// GET: 공유 보상 수령 여부 확인 (readingId 기반)
-export async function GET(request: NextRequest) {
+// GET: 공유 보상 수령 여부 확인 (계정당 1회)
+export async function GET() {
   try {
     const supabase = await createClient()
 
@@ -60,34 +60,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // readingId 파라미터 확인
-    const { searchParams } = new URL(request.url)
-    const readingId = searchParams.get('readingId')
-
-    if (!readingId) {
-      // readingId가 없으면 아직 저장 전이므로 false 반환
-      return NextResponse.json<ShareRewardStatusResponse>({
-        success: true,
-        data: {
-          alreadyClaimed: false,
-        },
-      })
-    }
-
-    // coin_transactions에서 해당 reading에 대한 공유 보상이 있는지 확인
-    const { data: existingReward } = await supabase
-      .from('coin_transactions')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('target_id', readingId)
-      .eq('type', 'reward')
-      .limit(1)
+    // profiles에서 share_reward_claimed 확인
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('share_reward_claimed')
+      .eq('id', user.id)
       .single()
 
     return NextResponse.json<ShareRewardStatusResponse>({
       success: true,
       data: {
-        alreadyClaimed: !!existingReward,
+        alreadyClaimed: profile?.share_reward_claimed ?? false,
       },
     })
   } catch (error) {
@@ -105,7 +88,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+// POST: 공유 보상 요청 (계정당 1회)
+export async function POST() {
   try {
     const supabase = await createClient()
 
@@ -135,23 +119,6 @@ export async function POST(request: NextRequest) {
           },
         },
         { status: 401 }
-      )
-    }
-
-    // readingId 파라미터 확인
-    const body = await request.json().catch(() => ({}))
-    const readingId = body.readingId
-
-    if (!readingId) {
-      return NextResponse.json<ShareRewardResponse>(
-        {
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'readingId가 필요합니다.',
-          },
-        },
-        { status: 400 }
       )
     }
 
@@ -170,17 +137,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 해당 reading에 대한 공유 보상이 이미 있는지 확인
-    const { data: existingReward } = await adminClient
-      .from('coin_transactions')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('target_id', readingId)
-      .eq('type', 'reward')
-      .limit(1)
+    // profiles에서 이미 공유 보상을 받았는지 확인
+    const { data: profile } = await adminClient
+      .from('profiles')
+      .select('share_reward_claimed')
+      .eq('id', user.id)
       .single()
 
-    if (existingReward) {
+    if (profile?.share_reward_claimed) {
       // 이미 보상 받음
       const { data: balanceData } = await adminClient
         .from('coin_balances')
@@ -218,18 +182,23 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString(),
       })
 
-    // 거래 내역 추가 (target_id에 readingId 저장)
+    // 거래 내역 추가
     await adminClient
       .from('coin_transactions')
       .insert({
         user_id: user.id,
         amount: rewardAmount,
         type: 'reward',
-        target_id: readingId,
         description: '공유 보상',
         balance_before: currentBalance,
         balance_after: newBalance,
       })
+
+    // profiles에 share_reward_claimed 업데이트
+    await adminClient
+      .from('profiles')
+      .update({ share_reward_claimed: true, updated_at: new Date().toISOString() })
+      .eq('id', user.id)
 
     return NextResponse.json<ShareRewardResponse>({
       success: true,
