@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export interface ConfirmPaymentRequest {
   paymentKey: string
@@ -106,9 +107,25 @@ export async function POST(request: NextRequest) {
 
     // 토스페이먼츠 결제 승인 API 호출
     const tossSecretKey = process.env.TOSS_SECRET_KEY
+    const isTestMode = process.env.PAYMENT_TEST_MODE === 'true'
+
     if (!tossSecretKey) {
-      // 테스트 모드: 토스 API 없이 바로 승인 처리
-      console.log('TOSS_SECRET_KEY not set, using test mode')
+      if (!isTestMode) {
+        // 테스트 모드가 아닌데 API 키가 없으면 에러
+        console.error('TOSS_SECRET_KEY not set and PAYMENT_TEST_MODE is not enabled')
+        return NextResponse.json<ConfirmPaymentResponse>(
+          {
+            success: false,
+            error: {
+              code: 'CONFIG_ERROR',
+              message: '결제 설정이 올바르지 않습니다.',
+            },
+          },
+          { status: 500 }
+        )
+      }
+      // 명시적 테스트 모드: 토스 API 없이 바로 승인 처리
+      console.log('PAYMENT_TEST_MODE enabled, skipping Toss API verification')
     } else {
       // 실제 토스페이먼츠 API 호출
       const tossResponse = await fetch('https://api.tosspayments.com/v1/payments/confirm', {
@@ -151,56 +168,124 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 결제 성공 처리
-    const coinsToAdd = Number(payment.coins_purchased)
+    // Admin client 생성 (RLS 우회 및 RPC 호출용)
+    const adminClient = createAdminClient()
+    if (!adminClient) {
+      return NextResponse.json<ConfirmPaymentResponse>(
+        {
+          success: false,
+          error: {
+            code: 'CONFIG_ERROR',
+            message: 'Service Role Key가 설정되지 않았습니다.',
+          },
+        },
+        { status: 500 }
+      )
+    }
 
-    // 결제 상태 업데이트
-    await supabase
-      .from('payments')
-      .update({
-        status: 'completed',
-        external_payment_id: paymentKey,
-        completed_at: new Date().toISOString(),
-      })
-      .eq('id', payment.id)
-
-    // 코인 잔액 조회
-    const { data: balanceData } = await supabase
-      .from('coin_balances')
-      .select('balance')
-      .eq('user_id', user.id)
-      .single()
-
-    const currentBalance = Number(balanceData?.balance || 0)
-    const newBalance = currentBalance + coinsToAdd
-
-    // 코인 잔액 업데이트 (없으면 생성)
-    await supabase
-      .from('coin_balances')
-      .upsert({
-        user_id: user.id,
-        balance: newBalance,
-        updated_at: new Date().toISOString(),
+    // Atomic 결제 처리 (RPC 함수 사용)
+    const { data: rpcResult, error: rpcError } = await adminClient
+      .rpc('process_payment', {
+        p_payment_id: payment.id,
+        p_user_id: user.id,
+        p_external_payment_id: paymentKey,
       })
 
-    // 거래 내역 기록
-    await supabase
-      .from('coin_transactions')
-      .insert({
-        user_id: user.id,
-        type: 'purchase',
-        amount: coinsToAdd,
-        payment_id: payment.id,
-        balance_before: currentBalance,
-        balance_after: newBalance,
-        description: '코인 충전',
-      })
+    if (rpcError) {
+      console.error('RPC process_payment error:', rpcError)
+
+      // RPC 함수가 없는 경우 fallback (마이그레이션 실행 전)
+      if (rpcError.code === 'PGRST202') {
+        console.warn('process_payment RPC not found, using fallback logic')
+
+        const coinsToAdd = Number(payment.coins_purchased)
+
+        // 결제 상태 업데이트
+        await adminClient
+          .from('payments')
+          .update({
+            status: 'completed',
+            external_payment_id: paymentKey,
+            completed_at: new Date().toISOString(),
+          })
+          .eq('id', payment.id)
+
+        // 코인 잔액 조회
+        const { data: balanceData } = await adminClient
+          .from('coin_balances')
+          .select('balance')
+          .eq('user_id', user.id)
+          .single()
+
+        const currentBalance = Number(balanceData?.balance || 0)
+        const newBalance = currentBalance + coinsToAdd
+
+        // 코인 잔액 업데이트
+        await adminClient
+          .from('coin_balances')
+          .upsert({
+            user_id: user.id,
+            balance: newBalance,
+            updated_at: new Date().toISOString(),
+          })
+
+        // 거래 내역 기록
+        await adminClient
+          .from('coin_transactions')
+          .insert({
+            user_id: user.id,
+            type: 'purchase',
+            amount: coinsToAdd,
+            payment_id: payment.id,
+            balance_before: currentBalance,
+            balance_after: newBalance,
+            description: '코인 충전',
+          })
+
+        return NextResponse.json<ConfirmPaymentResponse>({
+          success: true,
+          data: {
+            balance: newBalance,
+            coinsAdded: coinsToAdd,
+          },
+        })
+      }
+
+      return NextResponse.json<ConfirmPaymentResponse>(
+        {
+          success: false,
+          error: {
+            code: 'RPC_ERROR',
+            message: '결제 처리 중 오류가 발생했습니다.',
+          },
+        },
+        { status: 500 }
+      )
+    }
+
+    // RPC 결과 처리
+    const result = rpcResult?.[0]
+
+    if (!result || !result.success) {
+      const errorMessage = result?.error_message || '결제 처리에 실패했습니다.'
+
+      return NextResponse.json<ConfirmPaymentResponse>(
+        {
+          success: false,
+          error: {
+            code: 'PAYMENT_PROCESS_ERROR',
+            message: errorMessage,
+          },
+        },
+        { status: 400 }
+      )
+    }
 
     return NextResponse.json<ConfirmPaymentResponse>({
       success: true,
       data: {
-        balance: newBalance,
-        coinsAdded: coinsToAdd,
+        balance: result.new_balance,
+        coinsAdded: result.coins_added,
       },
     })
   } catch (error) {

@@ -136,107 +136,121 @@ export async function POST() {
       )
     }
 
-    // profiles에서 이미 공유 보상을 받았는지 확인
-    const { data: profile } = await adminClient
-      .from('profiles')
-      .select('share_reward_claimed')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.share_reward_claimed) {
-      // 이미 받은 경우 - 현재 잔액만 반환
-      const { data: balanceData } = await adminClient
-        .from('coin_balances')
-        .select('balance')
-        .eq('user_id', user.id)
-        .single()
-
-      return NextResponse.json<ShareRewardResponse>({
-        success: true,
-        data: {
-          rewarded: false,
-          alreadyClaimed: true,
-          newBalance: Number(balanceData?.balance || 0),
-        },
-      })
-    }
-
-    // 현재 잔액 조회
-    const { data: balanceData } = await adminClient
-      .from('coin_balances')
-      .select('balance')
-      .eq('user_id', user.id)
-      .single()
-
-    const currentBalance = Number(balanceData?.balance || 0)
-    const rewardAmount = 1
-    const newBalance = currentBalance + rewardAmount
-
-    // 잔액 업데이트 (없으면 생성)
-    if (balanceData) {
-      await adminClient
-        .from('coin_balances')
-        .update({
-          balance: newBalance,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', user.id)
-    } else {
-      await adminClient
-        .from('coin_balances')
-        .insert({
-          user_id: user.id,
-          balance: newBalance,
-        })
-    }
-
-    // 거래 내역 추가
-    const { error: insertError } = await adminClient
-      .from('coin_transactions')
-      .insert({
-        user_id: user.id,
-        amount: rewardAmount,
-        type: 'reward',
-        description: '공유 보상',
-        balance_before: currentBalance,
-        balance_after: newBalance,
+    // Atomic 공유 보상 처리 (RPC 함수 사용)
+    const { data: rpcResult, error: rpcError } = await adminClient
+      .rpc('claim_share_reward', {
+        p_user_id: user.id,
       })
 
-    if (insertError) {
-      console.error('Failed to insert transaction:', insertError)
-      // 롤백: 잔액 원복
-      await adminClient
-        .from('coin_balances')
-        .update({
-          balance: currentBalance,
-          updated_at: new Date().toISOString(),
+    if (rpcError) {
+      console.error('RPC claim_share_reward error:', rpcError)
+
+      // RPC 함수가 없는 경우 fallback (마이그레이션 실행 전)
+      if (rpcError.code === 'PGRST202') {
+        console.warn('claim_share_reward RPC not found, using fallback logic')
+
+        // profiles에서 이미 공유 보상을 받았는지 확인
+        const { data: profile } = await adminClient
+          .from('profiles')
+          .select('share_reward_claimed')
+          .eq('id', user.id)
+          .single()
+
+        if (profile?.share_reward_claimed) {
+          const { data: balanceData } = await adminClient
+            .from('coin_balances')
+            .select('balance')
+            .eq('user_id', user.id)
+            .single()
+
+          return NextResponse.json<ShareRewardResponse>({
+            success: true,
+            data: {
+              rewarded: false,
+              alreadyClaimed: true,
+              newBalance: Number(balanceData?.balance || 0),
+            },
+          })
+        }
+
+        const { data: balanceData } = await adminClient
+          .from('coin_balances')
+          .select('balance')
+          .eq('user_id', user.id)
+          .single()
+
+        const currentBalance = Number(balanceData?.balance || 0)
+        const rewardAmount = 1
+        const newBalance = currentBalance + rewardAmount
+
+        await adminClient
+          .from('coin_balances')
+          .upsert({
+            user_id: user.id,
+            balance: newBalance,
+            updated_at: new Date().toISOString(),
+          })
+
+        await adminClient
+          .from('coin_transactions')
+          .insert({
+            user_id: user.id,
+            amount: rewardAmount,
+            type: 'bonus',
+            description: '공유 보상',
+            balance_before: currentBalance,
+            balance_after: newBalance,
+          })
+
+        await adminClient
+          .from('profiles')
+          .update({ share_reward_claimed: true, updated_at: new Date().toISOString() })
+          .eq('id', user.id)
+
+        return NextResponse.json<ShareRewardResponse>({
+          success: true,
+          data: {
+            rewarded: true,
+            alreadyClaimed: false,
+            newBalance,
+          },
         })
-        .eq('user_id', user.id)
+      }
 
       return NextResponse.json<ShareRewardResponse>(
         {
           success: false,
           error: {
-            code: 'DB_ERROR',
-            message: '보상 지급에 실패했습니다.',
+            code: 'RPC_ERROR',
+            message: '보상 처리 중 오류가 발생했습니다.',
           },
         },
         { status: 500 }
       )
     }
 
-    // profiles에 공유 보상 수령 완료 표시
-    await adminClient
-      .from('profiles')
-      .update({ share_reward_claimed: true })
-      .eq('id', user.id)
+    // RPC 결과 처리
+    const result = rpcResult?.[0]
+
+    if (!result || !result.success) {
+      return NextResponse.json<ShareRewardResponse>(
+        {
+          success: false,
+          error: {
+            code: 'REWARD_ERROR',
+            message: result?.error_message || '보상 처리에 실패했습니다.',
+          },
+        },
+        { status: 400 }
+      )
+    }
 
     return NextResponse.json<ShareRewardResponse>({
       success: true,
       data: {
-        rewarded: true,
-        alreadyClaimed: false,
-        newBalance,
+        rewarded: !result.already_claimed,
+        alreadyClaimed: result.already_claimed,
+        newBalance: result.new_balance,
       },
     })
   } catch (error) {

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { createClient } from '@/lib/supabase/server'
 import type { SajuResult } from '@/types/saju'
 import {
   SYSTEM_PROMPT,
   buildPersonalSajuPrompt,
   buildYearlySajuPrompt,
+  buildCompatibilitySajuPrompt,
   buildLoveSajuPrompt,
 } from '@/lib/llm/prompts'
 
@@ -22,6 +24,11 @@ export interface InterpretRequest {
   type: 'personal' | 'yearly' | 'love' | 'compatibility'
   sajuResult: SajuResult
   gender: 'male' | 'female'
+  // 궁합용 추가 필드
+  sajuResult2?: SajuResult
+  gender2?: 'male' | 'female'
+  name1?: string
+  name2?: string
 }
 
 export interface InterpretResponse {
@@ -37,8 +44,37 @@ export interface InterpretResponse {
 
 export async function POST(request: NextRequest) {
   try {
+    // 인증 확인 (비용 공격 방지)
+    const supabase = await createClient()
+    if (!supabase) {
+      return NextResponse.json<InterpretResponse>(
+        {
+          success: false,
+          error: {
+            code: 'CONFIG_ERROR',
+            message: 'Supabase가 설정되지 않았습니다.',
+          },
+        },
+        { status: 500 }
+      )
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json<InterpretResponse>(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: '로그인이 필요합니다.',
+          },
+        },
+        { status: 401 }
+      )
+    }
+
     const body: InterpretRequest = await request.json()
-    const { type, sajuResult, gender } = body
+    const { type, sajuResult, gender, sajuResult2, gender2, name1, name2 } = body
 
     // 입력 검증
     if (!sajuResult || !type || !gender) {
@@ -48,6 +84,20 @@ export async function POST(request: NextRequest) {
           error: {
             code: 'VALIDATION_ERROR',
             message: '필수 정보가 누락되었습니다.',
+          },
+        },
+        { status: 400 }
+      )
+    }
+
+    // 궁합 타입 추가 검증
+    if (type === 'compatibility' && (!sajuResult2 || !gender2)) {
+      return NextResponse.json<InterpretResponse>(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: '궁합 분석에는 두 사람의 정보가 필요합니다.',
           },
         },
         { status: 400 }
@@ -77,6 +127,16 @@ export async function POST(request: NextRequest) {
         break
       case 'yearly':
         userPrompt = buildYearlySajuPrompt(sajuResult, gender)
+        break
+      case 'compatibility':
+        userPrompt = buildCompatibilitySajuPrompt(
+          sajuResult,
+          gender,
+          name1 || '첫 번째 사람',
+          sajuResult2!,
+          gender2!,
+          name2 || '두 번째 사람'
+        )
         break
       case 'love':
         userPrompt = buildLoveSajuPrompt(sajuResult, gender)

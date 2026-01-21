@@ -113,9 +113,8 @@ function CoinContent() {
       const redirectParam = redirectUrl ? `&redirect=${encodeURIComponent(redirectUrl)}` : ''
 
       if (!clientKey) {
-        // 테스트 모드: 결제 성공 페이지로 직접 이동
-        alert('테스트 모드: 실제 결제 없이 충전됩니다.')
-        window.location.href = `/payment/success?paymentKey=test_${Date.now()}&orderId=${orderId}&amount=${amount}${redirectParam}`
+        // 클라이언트 키가 없으면 결제 불가
+        alert('결제 설정이 올바르지 않습니다. 관리자에게 문의해주세요.')
         return
       }
 

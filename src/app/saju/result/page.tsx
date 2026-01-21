@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import html2canvas from 'html2canvas'
 import { Header } from '@/components/layout'
 import { Button, Card } from '@/components/ui'
+import { YearlyResultContent, CompatibilityResultContent } from '@/components/result'
 import { useAuth, useKakaoShare } from '@/hooks'
 import type { SajuResult } from '@/types/saju'
 
@@ -44,6 +45,7 @@ function ResultContent() {
   const { user, loading: authLoading } = useAuth()
   const { share: shareKakao, isReady: isKakaoReady, isMobile } = useKakaoShare()
   const [result, setResult] = useState<SajuResult | null>(null)
+  const [result2, setResult2] = useState<SajuResult | null>(null) // 궁합용
   const [showMobileOnlyModal, setShowMobileOnlyModal] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
   const [isShareLoading, setIsShareLoading] = useState(false)
@@ -70,6 +72,17 @@ function ResultContent() {
   const hour = searchParams.get('hour')
   const lunar = searchParams.get('lunar')
   const savedId = searchParams.get('id') // 저장된 결과 ID
+
+  // 궁합용 파라미터 (두 번째 사람)
+  const isCompatibility = type === 'compatibility'
+  const name1 = searchParams.get('name1') || '첫 번째 사람'
+  const name2 = searchParams.get('name2') || '두 번째 사람'
+  const gender2 = searchParams.get('gender2') || 'female'
+  const year2 = searchParams.get('year2')
+  const month2 = searchParams.get('month2')
+  const day2 = searchParams.get('day2')
+  const hour2 = searchParams.get('hour2')
+  const lunar2 = searchParams.get('lunar2')
 
   // 자동 저장 함수
   const autoSave = async (sajuResult: SajuResult, interpretationText: string | null) => {
@@ -144,6 +157,33 @@ function ResultContent() {
     }
   }
 
+  // 코인 환불 함수 (사주 계산 실패 시 롤백용)
+  const refundCoin = async (reason: string): Promise<boolean> => {
+    if (!hasDeductedCoinRef.current || !user) return false
+
+    try {
+      const response = await fetch('/api/saju/refund-coin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, reason }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        hasDeductedCoinRef.current = false
+        console.log('Coin refunded successfully:', data.data?.newBalance)
+        return true
+      } else {
+        console.error('Coin refund failed:', data.error?.message)
+        return false
+      }
+    } catch (err) {
+      console.error('Coin refund error:', err)
+      return false
+    }
+  }
+
   // 저장된 결과 불러오기
   const fetchSavedReading = async (id: string): Promise<boolean> => {
     try {
@@ -213,6 +253,13 @@ function ResultContent() {
           return
         }
 
+        // 궁합인 경우 두 번째 사람 정보도 확인
+        if (isCompatibility && (!year2 || !month2 || !day2 || !gender2)) {
+          setError('궁합 분석에는 두 사람의 정보가 필요합니다.')
+          setIsLoading(false)
+          return
+        }
+
         // 코인 차감 먼저 시도
         const coinDeducted = await deductCoin()
         if (!coinDeducted) {
@@ -220,6 +267,7 @@ function ResultContent() {
           return
         }
 
+        // 첫 번째 사람 사주 계산
         const response = await fetch('/api/saju/calculate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -235,12 +283,42 @@ function ResultContent() {
         })
 
         const data = await response.json()
-        if (data.success) {
-          setResult(data.data)
-        } else {
+        if (!data.success) {
+          await refundCoin('사주 계산 실패')
           setError(data.error?.message || '사주 계산 중 오류가 발생했습니다.')
+          return
+        }
+
+        setResult(data.data)
+
+        // 궁합인 경우 두 번째 사람도 계산
+        if (isCompatibility) {
+          const response2 = await fetch('/api/saju/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              birthYear: parseInt(year2!),
+              birthMonth: parseInt(month2!),
+              birthDay: parseInt(day2!),
+              birthHour: hour2 && parseInt(hour2) >= 0 ? parseInt(hour2) : null,
+              isLunar: lunar2 === '1',
+              isLeapMonth: false,
+              gender: gender2,
+            }),
+          })
+
+          const data2 = await response2.json()
+          if (!data2.success) {
+            await refundCoin('두 번째 사람 사주 계산 실패')
+            setError(data2.error?.message || '두 번째 사람 사주 계산 중 오류가 발생했습니다.')
+            return
+          }
+
+          setResult2(data2.data)
         }
       } catch {
+        // 네트워크 오류 시에도 코인 환불
+        await refundCoin('서버 연결 실패')
         setError('서버 연결에 실패했습니다.')
       } finally {
         setIsLoading(false)
@@ -255,20 +333,36 @@ function ResultContent() {
   useEffect(() => {
     if (!result || !user) return
 
+    // 궁합인 경우 두 번째 결과도 있어야 함
+    if (isCompatibility && !result2) return
+
     // 이미 저장된 결과를 불러온 경우 스킵
     if (hasSavedRef.current) return
 
     const fetchInterpretation = async () => {
       setIsInterpretLoading(true)
       try {
+        // 궁합인 경우 두 사람 정보 모두 전달
+        const requestBody = isCompatibility
+          ? {
+              type,
+              sajuResult: result,
+              gender,
+              sajuResult2: result2,
+              gender2,
+              name1,
+              name2,
+            }
+          : {
+              type,
+              sajuResult: result,
+              gender,
+            }
+
         const response = await fetch('/api/saju/interpret', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type,
-            sajuResult: result,
-            gender,
-          }),
+          body: JSON.stringify(requestBody),
         })
 
         const data = await response.json()
@@ -291,7 +385,7 @@ function ResultContent() {
 
     fetchInterpretation()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result])
+  }, [result, result2])
 
   // 공유 보상 수령 여부 확인
   useEffect(() => {
@@ -558,9 +652,17 @@ function ResultContent() {
     )
   }
 
+  // 타입에 따른 제목
+  const pageTitle = {
+    personal: '사주 분석 결과',
+    yearly: '신년운세 결과',
+    compatibility: '궁합 분석 결과',
+    love: '연애운 결과',
+  }[type] || '사주 분석 결과'
+
   return (
     <div className="min-h-screen bg-background">
-      <Header showBack useHistoryBack title="사주 분석 결과" />
+      <Header showBack useHistoryBack title={pageTitle} />
 
       {/* 공유용 카드 (화면 밖에 숨김) - 인라인 스타일 사용 (html2canvas 호환) */}
       <div style={{ position: 'fixed', left: '-9999px', top: '-9999px' }}>
@@ -722,73 +824,89 @@ function ResultContent() {
       </div>
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
-        {/* 요약 카드 */}
-        <Card variant="highlighted">
-          <div className="text-center">
-            <span className="text-5xl mb-3 block">{getDayMasterEmoji(result.dayMaster)}</span>
-            <h2 className="text-heading font-semibold text-text mb-2">
-              {result.dayMasterKorean}의 기운
-            </h2>
-            <p className="text-body text-text-muted">
-              {result.koreanGanji}
-            </p>
-          </div>
+        {/* 요약 카드 - 신년운세/궁합 외 타입에서만 표시 */}
+        {type !== 'yearly' && type !== 'compatibility' && (
+          <Card variant="highlighted">
+            <div className="text-center">
+              <span className="text-5xl mb-3 block">{getDayMasterEmoji(result.dayMaster)}</span>
+              <h2 className="text-heading font-semibold text-text mb-2">
+                {result.dayMasterKorean}의 기운
+              </h2>
+              <p className="text-body text-text-muted">
+                {result.koreanGanji}
+              </p>
+            </div>
 
-          {/* 오행 미니 차트 */}
-          <div className="mt-6 flex justify-center gap-2">
-            {(Object.entries(result.wuXing) as [keyof typeof result.wuXing, number][]).map(
-              ([element, value]) => (
-                <div
-                  key={element}
-                  className="flex flex-col items-center"
-                  style={{ opacity: value > 10 ? 1 : 0.4 }}
-                >
+            {/* 오행 미니 차트 */}
+            <div className="mt-6 flex justify-center gap-2">
+              {(Object.entries(result.wuXing) as [keyof typeof result.wuXing, number][]).map(
+                ([element, value]) => (
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-small font-bold"
-                    style={{ backgroundColor: WUXING_COLORS[element] }}
+                    key={element}
+                    className="flex flex-col items-center"
+                    style={{ opacity: value > 10 ? 1 : 0.4 }}
                   >
-                    {value}
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-small font-bold"
+                      style={{ backgroundColor: WUXING_COLORS[element] }}
+                    >
+                      {value}
+                    </div>
+                    <span className="text-caption text-text-light mt-1">
+                      {WUXING_KOREAN[element].charAt(0)}
+                    </span>
                   </div>
-                  <span className="text-caption text-text-light mt-1">
-                    {WUXING_KOREAN[element].charAt(0)}
-                  </span>
-                </div>
-              )
-            )}
-          </div>
-        </Card>
+                )
+              )}
+            </div>
+          </Card>
+        )}
 
-        {/* 전문가 해석 또는 폴백 */}
-        {interpretation ? (
+        {/* 전문가 해석 또는 폴백 - 타입별 분기 */}
+        {type === 'yearly' ? (
+          <YearlyResultContent result={result} interpretation={interpretation} />
+        ) : type === 'compatibility' && result2 ? (
+          <CompatibilityResultContent
+            result1={result}
+            result2={result2}
+            name1={name1}
+            name2={name2}
+            gender1={gender}
+            gender2={gender2}
+            interpretation={interpretation}
+          />
+        ) : interpretation ? (
           <InterpretationCard content={interpretation} />
         ) : (
           <FallbackInterpretation result={result} />
         )}
 
-        {/* 대운 흐름 */}
-        <Card>
-          <h3 className="text-subheading font-semibold text-text mb-4">
-            대운 흐름
-          </h3>
-          <div className="overflow-x-auto -mx-2 px-2">
-            <div className="flex gap-2" style={{ minWidth: 'max-content' }}>
-              {result.daYun.slice(0, 8).map((dy, index) => (
-                <div
-                  key={index}
-                  className={`
-                    flex-shrink-0 w-16 p-2 rounded-lg text-center
-                    ${index === 0 ? 'bg-primary/10 border border-primary/30' : 'bg-gray-50'}
-                  `}
-                >
-                  <p className="text-caption text-text-muted">
-                    {dy.startAge}-{dy.endAge}세
-                  </p>
-                  <p className="text-body font-serif text-primary">{dy.ganZhi}</p>
-                </div>
-              ))}
+        {/* 대운 흐름 - 신년운세/궁합 외 타입에서만 표시 */}
+        {type !== 'yearly' && type !== 'compatibility' && (
+          <Card>
+            <h3 className="text-subheading font-semibold text-text mb-4">
+              대운 흐름
+            </h3>
+            <div className="overflow-x-auto -mx-2 px-2">
+              <div className="flex gap-2" style={{ minWidth: 'max-content' }}>
+                {result.daYun.slice(0, 8).map((dy, index) => (
+                  <div
+                    key={index}
+                    className={`
+                      flex-shrink-0 w-16 p-2 rounded-lg text-center
+                      ${index === 0 ? 'bg-primary/10 border border-primary/30' : 'bg-gray-50'}
+                    `}
+                  >
+                    <p className="text-caption text-text-muted">
+                      {dy.startAge}-{dy.endAge}세
+                    </p>
+                    <p className="text-body font-serif text-primary">{dy.ganZhi}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        )}
 
         {/* 공유 */}
         <Card>

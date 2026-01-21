@@ -145,6 +145,93 @@ ${currentYear}년 신년운세를 분석해주세요:
 응답은 마크다운 형식으로 작성해주세요.`
 }
 
+export function buildCompatibilitySajuPrompt(
+  result1: SajuResult,
+  gender1: string,
+  name1: string,
+  result2: SajuResult,
+  gender2: string,
+  name2: string
+): string {
+  const currentYear = new Date().getFullYear()
+
+  return `## 첫 번째 사람 (${name1}) 사주 정보
+
+성별: ${gender1 === 'male' ? '남성' : '여성'}
+사주: ${result1.koreanGanji}
+일간: ${result1.dayMaster} (${result1.dayMasterKorean})
+
+### 사주팔자
+- 년주: ${result1.bazi.year}
+- 월주: ${result1.bazi.month}
+- 일주: ${result1.bazi.day}
+- 시주: ${result1.bazi.hour || '미상'}
+
+### 오행 분포
+- 목(木): ${result1.wuXing.wood}%
+- 화(火): ${result1.wuXing.fire}%
+- 토(土): ${result1.wuXing.earth}%
+- 금(金): ${result1.wuXing.metal}%
+- 수(水): ${result1.wuXing.water}%
+
+---
+
+## 두 번째 사람 (${name2}) 사주 정보
+
+성별: ${gender2 === 'male' ? '남성' : '여성'}
+사주: ${result2.koreanGanji}
+일간: ${result2.dayMaster} (${result2.dayMasterKorean})
+
+### 사주팔자
+- 년주: ${result2.bazi.year}
+- 월주: ${result2.bazi.month}
+- 일주: ${result2.bazi.day}
+- 시주: ${result2.bazi.hour || '미상'}
+
+### 오행 분포
+- 목(木): ${result2.wuXing.wood}%
+- 화(火): ${result2.wuXing.fire}%
+- 토(土): ${result2.wuXing.earth}%
+- 금(金): ${result2.wuXing.metal}%
+- 수(水): ${result2.wuXing.water}%
+
+---
+
+## 요청
+
+위 두 사람의 사주를 비교하여 궁합을 분석해주세요:
+
+1. **궁합 점수와 핵심 요약** (2-3문장)
+   - 전체 궁합 점수 (100점 만점)
+   - 두 사람의 관계를 한마디로 표현
+
+2. **두 사람의 케미**
+   - 서로에게 끌리는 포인트
+   - 함께 있을 때 시너지
+
+3. **오행 궁합 분석**
+   - 두 사람의 오행이 서로 어떻게 보완/충돌하는지
+   - 강한 오행과 약한 오행의 조합
+
+4. **일간 궁합**
+   - ${result1.dayMasterKorean}와 ${result2.dayMasterKorean}의 관계
+   - 서로에게 미치는 영향
+
+5. **관계에서 주의할 점**
+   - 갈등이 생길 수 있는 상황
+   - 이를 극복하는 방법
+
+6. **${currentYear}년 두 사람의 관계운**
+   - 올해 관계가 좋아지는 시기
+   - 주의할 시기
+
+7. **관계 발전을 위한 조언**
+   - 함께 하면 좋은 활동
+   - 서로를 이해하기 위한 팁
+
+응답은 마크다운 형식으로 작성해주세요.`
+}
+
 export function buildLoveSajuPrompt(result: SajuResult, gender: string): string {
   const currentYear = new Date().getFullYear()
 
