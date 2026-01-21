@@ -38,6 +38,17 @@ export default function RootLayout({
   return (
     <html lang="ko" className={notoSerifKR.variable}>
       <head>
+        {/* Font CDN Preconnect */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+        {/* GanaChocolate Font Preload */}
+        <link
+          rel="preload"
+          href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ghanachoco.woff"
+          as="font"
+          type="font/woff"
+          crossOrigin="anonymous"
+        />
         {/* Pretendard Font CDN */}
         <link
           rel="stylesheet"

@@ -37,16 +37,9 @@ export default function LandingPage() {
               priority
             />
           </div>
-          <div className="mb-2 w-full flex justify-center pl-[20px]">
-            <Image
-              src="/images/main-desc-1.png"
-              alt="요즘 다들 이걸로 사주 본대"
-              width={0}
-              height={0}
-              sizes="100vw"
-              className="w-full h-auto"
-            />
-          </div>
+          <p className="mb-2 text-lg sm:text-xl text-text" style={{ fontFamily: 'GanaChocolate, sans-serif' }}>
+            40년 경력 역술가의 노하우를 담았습니다.
+          </p>
           <p className="text-body text-text-muted mb-8">
             만세력 기반 정통 사주 분석
           </p>

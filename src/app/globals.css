@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* GanaChocolate Font */
+@font-face {
+  font-family: 'GanaChocolate';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ghanachoco.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Tailwind CSS v4 Theme Configuration */
 @theme {
   /* Colors - Primary (Deep Lavender) */
