@@ -56,15 +56,16 @@ function LoginContent() {
         )}
 
         {/* 소셜 로그인 */}
-        <div className="space-y-3 mb-6">
+        <div className="space-y-3 mb-6" role="group" aria-label="소셜 로그인">
           <Button
             variant="secondary"
             fullWidth
             onClick={handleKakaoLogin}
+            aria-label="카카오 계정으로 로그인"
             className="bg-[#FEE500] hover:bg-[#FDD800] text-[#191919] border-[#FEE500] hover:border-[#FDD800]"
           >
             <span className="flex items-center justify-center gap-2">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path fillRule="evenodd" clipRule="evenodd" d="M9 0.5C4.02944 0.5 0 3.69745 0 7.62245C0 10.0505 1.55893 12.1892 3.93137 13.4637L2.93137 17.0721C2.84813 17.3803 3.20749 17.6241 3.47687 17.4428L7.72437 14.5909C8.14312 14.6409 8.56875 14.6674 9 14.6674C13.9706 14.6674 18 11.4699 18 7.54494C18 3.61994 13.9706 0.5 9 0.5Z" fill="#191919"/>
               </svg>
               카카오로 시작하기
@@ -74,9 +75,10 @@ function LoginContent() {
             variant="secondary"
             fullWidth
             onClick={handleGoogleLogin}
+            aria-label="Google 계정으로 로그인"
           >
             <span className="flex items-center justify-center gap-2">
-              <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+              <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
                 <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18l-2.909-2.26c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
                 <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>

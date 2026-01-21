@@ -184,21 +184,23 @@ function CoinContent() {
 
         {/* 패키지 선택 */}
         <div>
-          <h3 className="text-subheading font-semibold text-text mb-4">
+          <h3 id="package-label" className="text-subheading font-semibold text-text mb-4">
             충전 패키지 선택
           </h3>
 
           {isLoading ? (
-            <div className="space-y-3">
+            <div className="space-y-3" aria-busy="true" aria-label="패키지 목록 로딩 중">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-24 bg-gray-100 rounded-xl animate-pulse" />
               ))}
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3" role="radiogroup" aria-labelledby="package-label">
               {packages.map((pkg, index) => (
                 <button
                   key={pkg.id}
+                  role="radio"
+                  aria-checked={selectedPackage === pkg.id}
                   onClick={() => setSelectedPackage(pkg.id)}
                   className={`
                     w-full p-4 rounded-xl border-2 transition-all text-left
@@ -248,16 +250,18 @@ function CoinContent() {
 
         {/* 결제 수단 선택 */}
         <div>
-          <h3 className="text-subheading font-semibold text-text mb-4">
+          <h3 id="payment-method-label" className="text-subheading font-semibold text-text mb-4">
             결제 수단 선택
           </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-labelledby="payment-method-label">
             {[
               { id: '카드', label: '신용카드', icon: '💳' },
               { id: '카카오페이', label: '카카오페이', icon: '🟡' },
             ].map((method) => (
               <button
                 key={method.id}
+                role="radio"
+                aria-checked={paymentMethod === method.id}
                 onClick={() => setPaymentMethod(method.id as typeof paymentMethod)}
                 className={`
                   p-4 rounded-xl border-2 transition-all text-center bg-white
@@ -267,7 +271,7 @@ function CoinContent() {
                   }
                 `}
               >
-                <span className="text-2xl block mb-1">{method.icon}</span>
+                <span className="text-2xl block mb-1" aria-hidden="true">{method.icon}</span>
                 <span className="text-small font-medium text-text">{method.label}</span>
               </button>
             ))}

@@ -62,13 +62,13 @@
 |------|------|------|
 | Button에 `aria-busy`, `aria-disabled` 없음 | `Button.tsx` | [x] ✅ aria-busy, aria-disabled, role="status" 추가 |
 | Input/Select에 `aria-describedby`, `aria-invalid` 없음 | `Input.tsx`, `Select.tsx` | [x] ✅ aria-invalid, aria-describedby 추가 |
-| 뒤로가기 버튼에 `aria-label` 없음 | `Header.tsx` | [ ] |
+| 뒤로가기 버튼에 `aria-label` 없음 | `Header.tsx` | [x] ✅ aria-label, aria-hidden 추가 |
 | 에러 메시지에 `role="alert"` 없음 | 로그인 페이지들 | [x] ✅ Input/Select 에러에 role="alert" 추가 |
 | 모달에 포커스 트랩 없음 | `result/page.tsx` | [ ] |
 | 별점/이모지에 `aria-hidden` 없음 | 랜딩 페이지 | [ ] |
-| 소셜 로그인 버튼에 `aria-label` 없음 | `login/page.tsx` | [ ] |
-| 성별 선택 버튼에 `role="radio"` 없음 | `saju/[type]/page.tsx` | [ ] |
-| 패키지/결제수단 선택에 ARIA 속성 없음 | `coin/page.tsx` | [ ] |
+| 소셜 로그인 버튼에 `aria-label` 없음 | `login/page.tsx` | [x] ✅ aria-label, aria-hidden 추가 |
+| 성별 선택 버튼에 `role="radio"` 없음 | `saju/[type]/page.tsx` | [x] ✅ role="radiogroup", role="radio", aria-checked 추가 |
+| 패키지/결제수단 선택에 ARIA 속성 없음 | `coin/page.tsx` | [x] ✅ role="radiogroup", role="radio", aria-checked 추가 |
 
 ### UX 개선
 

@@ -29,6 +29,7 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
   const BackButton = () => (
     <button
       onClick={handleBack}
+      aria-label="뒤로 가기"
       className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
     >
       <svg
@@ -40,6 +41,7 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        aria-hidden="true"
       >
         <path d="M15 18l-6-6 6-6" />
       </svg>
@@ -49,6 +51,7 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
   const BackLink = () => (
     <Link
       href={backHref}
+      aria-label="뒤로 가기"
       className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
     >
       <svg
@@ -60,6 +63,7 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        aria-hidden="true"
       >
         <path d="M15 18l-6-6 6-6" />
       </svg>

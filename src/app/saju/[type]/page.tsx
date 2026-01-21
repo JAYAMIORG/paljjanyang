@@ -449,12 +449,14 @@ export default function SajuInputPage() {
 
       {/* 성별 */}
       <Card>
-        <h3 className="text-subheading font-semibold text-text mb-4">
+        <h3 id="gender-label" className="text-subheading font-semibold text-text mb-4">
           성별 <span className="text-accent-rose">*</span>
         </h3>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-labelledby="gender-label" aria-required="true">
           <button
             type="button"
+            role="radio"
+            aria-checked={formData.gender === 'male'}
             onClick={() => setFormData({ ...formData, gender: 'male' })}
             className={`
               h-12 rounded-button border-2 font-semibold
@@ -470,6 +472,8 @@ export default function SajuInputPage() {
           </button>
           <button
             type="button"
+            role="radio"
+            aria-checked={formData.gender === 'female'}
             onClick={() => setFormData({ ...formData, gender: 'female' })}
             className={`
               h-12 rounded-button border-2 font-semibold
