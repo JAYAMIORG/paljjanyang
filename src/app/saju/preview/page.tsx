@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Header } from '@/components/layout'
-import { Button, Card } from '@/components/ui'
+import { Button, Card, LoadingScreen, ErrorScreen } from '@/components/ui'
 import { useAuth } from '@/hooks'
 import type { SajuResult } from '@/types/saju'
 
@@ -133,26 +133,16 @@ function PreviewContent() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce">🐱</div>
-          <p className="text-body text-text-muted">사주를 분석하고 있어요...</p>
-        </div>
-      </div>
-    )
+    return <LoadingScreen message="사주를 분석하고 있어요..." />
   }
 
   if (error || !result) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header showBack />
-        <main className="px-4 py-6 max-w-lg mx-auto text-center">
-          <div className="text-6xl mb-4">😿</div>
-          <p className="text-body text-text mb-6">{error || '결과를 불러올 수 없습니다.'}</p>
-          <Button onClick={() => router.back()}>다시 시도하기</Button>
-        </main>
-      </div>
+      <ErrorScreen
+        message={error || '결과를 불러올 수 없습니다.'}
+        showRetry
+        onRetry={() => router.back()}
+      />
     )
   }
 

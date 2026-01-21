@@ -174,6 +174,7 @@
 - [x] Input (라벨, 에러, 힌트 지원)
 - [x] Select (드롭다운)
 - [x] Card (default, highlighted variants)
+- [x] Feedback (LoadingScreen, ErrorScreen, EmptyState, Toast 등) ✅ NEW
 
 ### 레이아웃 컴포넌트 (`src/components/layout/`)
 - [x] Header (로고, 뒤로가기, 로그인 상태)
@@ -269,7 +270,9 @@
   - /refund - 환불 정책
 - [x] 결제 취소 API ✅ (2025-01-20)
   - /api/payment/kakaopay/cancel - 카카오페이 결제 취소
-- [ ] 에러 처리 및 로딩 상태 개선
+- [x] 에러 처리 및 로딩 상태 개선 ✅ (2025-01-21)
+  - 공통 Feedback 컴포넌트 구현 (LoadingScreen, ErrorScreen, EmptyState 등)
+  - 마이페이지, 결과 페이지, preview 페이지, 입력 페이지에 적용
 
 ### 낮은 우선순위 (출시 후)
 - [x] 카카오톡 공유 기능 ✅ (2025-01-20)

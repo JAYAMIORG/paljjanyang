@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Header } from '@/components/layout'
-import { Button, Card, Select, Input } from '@/components/ui'
+import { Button, Card, Select, Input, LoadingScreen } from '@/components/ui'
 import { useAuth } from '@/hooks'
 
 interface Person {
@@ -46,10 +46,20 @@ const monthOptions = Array.from({ length: 12 }, (_, i) => ({
   label: `${i + 1}월`,
 }))
 
-const dayOptions = Array.from({ length: 31 }, (_, i) => ({
-  value: i + 1,
-  label: `${i + 1}일`,
-}))
+// 월과 연도에 따른 최대 일수 계산
+function getMaxDaysInMonth(year: number, month: number): number {
+  if (!year || !month) return 31
+  // month는 1-12, Date에서는 0-11 사용하므로 month를 그대로 전달하면 다음 달의 0일 = 해당 월의 마지막 날
+  return new Date(year, month, 0).getDate()
+}
+
+function getDayOptions(year: number, month: number) {
+  const maxDays = getMaxDaysInMonth(year, month)
+  return Array.from({ length: maxDays }, (_, i) => ({
+    value: i + 1,
+    label: `${i + 1}일`,
+  }))
+}
 
 const hourOptions = [
   { value: -1, label: '모르겠어요' },
@@ -299,14 +309,7 @@ export default function SajuInputPage() {
 
   // 로딩 중
   if (authLoading || isLoadingPersons) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce">🐱</div>
-          <p className="text-body text-text-muted">로딩 중...</p>
-        </div>
-      </div>
-    )
+    return <LoadingScreen message="로딩 중..." />
   }
 
   // 입력 폼 렌더링
@@ -360,18 +363,43 @@ export default function SajuInputPage() {
             options={yearOptions}
             placeholder="년도"
             value={formData.birthYear}
-            onChange={(e) => setFormData({ ...formData, birthYear: e.target.value })}
+            onChange={(e) => {
+              const newYear = e.target.value
+              const maxDays = getMaxDaysInMonth(
+                parseInt(newYear),
+                parseInt(formData.birthMonth) || 1
+              )
+              // 선택된 일이 최대 일수를 초과하면 자동 조정 (윤년 처리)
+              const newDay = formData.birthDay && parseInt(formData.birthDay) > maxDays
+                ? maxDays.toString()
+                : formData.birthDay
+              setFormData({ ...formData, birthYear: newYear, birthDay: newDay })
+            }}
             required
           />
           <Select
             options={monthOptions}
             placeholder="월"
             value={formData.birthMonth}
-            onChange={(e) => setFormData({ ...formData, birthMonth: e.target.value })}
+            onChange={(e) => {
+              const newMonth = e.target.value
+              const maxDays = getMaxDaysInMonth(
+                parseInt(formData.birthYear) || currentYear,
+                parseInt(newMonth)
+              )
+              // 선택된 일이 최대 일수를 초과하면 자동 조정
+              const newDay = formData.birthDay && parseInt(formData.birthDay) > maxDays
+                ? maxDays.toString()
+                : formData.birthDay
+              setFormData({ ...formData, birthMonth: newMonth, birthDay: newDay })
+            }}
             required
           />
           <Select
-            options={dayOptions}
+            options={getDayOptions(
+              parseInt(formData.birthYear) || currentYear,
+              parseInt(formData.birthMonth) || 1
+            )}
             placeholder="일"
             value={formData.birthDay}
             onChange={(e) => setFormData({ ...formData, birthDay: e.target.value })}

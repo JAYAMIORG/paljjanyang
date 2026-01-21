@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import html2canvas from 'html2canvas'
 import { Header } from '@/components/layout'
-import { Button, Card } from '@/components/ui'
+import { Button, Card, LoadingScreen, ErrorScreen, InsufficientCoinsModal } from '@/components/ui'
 import { YearlyResultContent, CompatibilityResultContent } from '@/components/result'
 import { useAuth, useKakaoShare } from '@/hooks'
 import type { SajuResult } from '@/types/saju'
@@ -580,75 +580,44 @@ function ResultContent() {
   // 사주 계산 중이거나 LLM 해석 로딩 중일 때 전체 로딩 화면 표시
   if (isLoading || isInterpretLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce">🐱</div>
-          <p className="text-body text-text-muted">
-            {isLoading ? '사주를 계산하고 있어요...' : '운명을 해석하고 있어요...'}
-          </p>
-        </div>
-      </div>
+      <LoadingScreen
+        message={isLoading ? '사주를 계산하고 있어요...' : '운명을 해석하고 있어요...'}
+      />
     )
   }
 
-  // 코인 부족 모달
+  // 코인 부족 시
   if (showInsufficientModal) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header showBack useHistoryBack />
-        <main className="px-4 py-6 max-w-lg mx-auto">
-          <div className="bg-white rounded-2xl p-6 text-center">
-            <span className="text-5xl block mb-4">😿</span>
-            <h3 className="text-heading font-semibold text-text mb-2">
-              코인이 부족해요
-            </h3>
-            <p className="text-body text-text-muted mb-6">
-              전체 해석을 보려면 1코인이 필요해요.<br />
-              현재 보유 코인: <span className="font-semibold text-primary">{coinBalance}</span>
-            </p>
-            <div className="space-y-3">
-              <Button
-                fullWidth
-                onClick={() => router.push('/coin')}
-              >
-                💰 코인 충전하러 가기
-              </Button>
-              <Button
-                variant="ghost"
-                fullWidth
-                onClick={() => router.push('/home')}
-              >
-                홈으로 돌아가기
-              </Button>
-            </div>
-          </div>
-        </main>
-      </div>
+      <ErrorScreen
+        title="코인이 부족해요"
+        message={`전체 해석을 보려면 1코인이 필요해요.\n현재 보유 코인: ${coinBalance}`}
+        emoji="😿"
+        showRetry
+        onRetry={() => router.push('/coin')}
+        showHome
+        onHome={() => router.push('/home')}
+      />
     )
   }
 
   if (coinError && !showInsufficientModal) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header showBack useHistoryBack />
-        <main className="px-4 py-6 max-w-lg mx-auto text-center">
-          <div className="text-6xl mb-4">😿</div>
-          <p className="text-body text-text mb-6">{coinError}</p>
-          <Button onClick={() => router.push('/home')}>홈으로 돌아가기</Button>
-        </main>
-      </div>
+      <ErrorScreen
+        message={coinError}
+        showHome
+        onHome={() => router.push('/home')}
+      />
     )
   }
 
   if (error || !result) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header showBack useHistoryBack />
-        <main className="px-4 py-6 max-w-lg mx-auto text-center">
-          <div className="text-6xl mb-4">😿</div>
-          <p className="text-body text-text">{error || '결과를 불러올 수 없습니다.'}</p>
-        </main>
-      </div>
+      <ErrorScreen
+        message={error || '결과를 불러올 수 없습니다.'}
+        showHome
+        onHome={() => router.push('/home')}
+      />
     )
   }
 

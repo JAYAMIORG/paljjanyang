@@ -16,7 +16,7 @@ function LoginContent() {
 
   const handleKakaoLogin = async () => {
     setError(null)
-    const { error } = await signInWithKakao()
+    const { error } = await signInWithKakao(redirect)
     if (error) {
       setError('카카오 로그인에 실패했어요')
     }
@@ -24,7 +24,7 @@ function LoginContent() {
 
   const handleGoogleLogin = async () => {
     setError(null)
-    const { error } = await signInWithGoogle()
+    const { error } = await signInWithGoogle(redirect)
     if (error) {
       setError('구글 로그인에 실패했어요')
     }

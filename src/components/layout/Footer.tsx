@@ -27,7 +27,7 @@ export function Footer() {
         </div>
 
         <p className="text-caption text-text-light mt-4">
-          © 2025 ChartIQ. All rights reserved.
+          © {new Date().getFullYear()} ChartIQ. All rights reserved.
         </p>
       </div>
     </footer>

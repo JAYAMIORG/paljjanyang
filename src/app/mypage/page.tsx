@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Header, Footer } from '@/components/layout'
-import { Card, Button } from '@/components/ui'
+import { Card, Button, LoadingScreen, LoadingCard, ErrorCard, EmptyState } from '@/components/ui'
 import { useAuth } from '@/hooks'
 import type { ReadingHistoryItem } from '@/app/api/saju/history/route'
 
@@ -91,14 +91,7 @@ export default function MyPage() {
   }, [user])
 
   if (authLoading || (!user && isConfigured)) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce">🐱</div>
-          <p className="text-body text-text-muted">로딩 중...</p>
-        </div>
-      </div>
-    )
+    return <LoadingScreen message="로딩 중..." />
   }
 
   // Supabase 미설정 시
@@ -161,33 +154,18 @@ export default function MyPage() {
           </h3>
 
           {isLoading ? (
-            <Card>
-              <div className="flex items-center justify-center py-8">
-                <div className="text-center">
-                  <div className="text-4xl mb-3 animate-pulse">🐱</div>
-                  <p className="text-body text-text-muted">불러오는 중...</p>
-                </div>
-              </div>
-            </Card>
+            <LoadingCard message="기록을 불러오는 중..." />
           ) : error ? (
-            <Card>
-              <div className="text-center py-8">
-                <div className="text-4xl mb-3">😿</div>
-                <p className="text-body text-text-muted">{error}</p>
-              </div>
-            </Card>
+            <ErrorCard message={error} />
           ) : readings.length === 0 ? (
-            <Card>
-              <div className="text-center py-8">
-                <div className="text-4xl mb-3">📭</div>
-                <p className="text-body text-text-muted mb-4">
-                  아직 저장된 사주가 없어요
-                </p>
+            <EmptyState
+              message="아직 저장된 사주가 없어요"
+              action={
                 <Link href="/home">
                   <Button size="sm">사주 보러가기</Button>
                 </Link>
-              </div>
-            </Card>
+              }
+            />
           ) : (
             <div className="space-y-3">
               {readings.map((reading) => (

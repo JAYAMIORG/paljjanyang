@@ -16,7 +16,7 @@ const sajuTypes = [
   {
     id: 'yearly',
     title: '신년운세',
-    description: '2025년 월별 운세 총정리',
+    description: `${new Date().getFullYear()}년 월별 운세 총정리`,
     icon: '📅',
     features: ['월별 운세', '행운의 날', '주의할 날'],
   },

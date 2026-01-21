@@ -11,25 +11,25 @@
 
 | 문제 | 위치 | 설명 | 상태 |
 |------|------|------|------|
-| **LLM API 인증 없음** | `/api/saju/interpret` | 인증 없이 OpenAI API 호출 가능 → 비용 공격 위험 | [ ] |
-| **테스트 모드 보안** | `/api/payment/confirm`, `coin/page.tsx` | 환경변수 누락 시 무료 결제 가능 | [ ] |
-| **공유 결과 노출** | `/api/saju/shared/[id]` | 모든 사용자 결과가 UUID만 알면 조회 가능 | [ ] |
+| **LLM API 인증 없음** | `/api/saju/interpret` | 인증 없이 OpenAI API 호출 가능 → 비용 공격 위험 | [x] ✅ 인증 체크 구현됨 |
+| **테스트 모드 보안** | `/api/payment/confirm`, `coin/page.tsx` | 환경변수 누락 시 무료 결제 가능 | [x] ✅ PAYMENT_TEST_MODE 명시적 설정 필요 |
+| **공유 결과 노출** | `/api/saju/shared/[id]` | 모든 사용자 결과가 UUID만 알면 조회 가능 | [x] ✅ 의도된 기능 (공유 목적) |
 
 ### 2. Race Condition (동시성 버그)
 
 | 문제 | 위치 | 설명 | 상태 |
 |------|------|------|------|
-| **코인 중복 차감/지급** | `/api/saju/use-coin` | 동시 요청 시 잔액 불일치 | [ ] |
-| **결제 중복 처리** | `/api/payment/confirm` | 같은 orderId로 중복 confirm 시 코인 여러 번 지급 | [ ] |
-| **카카오페이 중복** | `/api/payment/kakaopay/approve` | 동일 결제 approve 두 번 호출 시 코인 중복 | [ ] |
-| **공유 리워드 중복** | `/api/share/reward` | 동시 요청 시 보상 중복 지급 | [ ] |
+| **코인 중복 차감/지급** | `/api/saju/use-coin` | 동시 요청 시 잔액 불일치 | [x] ✅ RPC `use_coin` 함수로 atomic 처리 |
+| **결제 중복 처리** | `/api/payment/confirm` | 같은 orderId로 중복 confirm 시 코인 여러 번 지급 | [x] ✅ RPC `process_payment` 함수로 atomic 처리 |
+| **카카오페이 중복** | `/api/payment/kakaopay/approve` | 동일 결제 approve 두 번 호출 시 코인 중복 | [x] ✅ RPC `process_payment` 함수로 atomic 처리 |
+| **공유 리워드 중복** | `/api/share/reward` | 동시 요청 시 보상 중복 지급 | [x] ✅ RPC `claim_share_reward` 함수로 atomic 처리 |
 
 ### 3. 데이터 무결성
 
 | 문제 | 위치 | 설명 | 상태 |
 |------|------|------|------|
-| **코인 차감 후 롤백 없음** | `result/page.tsx` | 코인 차감 후 사주 계산 실패해도 코인 복구 안 됨 | [ ] |
-| **트랜잭션 미사용** | 결제 API들 | DB 작업 중간 실패 시 데이터 불일치 | [ ] |
+| **코인 차감 후 롤백 없음** | `result/page.tsx` | 코인 차감 후 사주 계산 실패해도 코인 복구 안 됨 | [x] ✅ `/api/saju/refund-coin` API 및 RPC `refund_coin` 함수 구현 |
+| **트랜잭션 미사용** | 결제 API들 | DB 작업 중간 실패 시 데이터 불일치 | [x] ✅ Supabase RPC 함수로 atomic 트랜잭션 처리 |
 
 ---
 
@@ -127,7 +127,7 @@
 
 | 우선순위 | 개수 | 핵심 항목 |
 |----------|------|----------|
-| 🚨 Critical | 8개 | 인증, Race Condition, 데이터 무결성 |
+| 🚨 Critical | ~~8개~~ **0개** ✅ | ~~인증, Race Condition, 데이터 무결성~~ 모두 해결됨 |
 | 🟠 High | 7개 | 소셜 로그인, 날짜 검증, 하드코딩 |
 | 🟡 Medium | 25개+ | 접근성, UX, 코드 품질, API |
 | 🟢 Low | 7개 | 페이지네이션, Soft Delete 등 |
@@ -136,17 +136,17 @@
 
 ## 🛠️ 권장 수정 순서
 
-### Phase 1: 즉시 (1-2일)
-1. LLM API 인증 추가 (`/api/saju/interpret`)
-2. 테스트 모드 보안 강화 (명시적 환경변수 분리)
+### Phase 1: 즉시 (1-2일) ✅ 완료
+1. ~~LLM API 인증 추가 (`/api/saju/interpret`)~~ ✅
+2. ~~테스트 모드 보안 강화 (명시적 환경변수 분리)~~ ✅
 
-### Phase 2: 1주 내
-1. Race Condition 해결
-   - Supabase RPC 함수로 atomic update 구현
-   - 결제 상태 `processing` 중간 상태 추가
-2. 코인 차감 실패 시 롤백 로직 추가
+### Phase 2: 1주 내 ✅ 완료
+1. ~~Race Condition 해결~~ ✅
+   - ~~Supabase RPC 함수로 atomic update 구현~~ → `002_atomic_coin_functions.sql`
+   - ~~결제 상태 `processing` 중간 상태 추가~~ → `process_payment()` 함수
+2. ~~코인 차감 실패 시 롤백 로직 추가~~ ✅ → `/api/saju/refund-coin`
 
-### Phase 3: 2주 내
+### Phase 3: 2주 내 ← **현재 진행 대상**
 1. 소셜 로그인 redirect 수정
 2. 날짜 유효성 검증 추가
 3. 하드코딩된 연도 동적 변경

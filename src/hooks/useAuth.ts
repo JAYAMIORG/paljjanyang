@@ -61,27 +61,35 @@ export function useAuth() {
     return { data, error }
   }, [supabase])
 
-  const signInWithKakao = useCallback(async (): Promise<AuthResult> => {
+  const signInWithKakao = useCallback(async (redirectTo?: string): Promise<AuthResult> => {
     if (!supabase) {
       return { data: null, error: new Error('Supabase not configured') }
     }
+    const callbackUrl = redirectTo
+      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`
+      : `${window.location.origin}/auth/callback`
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'kakao',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callbackUrl,
       },
     })
     return { data, error }
   }, [supabase])
 
-  const signInWithGoogle = useCallback(async (): Promise<AuthResult> => {
+  const signInWithGoogle = useCallback(async (redirectTo?: string): Promise<AuthResult> => {
     if (!supabase) {
       return { data: null, error: new Error('Supabase not configured') }
     }
+    const callbackUrl = redirectTo
+      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`
+      : `${window.location.origin}/auth/callback`
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callbackUrl,
       },
     })
     return { data, error }
