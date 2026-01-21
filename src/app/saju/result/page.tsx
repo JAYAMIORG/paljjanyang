@@ -2,7 +2,6 @@
 
 import { useEffect, useState, Suspense, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import html2canvas from 'html2canvas'
 import { Header } from '@/components/layout'
 import { Button, Card, LoadingScreen, ErrorScreen, InsufficientCoinsModal, AlertDialog, Modal } from '@/components/ui'
 import { YearlyResultContent, CompatibilityResultContent, DailyResultContent } from '@/components/result'
@@ -65,6 +64,20 @@ function ResultContent() {
   const hasSavedRef = useRef(false)
   const hasDeductedCoinRef = useRef(false)
   const hasStartedRef = useRef(false)
+  const rewardToastTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // URL 파라미터를 기반으로 고유 키 생성 (새 계산 시 refs 초기화용)
+  const searchParamsKey = searchParams.toString()
+
+  // URL 파라미터가 변경되면 refs 초기화 (네비게이션으로 돌아왔을 때 중복 방지)
+  useEffect(() => {
+    // savedId가 없는 경우에만 초기화 (새로운 계산 시작)
+    if (!searchParams.get('id')) {
+      hasSavedRef.current = false
+      hasDeductedCoinRef.current = false
+      hasStartedRef.current = false
+    }
+  }, [searchParamsKey, searchParams])
 
   const type = searchParams.get('type') || 'personal'
   const gender = searchParams.get('gender') || 'female'
@@ -492,6 +505,15 @@ function ResultContent() {
     }
   }, [user])
 
+  // 타이머 cleanup (메모리 누수 방지)
+  useEffect(() => {
+    return () => {
+      if (rewardToastTimeoutRef.current) {
+        clearTimeout(rewardToastTimeoutRef.current)
+      }
+    }
+  }, [])
+
   // 공유 보상 요청 (계정당 1회)
   const claimShareReward = async () => {
     if (shareRewardClaimed) return
@@ -508,7 +530,11 @@ function ResultContent() {
         if (data.data.rewarded) {
           // 보상 지급됨
           setShowRewardToast(true)
-          setTimeout(() => setShowRewardToast(false), 3000)
+          // 기존 타이머 정리 후 새 타이머 설정
+          if (rewardToastTimeoutRef.current) {
+            clearTimeout(rewardToastTimeoutRef.current)
+          }
+          rewardToastTimeoutRef.current = setTimeout(() => setShowRewardToast(false), 3000)
         }
         setShareRewardClaimed(true)
       }

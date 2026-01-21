@@ -29,6 +29,7 @@ export function useKakaoShare() {
 
   useEffect(() => {
     const kakaoKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
+    const KAKAO_SDK_URL = 'https://developers.kakao.com/sdk/js/kakao.min.js'
 
     if (!kakaoKey) {
       setIsLoading(false)
@@ -45,9 +46,30 @@ export function useKakaoShare() {
       return
     }
 
+    // 이미 스크립트가 로딩 중인지 확인 (중복 로딩 방지)
+    const existingScript = document.querySelector(`script[src="${KAKAO_SDK_URL}"]`)
+    if (existingScript) {
+      // 이미 로딩 중인 스크립트가 있으면 load 이벤트 대기
+      const handleExistingLoad = () => {
+        if (window.Kakao && !window.Kakao.isInitialized()) {
+          window.Kakao.init(kakaoKey)
+        }
+        setIsReady(true)
+        setIsLoading(false)
+      }
+
+      if (window.Kakao) {
+        handleExistingLoad()
+      } else {
+        existingScript.addEventListener('load', handleExistingLoad)
+        return () => existingScript.removeEventListener('load', handleExistingLoad)
+      }
+      return
+    }
+
     // 카카오 SDK 스크립트 로드
     const script = document.createElement('script')
-    script.src = 'https://developers.kakao.com/sdk/js/kakao.min.js'
+    script.src = KAKAO_SDK_URL
     script.async = true
 
     script.onload = () => {
@@ -60,6 +82,7 @@ export function useKakaoShare() {
 
     script.onerror = () => {
       setIsLoading(false)
+      console.error('카카오 SDK 로딩 실패')
     }
 
     document.head.appendChild(script)

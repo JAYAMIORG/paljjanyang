@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { Card } from '@/components/ui'
 import type { SajuResult } from '@/types/saju'
 
@@ -247,8 +248,10 @@ export function YearlyResultContent({ result, interpretation }: YearlyResultCont
   const currentYear = new Date().getFullYear()
   const dayMasterEmoji = DAY_MASTER_EMOJI[result.dayMaster] || '🐱'
 
-  // 해석 파싱
-  const parsed = interpretation ? parseYearlyInterpretation(interpretation) : null
+  // 해석 파싱 (memoize하여 불필요한 재계산 방지)
+  const parsed = useMemo(() => {
+    return interpretation ? parseYearlyInterpretation(interpretation) : null
+  }, [interpretation])
 
   return (
     <div className="space-y-6">

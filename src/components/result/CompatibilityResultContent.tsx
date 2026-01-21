@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { Card } from '@/components/ui'
 import type { SajuResult } from '@/types/saju'
 
@@ -273,11 +274,15 @@ export function CompatibilityResultContent({
   gender2,
   interpretation,
 }: CompatibilityResultContentProps) {
-  // 해석 파싱
-  const parsed = interpretation ? parseCompatibilityInterpretation(interpretation) : null
+  // 해석 파싱 (memoize하여 불필요한 재계산 방지)
+  const parsed = useMemo(() => {
+    return interpretation ? parseCompatibilityInterpretation(interpretation) : null
+  }, [interpretation])
 
   // 점수 결정 (LLM 해석에서 추출하거나 오행 조화로 계산)
-  const score = parsed?.score || calculateWuxingHarmony(result1.wuXing, result2.wuXing)
+  const score = useMemo(() => {
+    return parsed?.score || calculateWuxingHarmony(result1.wuXing, result2.wuXing)
+  }, [parsed?.score, result1.wuXing, result2.wuXing])
 
   return (
     <div className="space-y-6">
