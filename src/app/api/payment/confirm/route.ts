@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { checkRateLimit, RATE_LIMITS, createRateLimitResponse } from '@/lib/utils'
 
 export interface ConfirmPaymentRequest {
   paymentKey: string
@@ -52,12 +51,6 @@ export async function POST(request: NextRequest) {
         },
         { status: 401 }
       )
-    }
-
-    // Rate Limit 체크 (결제 API - 분당 10회)
-    const rateLimit = checkRateLimit(`payment:${user.id}`, RATE_LIMITS.payment)
-    if (!rateLimit.allowed) {
-      return createRateLimitResponse(rateLimit.resetTime)
     }
 
     const body: ConfirmPaymentRequest = await request.json()

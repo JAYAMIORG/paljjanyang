@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { checkRateLimit, RATE_LIMITS, createRateLimitResponse } from '@/lib/utils'
 
 export interface UseCoinRequest {
   type: 'personal' | 'yearly' | 'compatibility' | 'love'
@@ -51,12 +50,6 @@ export async function POST(request: Request) {
         },
         { status: 401 }
       )
-    }
-
-    // Rate Limit 체크 (사용자당 분당 60회)
-    const rateLimit = checkRateLimit(`use-coin:${user.id}`, RATE_LIMITS.default)
-    if (!rateLimit.allowed) {
-      return createRateLimitResponse(rateLimit.resetTime)
     }
 
     const body: UseCoinRequest = await request.json()

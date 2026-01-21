@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { checkRateLimit, RATE_LIMITS } from '@/lib/utils'
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,12 +24,6 @@ export async function GET(request: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.redirect(`${baseUrl}/payment/fail?reason=unauthorized`)
-    }
-
-    // Rate Limit 체크 (결제 API - 분당 10회)
-    const rateLimit = checkRateLimit(`payment:${user.id}`, RATE_LIMITS.payment)
-    if (!rateLimit.allowed) {
-      return NextResponse.redirect(`${baseUrl}/payment/fail?reason=rate_limit`)
     }
 
     // Admin 클라이언트 생성 (RLS 우회)
