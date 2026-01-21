@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "design-qa": "node scripts/design-qa.js",
+    "design-qa:screenshot": "node scripts/design-qa.js --screenshot",
+    "load-test": "node scripts/load-test.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
@@ -27,6 +30,7 @@
     "autoprefixer": "^10.4.23",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.2",
+    "playwright": "^1.57.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3"
