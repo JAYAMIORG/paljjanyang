@@ -2,7 +2,7 @@
 
 > 작성일: 2025-01-15
 > 최종 업데이트: 2026-01-21
-> 상태: MVP 개발 완료 (UI 전체 완료, 실결제 테스트 대기)
+> 상태: MVP 개발 완료 (실결제 테스트 완료)
 
 ---
 
@@ -69,11 +69,15 @@
 - [x] 토스페이먼츠 SDK 연동 ✅ (2025-01-16)
 - [x] 코인 충전 플로우 UI ✅ (2025-01-16)
 - [x] 결제 성공/실패 페이지 ✅ (2025-01-16)
-- [ ] 토스페이먼츠 실결제 테스트 (API 키 설정 필요)
+- [x] 토스페이먼츠 실결제 테스트 ✅ (2026-01-21)
 - [x] 카카오페이 연동 ✅ (2025-01-20)
   - Ready API 구현 (/api/payment/kakaopay/ready)
   - Approve API 구현 (/api/payment/kakaopay/approve)
   - 코인 충전 페이지에 결제 수단 선택 UI 추가
+- [x] 결제 버그 수정 ✅ (2026-01-21)
+  - RPC fallback 조건 확장 (enum 에러 처리)
+  - Vercel URL 자동 감지 (localhost 리다이렉트 문제 해결)
+  - 카카오페이 테스트 모드 로직 일치 (ready/approve)
 
 ### 사주 정보 저장
 - [x] 인물 정보 저장 API (POST /api/persons) ✅ (2025-01-16)
@@ -135,20 +139,17 @@
   - 하루 1회 제한 API 구현
   - 간소화된 결과 페이지
 - [x] 성능 최적화 ✅ (2026-01-21)
-  - html2canvas 동적 import (번들 ~400KB 절감)
   - YearlyResultContent, CompatibilityResultContent 마크다운 파싱 memoize
   - Kakao SDK 중복 로딩 방지
 - [x] 버그 수정 ✅ (2026-01-21)
-  - 이미지 생성 DOM 조작 try-finally로 안전하게 복원
   - Modal overflow 메모리 누수 수정
   - Timer cleanup 추가 (메모리 누수 방지)
-  - Ref 상태 네비게이션 시 초기화 (중복 요청 방지)
-  - Rate Limiting 추가 (API 남용 방지)
-  - 입력 검증 유틸리티 추가
-  - AbortController 적용 (요청 취소)
+- [x] UI 개선 ✅ (2026-01-21)
+  - 마이페이지 카드 너비 및 패딩 조정 (flex flex-col 적용)
+  - Card 컴포넌트 w-full 추가
 - [x] 코드 정리 및 컴포넌트화 ✅ (2026-01-21)
-  - Icons.tsx: 공통 아이콘 컴포넌트 (Back, Close, Chevron, Trash, Link, Instagram, Kakao)
-  - constants.ts: 사주 관련 상수 (WUXING_COLORS, WUXING_KOREAN, DAY_MASTER_EMOJI)
+  - Icons.tsx: 공통 아이콘 컴포넌트
+  - constants.ts: 사주 관련 상수
   - markdown.ts: 마크다운 파싱 유틸리티
   - InterpretationCard, FallbackInterpretation 공유 컴포넌트
 - [x] 결제 실패 시 재시도 옵션 ✅ (2026-01-21)
@@ -295,7 +296,7 @@
 - [x] Vercel 배포 및 도메인 연결 ✅ (2025-01-16) - https://bazi-azure.vercel.app
 - [x] GitHub 저장소 설정 ✅ (2025-01-16) - https://github.com/JAYAMIORG/paljjanyang
 - [x] 사주 정보 저장/재사용 기능 ✅ (2025-01-16)
-- [ ] 토스페이먼츠 API 키 설정 및 실결제 테스트
+- [x] 토스페이먼츠 API 키 설정 및 실결제 테스트 ✅ (2026-01-21)
 
 ### 중간 우선순위
 - [x] 궁합 계산 API 및 결과 페이지 ✅ (2025-01-21)
