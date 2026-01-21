@@ -12,6 +12,7 @@ const sajuTypes = [
     description: '사주팔자 + 인생 전체 분석',
     icon: '🔮',
     features: ['성격 기질', '천부 재능', '대운 흐름'],
+    coinCost: 1,
   },
   {
     id: 'yearly',
@@ -19,6 +20,7 @@ const sajuTypes = [
     description: `${new Date().getFullYear()}년 월별 운세 총정리`,
     icon: '📅',
     features: ['월별 운세', '행운의 날', '주의할 날'],
+    coinCost: 1,
   },
   {
     id: 'compatibility',
@@ -26,6 +28,7 @@ const sajuTypes = [
     description: '두 사람의 사주 궁합 분석',
     icon: '💕',
     features: ['종합 궁합', '성격 궁합', '인연 분석'],
+    coinCost: 1,
   },
   {
     id: 'love',
@@ -33,6 +36,15 @@ const sajuTypes = [
     description: '연애/결혼 관련 운세',
     icon: '💝',
     features: ['이상형 분석', '연애 시기', '결혼운'],
+    coinCost: 1,
+  },
+  {
+    id: 'daily',
+    title: '오늘의 운세',
+    description: '오늘 하루 운세를 확인해보세요',
+    icon: '☀️',
+    features: ['오늘의 총운', '행운 키워드', '조언'],
+    coinCost: 0,
   },
 ]
 
@@ -89,6 +101,7 @@ function SajuTypeCard({
   description,
   icon,
   features,
+  coinCost,
   onClick,
 }: {
   id: string
@@ -96,15 +109,21 @@ function SajuTypeCard({
   description: string
   icon: string
   features: string[]
+  coinCost: number
   onClick: () => void
 }) {
   return (
     <button onClick={onClick} className="block w-full text-left">
       <Card className="hover:shadow-card-hover hover:border-primary-light cursor-pointer">
         <div className="flex gap-4">
-          <span className="text-4xl flex-shrink-0">{icon}</span>
+          <span className="text-4xl flex-shrink-0" aria-hidden="true">{icon}</span>
           <div className="flex-1">
-            <h3 className="text-subheading font-semibold text-text mb-1">{title}</h3>
+            <div className="flex items-start justify-between mb-1">
+              <h3 className="text-subheading font-semibold text-text">{title}</h3>
+              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
+                {coinCost} 코인
+              </span>
+            </div>
             <p className="text-small text-text-muted mb-3">{description}</p>
             <ul className="flex flex-wrap gap-1.5">
               {features.map((feature) => (

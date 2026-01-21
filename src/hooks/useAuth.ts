@@ -103,6 +103,16 @@ export function useAuth() {
     return { error }
   }, [supabase])
 
+  const resetPassword = useCallback(async (email: string): Promise<AuthResult> => {
+    if (!supabase) {
+      return { data: null, error: new Error('Supabase not configured') }
+    }
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/update-password`,
+    })
+    return { data, error }
+  }, [supabase])
+
   return {
     user,
     loading,
@@ -112,5 +122,6 @@ export function useAuth() {
     signInWithKakao,
     signInWithGoogle,
     signOut,
+    resetPassword,
   }
 }

@@ -42,7 +42,7 @@ function EmailLoginContent() {
 
       <main className="px-4 py-8 max-w-lg mx-auto">
         <div className="text-center mb-8">
-          <span className="text-5xl block mb-4">🐱</span>
+          <span className="text-5xl block mb-4" aria-hidden="true">🐱</span>
           <h1 className="font-serif text-heading text-primary">팔자냥</h1>
           <p className="text-body text-text-muted mt-2">
             다시 만나서 반가워요!
@@ -80,6 +80,15 @@ function EmailLoginContent() {
             >
               {isLoading ? '로그인 중...' : '로그인'}
             </Button>
+
+            <div className="text-center pt-2">
+              <Link
+                href="/auth/reset-password"
+                className="text-small text-text-muted hover:text-primary transition-colors"
+              >
+                비밀번호를 잊으셨나요?
+              </Link>
+            </div>
           </form>
         </Card>
 
