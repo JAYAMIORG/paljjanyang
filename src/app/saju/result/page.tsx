@@ -66,19 +66,6 @@ function ResultContent() {
   const hasStartedRef = useRef(false)
   const rewardToastTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // URL 파라미터를 기반으로 고유 키 생성 (새 계산 시 refs 초기화용)
-  const searchParamsKey = searchParams.toString()
-
-  // URL 파라미터가 변경되면 refs 초기화 (네비게이션으로 돌아왔을 때 중복 방지)
-  useEffect(() => {
-    // savedId가 없는 경우에만 초기화 (새로운 계산 시작)
-    if (!searchParams.get('id')) {
-      hasSavedRef.current = false
-      hasDeductedCoinRef.current = false
-      hasStartedRef.current = false
-    }
-  }, [searchParamsKey, searchParams])
-
   const type = searchParams.get('type') || 'personal'
   const gender = searchParams.get('gender') || 'female'
   const year = searchParams.get('year')
