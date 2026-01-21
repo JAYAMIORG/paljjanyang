@@ -133,7 +133,7 @@ function CoinContent() {
         orderName,
         customerEmail: user.email,
         successUrl,
-        failUrl: `${window.location.origin}/payment/fail`,
+        failUrl: `${window.location.origin}/payment/fail?packageId=${selectedPackage}`,
       })
     } catch {
       setAlertMessage('결제 중 오류가 발생했습니다.')

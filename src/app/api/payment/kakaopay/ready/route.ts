@@ -175,8 +175,8 @@ export async function POST(request: NextRequest) {
       total_amount: String(packageData.price),
       tax_free_amount: '0',
       approval_url: `${baseUrl}/api/payment/kakaopay/approve?partner_order_id=${orderId}`,
-      cancel_url: `${baseUrl}/payment/fail?reason=cancel`,
-      fail_url: `${baseUrl}/payment/fail?reason=fail`,
+      cancel_url: `${baseUrl}/payment/fail?reason=cancel&packageId=${packageId}`,
+      fail_url: `${baseUrl}/payment/fail?reason=fail&packageId=${packageId}`,
     })
 
     const kakaoResponse = await fetch('https://kapi.kakao.com/v1/payment/ready', {

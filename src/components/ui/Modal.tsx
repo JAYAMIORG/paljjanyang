@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { CloseIcon } from './Icons'
 
 interface ModalProps {
   isOpen: boolean
@@ -149,9 +150,7 @@ export function Modal({
                 className="p-2 -mr-2 text-text-light hover:text-text transition-colors rounded-full hover:bg-gray-100"
                 aria-label="닫기"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
+                <CloseIcon />
               </button>
             )}
           </div>

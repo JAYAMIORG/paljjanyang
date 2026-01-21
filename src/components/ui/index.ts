@@ -20,3 +20,13 @@ export {
   InsufficientCoinsModal,
   ConfirmModal,
 } from './Feedback'
+export {
+  BackIcon,
+  CloseIcon,
+  ChevronRightIcon,
+  TrashIcon,
+  LinkIcon,
+  InstagramIcon,
+  KakaoIcon,
+  SpinnerIcon,
+} from './Icons'

@@ -3,40 +3,12 @@
 import { useEffect, useState, Suspense, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Header } from '@/components/layout'
-import { Button, Card, LoadingScreen, ErrorScreen, InsufficientCoinsModal, AlertDialog, Modal } from '@/components/ui'
-import { YearlyResultContent, CompatibilityResultContent, DailyResultContent } from '@/components/result'
+import { Button, Card, LoadingScreen, ErrorScreen, InsufficientCoinsModal, AlertDialog, Modal, InstagramIcon, KakaoIcon, LinkIcon } from '@/components/ui'
+import { YearlyResultContent, CompatibilityResultContent, DailyResultContent, InterpretationCard, FallbackInterpretation } from '@/components/result'
 import { useAuth, useKakaoShare } from '@/hooks'
+import { WUXING_COLORS, WUXING_KOREAN, getDayMasterEmoji } from '@/lib/saju/constants'
+import { parseMarkdownSections } from '@/lib/utils/markdown'
 import type { SajuResult } from '@/types/saju'
-
-const WUXING_COLORS: Record<string, string> = {
-  wood: '#7FB069',
-  fire: '#FF6B6B',
-  earth: '#FFB366',
-  metal: '#A8A8A8',
-  water: '#4ECDC4',
-}
-
-const WUXING_KOREAN: Record<string, string> = {
-  wood: '목(木)',
-  fire: '화(火)',
-  earth: '토(土)',
-  metal: '금(金)',
-  water: '수(水)',
-}
-
-// 일간 오행 이모지 매핑
-const DAY_MASTER_EMOJI: Record<string, string> = {
-  '甲': '🌳', '乙': '🌿',
-  '丙': '☀️', '丁': '🕯️',
-  '戊': '⛰️', '己': '🏔️',
-  '庚': '⚔️', '辛': '💎',
-  '壬': '🌊', '癸': '💧',
-}
-
-// 일간에서 이모지 가져오기
-const getDayMasterEmoji = (dayMaster: string): string => {
-  return DAY_MASTER_EMOJI[dayMaster] || '🐱'
-}
 
 function ResultContent() {
   const searchParams = useSearchParams()
@@ -960,7 +932,7 @@ function ResultContent() {
         ) : interpretation ? (
           <InterpretationCard content={interpretation} />
         ) : (
-          <FallbackInterpretation result={result} />
+          <FallbackInterpretation data={result} />
         )}
 
         {/* 대운 흐름 - 신년운세/궁합/오늘의운세 외 타입에서만 표시 */}
@@ -1009,9 +981,7 @@ function ResultContent() {
               {isShareLoading ? (
                 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                </svg>
+                <InstagramIcon />
               )}
             </button>
 
@@ -1022,19 +992,14 @@ function ResultContent() {
                 isKakaoReady ? 'hover:opacity-90' : 'opacity-50 cursor-not-allowed'
               }`}
             >
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 3c-5.52 0-10 3.59-10 8 0 2.84 1.89 5.33 4.71 6.72-.17.64-.68 2.53-.78 2.92-.12.49.18.48.38.35.16-.1 2.49-1.68 3.49-2.36.72.11 1.46.17 2.2.17 5.52 0 10-3.59 10-8s-4.48-8-10-8z"/>
-              </svg>
+              <KakaoIcon />
             </button>
 
             <button
               onClick={handleCopyLink}
               className="w-14 h-14 flex items-center justify-center rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
             >
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-              </svg>
+              <LinkIcon />
             </button>
           </div>
           {!shareRewardClaimed ? (
@@ -1113,110 +1078,6 @@ function ResultContent() {
       />
     </div>
   )
-}
-
-// LLM 해석 표시 컴포넌트
-function InterpretationCard({ content }: { content: string }) {
-  const sections = parseMarkdownSections(content)
-
-  return (
-    <div className="space-y-4">
-      {sections.map((section, index) => (
-        <Card key={index}>
-          {section.title && (
-            <h3 className="text-subheading font-semibold text-text mb-3">
-              {section.title}
-            </h3>
-          )}
-          <div className="text-body text-text-muted leading-relaxed whitespace-pre-wrap">
-            {section.content}
-          </div>
-        </Card>
-      ))}
-    </div>
-  )
-}
-
-// 마크다운 섹션 파싱
-function parseMarkdownSections(markdown: string): { title: string | null; content: string }[] {
-  const lines = markdown.split('\n')
-  const sections: { title: string | null; content: string }[] = []
-  let currentSection: { title: string | null; content: string[] } = { title: null, content: [] }
-
-  for (const line of lines) {
-    const headerMatch = line.match(/^#{1,3}\s+(.+)$/)
-    if (headerMatch) {
-      if (currentSection.content.length > 0 || currentSection.title) {
-        sections.push({
-          title: currentSection.title,
-          content: currentSection.content.join('\n').trim(),
-        })
-      }
-      currentSection = { title: headerMatch[1], content: [] }
-    } else {
-      currentSection.content.push(line)
-    }
-  }
-
-  if (currentSection.content.length > 0 || currentSection.title) {
-    sections.push({
-      title: currentSection.title,
-      content: currentSection.content.join('\n').trim(),
-    })
-  }
-
-  return sections.filter(s => s.content.trim() || s.title)
-}
-
-// LLM 실패 시 폴백 해석
-function FallbackInterpretation({ result }: { result: SajuResult }) {
-  return (
-    <div className="space-y-4">
-      <Card>
-        <h3 className="text-subheading font-semibold text-text mb-3">
-          핵심 요약
-        </h3>
-        <p className="text-body text-text-muted leading-relaxed">
-          당신은 <span className="font-semibold text-primary">{result.dayMasterKorean}</span>의
-          성향을 가진 사람입니다. {result.dominantElement}이 강하여
-          추진력과 에너지가 넘칩니다. 반면 {result.weakElement}이 부족하니
-          이 부분을 보완하면 더욱 균형 잡힌 삶을 살 수 있습니다.
-        </p>
-      </Card>
-
-      <Card>
-        <h3 className="text-subheading font-semibold text-text mb-3">
-          성격과 기질
-        </h3>
-        <p className="text-body text-text-muted leading-relaxed">
-          {result.dayMasterKorean}의 성향을 가진 당신은 {getPersonalityByElement(result.dominantElement)}.
-          목표를 향해 꾸준히 나아가는 성격이며, 주변 사람들에게 신뢰를 주는 편입니다.
-        </p>
-      </Card>
-
-      <Card>
-        <h3 className="text-subheading font-semibold text-text mb-3">
-          올해의 운세
-        </h3>
-        <p className="text-body text-text-muted leading-relaxed">
-          올해는 전반적으로 안정적인 흐름입니다.
-          상반기에는 준비와 계획에 집중하고, 하반기에는 실행에 옮기면 좋은 결과를 얻을 수 있어요.
-          특히 {result.dominantElement}의 기운을 잘 활용하면 좋은 기회가 찾아올 거예요.
-        </p>
-      </Card>
-    </div>
-  )
-}
-
-function getPersonalityByElement(element: string): string {
-  const traits: Record<string, string> = {
-    '목(木)': '성장과 발전을 추구하는 진취적인 성격입니다',
-    '화(火)': '열정적이고 활동적인 에너지가 넘칩니다',
-    '토(土)': '안정적이고 신뢰감을 주는 성격입니다',
-    '금(金)': '결단력이 있고 원칙을 중시합니다',
-    '수(水)': '지혜롭고 유연한 사고를 가지고 있습니다',
-  }
-  return traits[element] || '균형 잡힌 성격입니다'
 }
 
 export default function ResultPage() {

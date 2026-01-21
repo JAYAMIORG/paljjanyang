@@ -3,23 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks'
-
-// 뒤로가기 아이콘 SVG - 컴포넌트 외부에 정의하여 재생성 방지
-const BackIcon = () => (
-  <svg
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M15 18l-6-6 6-6" />
-  </svg>
-)
+import { BackIcon } from '@/components/ui/Icons'
 
 interface HeaderProps {
   showBack?: boolean

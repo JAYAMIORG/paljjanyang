@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Header, Footer } from '@/components/layout'
-import { Card, Button, LoadingScreen, LoadingCard, ErrorCard, EmptyState, ConfirmDialog, AlertDialog } from '@/components/ui'
+import { Card, Button, LoadingScreen, LoadingCard, ErrorCard, EmptyState, ConfirmDialog, AlertDialog, TrashIcon, ChevronRightIcon } from '@/components/ui'
 import { useAuth } from '@/hooks'
 import type { ReadingHistoryItem } from '@/app/api/saju/history/route'
 
@@ -223,11 +223,7 @@ export default function MyPage() {
                       {deletingId === reading.id ? (
                         <span className="text-sm" role="status">삭제 중...</span>
                       ) : (
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="M3 6h18" />
-                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                        </svg>
+                        <TrashIcon />
                       )}
                     </button>
                   </div>
@@ -241,21 +237,15 @@ export default function MyPage() {
         <div className="space-y-2">
           <Link href="/terms" className="w-full flex items-center justify-between p-4 bg-white rounded-xl hover:bg-gray-50 transition-colors">
             <span className="text-body text-text">이용약관</span>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M7 5l5 5-5 5" />
-            </svg>
+            <ChevronRightIcon />
           </Link>
           <Link href="/privacy" className="w-full flex items-center justify-between p-4 bg-white rounded-xl hover:bg-gray-50 transition-colors">
             <span className="text-body text-text">개인정보처리방침</span>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M7 5l5 5-5 5" />
-            </svg>
+            <ChevronRightIcon />
           </Link>
           <Link href="/refund" className="w-full flex items-center justify-between p-4 bg-white rounded-xl hover:bg-gray-50 transition-colors">
             <span className="text-body text-text">환불 정책</span>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M7 5l5 5-5 5" />
-            </svg>
+            <ChevronRightIcon />
           </Link>
         </div>
 
