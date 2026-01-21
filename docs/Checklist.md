@@ -156,6 +156,17 @@
   - 실패 페이지에서 선택했던 패키지 정보 표시
   - "다시 결제하기" 버튼으로 같은 패키지 재시도
   - 코인 페이지에서 selected 파라미터로 패키지 자동 선택
+- [x] LLM 해석 결과 캐싱 시스템 ✅ (2026-01-21)
+  - 동일 생년월일/성별/시간대/사주타입 → 캐시된 결과 반환
+  - interpretation_cache 테이블 설계 (cache_key, interpretation, hit_count)
+  - 시간대는 12시진(時辰) 범위로 그룹화 (bazi.hour 사용)
+  - 캐시 히트 시 LLM 호출 스킵 → 비용 절감
+  - 캐시 통계 API (/api/admin/cache-stats)
+- [ ] 동시 접속 1000명 대응 (스케일링)
+  - API 병목 지점 분석 및 최적화
+  - DB 커넥션 풀링 최적화
+  - LLM API 요청 큐잉/배치 시스템
+  - 부하 테스트 (k6/Artillery)
 - [ ] 푸시 알림
 
 ---
@@ -280,10 +291,15 @@
 /api/payment/kakaopay/approve - 카카오페이 결제 승인
 /api/payment/kakaopay/cancel  - 카카오페이 결제 취소
 /api/share/reward       - 공유 리워드 (GET: 수령 여부, POST: 지급) ✅ NEW
+/api/admin/cache-stats  - 캐시 통계 조회 (관리자용) ✅ NEW
 ```
+
+### Cache (`src/lib/cache/`)
+- [x] interpretation-cache.ts (LLM 해석 결과 캐싱) ✅ NEW
 
 ### SQL 마이그레이션
 - [x] supabase/migrations/001_initial_schema.sql (전체 스키마)
+- [x] supabase/migrations/003_interpretation_cache.sql (캐시 테이블) ✅ NEW
 
 ---
 

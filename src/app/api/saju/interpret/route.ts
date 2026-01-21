@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { SajuResult } from '@/types/saju'
 import {
   SYSTEM_PROMPT,
@@ -10,6 +11,12 @@ import {
   buildLoveSajuPrompt,
   buildDailySajuPrompt,
 } from '@/lib/llm/prompts'
+import {
+  generateCacheKey,
+  getCachedInterpretation,
+  saveCachedInterpretation,
+  type SajuType,
+} from '@/lib/cache/interpretation-cache'
 
 // OpenAI 클라이언트를 lazy하게 생성
 function getOpenAIClient() {
@@ -105,6 +112,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // ========================================
+    // 캐시 조회 (LLM 호출 전)
+    // ========================================
+    const cacheKey = generateCacheKey({
+      type: type as SajuType,
+      bazi: sajuResult.bazi,
+      gender,
+      bazi2: sajuResult2?.bazi,
+      gender2,
+    })
+
+    // Admin 클라이언트로 캐시 조회 (RLS 우회)
+    const adminClient = createAdminClient()
+    if (adminClient) {
+      const cached = await getCachedInterpretation(adminClient, cacheKey)
+      if (cached) {
+        // 캐시 히트 - LLM 호출 없이 바로 반환
+        return NextResponse.json<InterpretResponse>({
+          success: true,
+          data: {
+            interpretation: cached.interpretation,
+          },
+        })
+      }
+    }
+
+    // ========================================
+    // 캐시 미스 - LLM 호출
+    // ========================================
+
     // OpenAI 클라이언트 확인
     const openai = getOpenAIClient()
     if (!openai) {
@@ -169,6 +206,24 @@ export async function POST(request: NextRequest) {
     const responseText = completion.choices[0]?.message?.content
     if (!responseText) {
       throw new Error('No text response from OpenAI')
+    }
+
+    // ========================================
+    // 캐시 저장 (LLM 호출 후, 백그라운드에서 실행)
+    // ========================================
+    if (adminClient) {
+      // 비동기로 저장 (응답 지연 방지)
+      saveCachedInterpretation(adminClient, {
+        cacheKey,
+        type: type as SajuType,
+        bazi: sajuResult.bazi,
+        gender,
+        interpretation: responseText,
+        bazi2: sajuResult2?.bazi,
+        gender2,
+      }).catch((err) => {
+        console.error('Cache save failed:', err)
+      })
     }
 
     return NextResponse.json<InterpretResponse>({
