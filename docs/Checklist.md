@@ -146,6 +146,15 @@
   - Rate Limiting 추가 (API 남용 방지)
   - 입력 검증 유틸리티 추가
   - AbortController 적용 (요청 취소)
+- [x] 코드 정리 및 컴포넌트화 ✅ (2026-01-21)
+  - Icons.tsx: 공통 아이콘 컴포넌트 (Back, Close, Chevron, Trash, Link, Instagram, Kakao)
+  - constants.ts: 사주 관련 상수 (WUXING_COLORS, WUXING_KOREAN, DAY_MASTER_EMOJI)
+  - markdown.ts: 마크다운 파싱 유틸리티
+  - InterpretationCard, FallbackInterpretation 공유 컴포넌트
+- [x] 결제 실패 시 재시도 옵션 ✅ (2026-01-21)
+  - 실패 페이지에서 선택했던 패키지 정보 표시
+  - "다시 결제하기" 버튼으로 같은 패키지 재시도
+  - 코인 페이지에서 selected 파라미터로 패키지 자동 선택
 - [ ] 푸시 알림
 
 ---
@@ -187,8 +196,9 @@
 - [x] Input (라벨, 에러, 힌트 지원)
 - [x] Select (드롭다운)
 - [x] Card (default, highlighted variants)
-- [x] Feedback (LoadingScreen, ErrorScreen, EmptyState, Toast, Skeleton 등) ✅ NEW
-- [x] Modal (Modal, ConfirmDialog, AlertDialog) ✅ NEW
+- [x] Feedback (LoadingScreen, ErrorScreen, EmptyState, Toast, Skeleton 등)
+- [x] Modal (Modal, ConfirmDialog, AlertDialog)
+- [x] Icons (Back, Close, Chevron, Trash, Link, Instagram, Kakao) ✅ NEW
 
 ### 레이아웃 컴포넌트 (`src/components/layout/`)
 - [x] Header (로고, 뒤로가기, 로그인 상태)
@@ -203,10 +213,22 @@
 ### LLM (`src/lib/llm/`)
 - [x] prompts.ts (시스템 프롬프트, 사주 유형별 프롬프트)
 
+### Saju (`src/lib/saju/`)
+- [x] calculator.ts (사주팔자 계산)
+- [x] constants.ts (오행 상수, 일간 이모지) ✅ NEW
+
+### Utils (`src/lib/utils/`)
+- [x] error-messages.ts (에러 메시지 상수)
+- [x] rate-limit.ts (API 요청 제한)
+- [x] validation.ts (입력 검증)
+- [x] markdown.ts (마크다운 파싱) ✅ NEW
+
 ### 결과 컴포넌트 (`src/components/result/`)
-- [x] YearlyResultContent.tsx (신년운세 결과 UI) ✅ NEW
-- [x] CompatibilityResultContent.tsx (궁합 결과 UI) ✅ NEW
-- [x] DailyResultContent.tsx (오늘의 운세 결과 UI) ✅ NEW
+- [x] YearlyResultContent.tsx (신년운세 결과 UI)
+- [x] CompatibilityResultContent.tsx (궁합 결과 UI)
+- [x] DailyResultContent.tsx (오늘의 운세 결과 UI)
+- [x] InterpretationCard.tsx (LLM 해석 카드) ✅ NEW
+- [x] FallbackInterpretation.tsx (폴백 해석) ✅ NEW
 
 ### Hooks (`src/hooks/`)
 - [x] useAuth.ts (인증 상태 관리)
