@@ -19,8 +19,9 @@ function CoinContent() {
   const [isPurchasing, setIsPurchasing] = useState(false)
   const [alertMessage, setAlertMessage] = useState<string | null>(null)
 
-  // redirect 파라미터 가져오기 (결제 후 이동할 URL)
-  const redirectUrl = searchParams.get('redirect')
+  // 쿼리 파라미터 가져오기
+  const redirectUrl = searchParams.get('redirect') // 결제 후 이동할 URL
+  const preSelectedPackage = searchParams.get('selected') // 재시도 시 미리 선택된 패키지
 
   useEffect(() => {
     if (!authLoading && !user && isConfigured) {
@@ -37,6 +38,16 @@ function CoinContent() {
         const packagesData = await packagesRes.json()
         if (packagesData.success) {
           setPackages(packagesData.data.packages)
+
+          // 미리 선택된 패키지가 있으면 자동 선택
+          if (preSelectedPackage) {
+            const validPackage = packagesData.data.packages.find(
+              (p: CoinPackage) => p.id === preSelectedPackage
+            )
+            if (validPackage) {
+              setSelectedPackage(preSelectedPackage)
+            }
+          }
         }
 
         // 잔액 조회 (로그인된 경우만)
@@ -57,7 +68,7 @@ function CoinContent() {
     if (!authLoading) {
       fetchData()
     }
-  }, [authLoading, user])
+  }, [authLoading, user, preSelectedPackage])
 
   const handlePurchase = async () => {
     if (!selectedPackage || !user || !paymentMethod || isPurchasing) return
