@@ -168,3 +168,66 @@ ANTHROPIC_API_KEY=
 # Kakao (공유 기능)
 NEXT_PUBLIC_KAKAO_JS_KEY=
 ```
+
+## Custom Agents (Claude Code 전용)
+
+다음 키워드가 포함된 요청 시 해당 스크립트를 자동 실행합니다.
+
+### Design QA Agent
+**트리거**: "design qa", "디자인 qa", "디자인 검사", "UI 검사", "오버플로우 검사"
+
+UI 품질을 자동으로 검사합니다:
+- 오버플로우 감지 (텍스트/요소가 컨테이너를 벗어남)
+- 텍스트 잘림 확인
+- 이미지 로딩 실패 감지
+- 모바일 터치 타겟 크기 검사 (권장 44x44px)
+- 가로 스크롤바 이상 감지
+
+```bash
+# 기본 실행
+npm run design-qa
+
+# 스크린샷 포함
+npm run design-qa:screenshot
+
+# 특정 URL 검사
+node scripts/design-qa.js --url=https://bazi-azure.vercel.app
+
+# 상세 로그
+node scripts/design-qa.js --verbose
+```
+
+### Load Test Agent
+**트리거**: "load test", "부하 테스트", "성능 테스트", "stress test"
+
+서버 부하 테스트를 실행합니다:
+
+```bash
+# 기본 실행 (10 동시, 100 총 요청)
+npm run load-test
+
+# 커스텀 설정
+node scripts/load-test.js --concurrent=50 --total=500 --url=https://bazi-azure.vercel.app
+```
+
+### System Status Check
+**트리거**: "시스템 상태", "system status", "서버 상태"
+
+```bash
+# 로컬
+curl http://localhost:3000/api/admin/status
+
+# 프로덕션
+curl https://bazi-azure.vercel.app/api/admin/status
+```
+
+### Cache Stats Check
+**트리거**: "캐시 상태", "cache stats", "캐시 통계"
+
+```bash
+# 로컬
+curl http://localhost:3000/api/admin/cache-stats
+
+# 프로덕션
+curl https://bazi-azure.vercel.app/api/admin/cache-stats
+```
