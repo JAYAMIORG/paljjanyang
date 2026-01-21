@@ -27,7 +27,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={`
-          rounded-card p-5
+          w-full rounded-card p-5
           transition-all duration-200
           ${variantStyles[variant]}
           ${className}

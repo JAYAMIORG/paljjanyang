@@ -133,7 +133,7 @@ export default function MyPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Header showBack backHref="/home" title="마이페이지" hideMyPageLink />
 
-      <main className="px-4 py-6 max-w-lg mx-auto space-y-6 flex-1">
+      <main className="px-3 py-6 max-w-lg mx-auto flex flex-col gap-6 flex-1 w-full">
         {/* 프로필 섹션 */}
         <Card>
           <div className="flex items-center gap-4">
