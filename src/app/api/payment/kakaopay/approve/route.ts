@@ -89,11 +89,12 @@ export async function GET(request: NextRequest) {
       })
 
     if (rpcError) {
-      console.error('RPC process_payment error:', rpcError)
+      console.error('RPC process_payment error:', JSON.stringify(rpcError))
 
-      // RPC 함수가 없는 경우 fallback (마이그레이션 실행 전)
-      if (rpcError.code === 'PGRST202') {
-        console.warn('process_payment RPC not found, using fallback logic')
+      // RPC 함수가 없거나 에러 발생 시 fallback (마이그레이션 실행 전)
+      // PGRST202: function not found, 42883: undefined function, 22P02: invalid enum value
+      if (rpcError.code === 'PGRST202' || rpcError.code === '42883' || rpcError.code === '22P02' || rpcError.message?.includes('function')) {
+        console.warn('process_payment RPC not found or error, using fallback logic')
 
         const { data: currentBalance } = await adminClient
           .from('coin_balances')
