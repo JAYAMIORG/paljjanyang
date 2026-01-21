@@ -1,7 +1,7 @@
 # 팔자냥 개발 체크리스트
 
 > 작성일: 2025-01-15
-> 최종 업데이트: 2025-01-21
+> 최종 업데이트: 2026-01-21
 > 상태: MVP 개발 완료 (UI 전체 완료, 실결제 테스트 대기)
 
 ---
@@ -177,7 +177,8 @@
 - [x] Input (라벨, 에러, 힌트 지원)
 - [x] Select (드롭다운)
 - [x] Card (default, highlighted variants)
-- [x] Feedback (LoadingScreen, ErrorScreen, EmptyState, Toast 등) ✅ NEW
+- [x] Feedback (LoadingScreen, ErrorScreen, EmptyState, Toast, Skeleton 등) ✅ NEW
+- [x] Modal (Modal, ConfirmDialog, AlertDialog) ✅ NEW
 
 ### 레이아웃 컴포넌트 (`src/components/layout/`)
 - [x] Header (로고, 뒤로가기, 로그인 상태)
@@ -195,6 +196,7 @@
 ### 결과 컴포넌트 (`src/components/result/`)
 - [x] YearlyResultContent.tsx (신년운세 결과 UI) ✅ NEW
 - [x] CompatibilityResultContent.tsx (궁합 결과 UI) ✅ NEW
+- [x] DailyResultContent.tsx (오늘의 운세 결과 UI) ✅ NEW
 
 ### Hooks (`src/hooks/`)
 - [x] useAuth.ts (인증 상태 관리)
@@ -233,6 +235,8 @@
 /api/saju/history       - 조회 기록 (GET)
 /api/saju/history/[id]  - 기록 조회/삭제 (GET/DELETE)
 /api/saju/use-coin      - 코인 차감
+/api/saju/refund-coin   - 코인 환불 (실패 시 롤백) ✅ NEW
+/api/saju/daily         - 오늘의 운세 (하루 1회) ✅ NEW
 /api/saju/shared/[id]   - 공유 결과 조회 (공개)
 /api/coin/balance       - 코인 잔액 조회
 /api/coin/packages      - 코인 패키지 목록
