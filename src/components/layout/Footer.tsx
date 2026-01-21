@@ -14,14 +14,14 @@ export function Footer() {
           <p>전화: 010-5148-4187</p>
         </div>
 
-        <div className="flex gap-4 mt-4 pt-4 border-t border-gray-200">
-          <Link href="/terms" className="text-caption text-text-light hover:text-text-muted">
+        <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200">
+          <Link href="/terms" className="text-caption text-text-light hover:text-text-muted px-2 py-3 min-h-[44px] flex items-center">
             이용약관
           </Link>
-          <Link href="/privacy" className="text-caption text-text-light hover:text-text-muted">
+          <Link href="/privacy" className="text-caption text-text-light hover:text-text-muted px-2 py-3 min-h-[44px] flex items-center">
             개인정보처리방침
           </Link>
-          <Link href="/refund" className="text-caption text-text-light hover:text-text-muted">
+          <Link href="/refund" className="text-caption text-text-light hover:text-text-muted px-2 py-3 min-h-[44px] flex items-center">
             환불정책
           </Link>
         </div>

@@ -142,10 +142,12 @@ function SignupContent() {
         </p>
 
         {/* 약관 동의 문구 */}
-        <p className="text-center text-caption text-text-light mt-4">
-          가입 시{' '}
-          <Link href="/terms" className="underline hover:text-text-muted">이용약관</Link>과{' '}
-          <Link href="/privacy" className="underline hover:text-text-muted">개인정보처리방침</Link>에 동의하게 됩니다.
+        <p className="text-center text-caption text-text-light mt-4 flex flex-wrap items-center justify-center gap-1">
+          <span>가입 시</span>
+          <Link href="/terms" className="underline hover:text-text-muted px-1 py-2 min-h-[44px] inline-flex items-center">이용약관</Link>
+          <span>과</span>
+          <Link href="/privacy" className="underline hover:text-text-muted px-1 py-2 min-h-[44px] inline-flex items-center">개인정보처리방침</Link>
+          <span>에 동의하게 됩니다.</span>
         </p>
       </main>
     </div>

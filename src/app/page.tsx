@@ -171,10 +171,10 @@ export default function LandingPage() {
             <p>주소: 경기도 화성시 동탄지성로 295</p>
             <p>전화: 010-5148-4187</p>
           </div>
-          <div className="flex gap-4 pt-4 border-t border-gray-200">
-            <Link href="/terms" className="text-caption text-text-light hover:text-text-muted transition-colors">이용약관</Link>
-            <Link href="/privacy" className="text-caption text-text-light hover:text-text-muted transition-colors">개인정보처리방침</Link>
-            <Link href="/refund" className="text-caption text-text-light hover:text-text-muted transition-colors">환불정책</Link>
+          <div className="flex gap-2 pt-4 border-t border-gray-200">
+            <Link href="/terms" className="text-caption text-text-light hover:text-text-muted transition-colors px-2 py-3 min-h-[44px] flex items-center">이용약관</Link>
+            <Link href="/privacy" className="text-caption text-text-light hover:text-text-muted transition-colors px-2 py-3 min-h-[44px] flex items-center">개인정보처리방침</Link>
+            <Link href="/refund" className="text-caption text-text-light hover:text-text-muted transition-colors px-2 py-3 min-h-[44px] flex items-center">환불정책</Link>
           </div>
           <p className="text-caption text-text-light mt-4">
             © {new Date().getFullYear()} ChartIQ. All rights reserved.

@@ -24,7 +24,7 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
   }
 
   const renderBackElement = () => {
-    const className = "flex items-center justify-center w-10 h-10 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
+    const className = "flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] -ml-2 rounded-full hover:bg-gray-100 transition-colors"
 
     if (useHistoryBack) {
       return (
@@ -86,7 +86,7 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
             ) : (
               <Link
                 href="/auth/login"
-                className="text-small font-medium text-primary hover:underline"
+                className="text-small font-medium text-primary hover:underline px-2 py-3 min-h-[44px] flex items-center"
               >
                 로그인
               </Link>
