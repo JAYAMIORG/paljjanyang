@@ -17,15 +17,21 @@ import {
   saveCachedInterpretation,
   type SajuType,
 } from '@/lib/cache/interpretation-cache'
+import { openaiRateLimiter } from '@/lib/llm/rate-limiter'
 
-// OpenAI 클라이언트를 lazy하게 생성
-function getOpenAIClient() {
+// OpenAI 클라이언트를 싱글톤으로 생성 (연결 재사용)
+let openaiClient: OpenAI | null = null
+
+function getOpenAIClient(): OpenAI | null {
   if (!process.env.OPENAI_API_KEY) {
     return null
   }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  })
+  if (!openaiClient) {
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+  }
+  return openaiClient
 }
 
 export interface InterpretRequest {
@@ -186,21 +192,23 @@ export async function POST(request: NextRequest) {
         userPrompt = buildPersonalSajuPrompt(sajuResult, gender)
     }
 
-    // OpenAI GPT-4o-mini API 호출
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      max_tokens: 4096,
-      messages: [
-        {
-          role: 'system',
-          content: SYSTEM_PROMPT,
-        },
-        {
-          role: 'user',
-          content: userPrompt,
-        },
-      ],
-    })
+    // OpenAI GPT-4o-mini API 호출 (레이트 리미터 적용)
+    const completion = await openaiRateLimiter.execute(() =>
+      openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        max_tokens: 4096,
+        messages: [
+          {
+            role: 'system',
+            content: SYSTEM_PROMPT,
+          },
+          {
+            role: 'user',
+            content: userPrompt,
+          },
+        ],
+      })
+    )
 
     // 응답 추출
     const responseText = completion.choices[0]?.message?.content
@@ -234,6 +242,25 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Interpretation error:', error)
+
+    // 레이트 리밋 에러 처리
+    const errorMessage = error instanceof Error ? error.message : ''
+    const isRateLimitError =
+      errorMessage.toLowerCase().includes('rate limit') ||
+      errorMessage.includes('429')
+
+    if (isRateLimitError) {
+      return NextResponse.json<InterpretResponse>(
+        {
+          success: false,
+          error: {
+            code: 'RATE_LIMIT_ERROR',
+            message: '현재 요청이 많습니다. 잠시 후 다시 시도해주세요.',
+          },
+        },
+        { status: 429 }
+      )
+    }
 
     return NextResponse.json<InterpretResponse>(
       {

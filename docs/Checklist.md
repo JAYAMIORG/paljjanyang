@@ -162,11 +162,12 @@
   - 시간대는 12시진(時辰) 범위로 그룹화 (bazi.hour 사용)
   - 캐시 히트 시 LLM 호출 스킵 → 비용 절감
   - 캐시 통계 API (/api/admin/cache-stats)
-- [ ] 동시 접속 1000명 대응 (스케일링)
-  - API 병목 지점 분석 및 최적화
-  - DB 커넥션 풀링 최적화
-  - LLM API 요청 큐잉/배치 시스템
-  - 부하 테스트 (k6/Artillery)
+- [x] 동시 접속 1000명 대응 (스케일링) ✅ (2026-01-21)
+  - OpenAI 레이트 리미터 구현 (동시 50개 제한, 자동 재시도)
+  - Supabase Admin 클라이언트 싱글톤화 (커넥션 재사용)
+  - OpenAI 클라이언트 싱글톤화 (커넥션 재사용)
+  - 시스템 상태 API (/api/admin/status)
+  - 부하 테스트 스크립트 (scripts/load-test.js)
 - [ ] 푸시 알림
 
 ---
@@ -224,6 +225,7 @@
 
 ### LLM (`src/lib/llm/`)
 - [x] prompts.ts (시스템 프롬프트, 사주 유형별 프롬프트)
+- [x] rate-limiter.ts (OpenAI API 레이트 리미터) ✅ NEW
 
 ### Saju (`src/lib/saju/`)
 - [x] calculator.ts (사주팔자 계산)
@@ -292,6 +294,7 @@
 /api/payment/kakaopay/cancel  - 카카오페이 결제 취소
 /api/share/reward       - 공유 리워드 (GET: 수령 여부, POST: 지급) ✅ NEW
 /api/admin/cache-stats  - 캐시 통계 조회 (관리자용) ✅ NEW
+/api/admin/status       - 시스템 상태 조회 (관리자용) ✅ NEW
 ```
 
 ### Cache (`src/lib/cache/`)
