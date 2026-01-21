@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -26,8 +26,8 @@ export interface ShareRewardStatusResponse {
   }
 }
 
-// GET: 공유 보상 수령 여부 확인
-export async function GET() {
+// GET: 공유 보상 수령 여부 확인 (readingId 기반)
+export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
 
@@ -60,17 +60,34 @@ export async function GET() {
       )
     }
 
-    // profiles에서 share_reward_claimed 확인
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('share_reward_claimed')
-      .eq('id', user.id)
+    // readingId 파라미터 확인
+    const { searchParams } = new URL(request.url)
+    const readingId = searchParams.get('readingId')
+
+    if (!readingId) {
+      // readingId가 없으면 아직 저장 전이므로 false 반환
+      return NextResponse.json<ShareRewardStatusResponse>({
+        success: true,
+        data: {
+          alreadyClaimed: false,
+        },
+      })
+    }
+
+    // coin_transactions에서 해당 reading에 대한 공유 보상이 있는지 확인
+    const { data: existingReward } = await supabase
+      .from('coin_transactions')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('target_id', readingId)
+      .eq('type', 'reward')
+      .limit(1)
       .single()
 
     return NextResponse.json<ShareRewardStatusResponse>({
       success: true,
       data: {
-        alreadyClaimed: profile?.share_reward_claimed ?? false,
+        alreadyClaimed: !!existingReward,
       },
     })
   } catch (error) {
@@ -88,7 +105,7 @@ export async function GET() {
   }
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
 
@@ -118,6 +135,23 @@ export async function POST() {
           },
         },
         { status: 401 }
+      )
+    }
+
+    // readingId 파라미터 확인
+    const body = await request.json().catch(() => ({}))
+    const readingId = body.readingId
+
+    if (!readingId) {
+      return NextResponse.json<ShareRewardResponse>(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'readingId가 필요합니다.',
+          },
+        },
+        { status: 400 }
       )
     }
 
@@ -136,121 +170,73 @@ export async function POST() {
       )
     }
 
-    // Atomic 공유 보상 처리 (RPC 함수 사용)
-    const { data: rpcResult, error: rpcError } = await adminClient
-      .rpc('claim_share_reward', {
-        p_user_id: user.id,
+    // 해당 reading에 대한 공유 보상이 이미 있는지 확인
+    const { data: existingReward } = await adminClient
+      .from('coin_transactions')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('target_id', readingId)
+      .eq('type', 'reward')
+      .limit(1)
+      .single()
+
+    if (existingReward) {
+      // 이미 보상 받음
+      const { data: balanceData } = await adminClient
+        .from('coin_balances')
+        .select('balance')
+        .eq('user_id', user.id)
+        .single()
+
+      return NextResponse.json<ShareRewardResponse>({
+        success: true,
+        data: {
+          rewarded: false,
+          alreadyClaimed: true,
+          newBalance: Number(balanceData?.balance || 0),
+        },
+      })
+    }
+
+    // 보상 지급
+    const { data: balanceData } = await adminClient
+      .from('coin_balances')
+      .select('balance')
+      .eq('user_id', user.id)
+      .single()
+
+    const currentBalance = Number(balanceData?.balance || 0)
+    const rewardAmount = 1
+    const newBalance = currentBalance + rewardAmount
+
+    // 잔액 업데이트
+    await adminClient
+      .from('coin_balances')
+      .upsert({
+        user_id: user.id,
+        balance: newBalance,
+        updated_at: new Date().toISOString(),
       })
 
-    if (rpcError) {
-      console.error('RPC claim_share_reward error:', rpcError)
-
-      // RPC 함수가 없는 경우 fallback (마이그레이션 실행 전)
-      if (rpcError.code === 'PGRST202') {
-        console.warn('claim_share_reward RPC not found, using fallback logic')
-
-        // profiles에서 이미 공유 보상을 받았는지 확인
-        const { data: profile } = await adminClient
-          .from('profiles')
-          .select('share_reward_claimed')
-          .eq('id', user.id)
-          .single()
-
-        if (profile?.share_reward_claimed) {
-          const { data: balanceData } = await adminClient
-            .from('coin_balances')
-            .select('balance')
-            .eq('user_id', user.id)
-            .single()
-
-          return NextResponse.json<ShareRewardResponse>({
-            success: true,
-            data: {
-              rewarded: false,
-              alreadyClaimed: true,
-              newBalance: Number(balanceData?.balance || 0),
-            },
-          })
-        }
-
-        const { data: balanceData } = await adminClient
-          .from('coin_balances')
-          .select('balance')
-          .eq('user_id', user.id)
-          .single()
-
-        const currentBalance = Number(balanceData?.balance || 0)
-        const rewardAmount = 1
-        const newBalance = currentBalance + rewardAmount
-
-        await adminClient
-          .from('coin_balances')
-          .upsert({
-            user_id: user.id,
-            balance: newBalance,
-            updated_at: new Date().toISOString(),
-          })
-
-        await adminClient
-          .from('coin_transactions')
-          .insert({
-            user_id: user.id,
-            amount: rewardAmount,
-            type: 'bonus',
-            description: '공유 보상',
-            balance_before: currentBalance,
-            balance_after: newBalance,
-          })
-
-        await adminClient
-          .from('profiles')
-          .update({ share_reward_claimed: true, updated_at: new Date().toISOString() })
-          .eq('id', user.id)
-
-        return NextResponse.json<ShareRewardResponse>({
-          success: true,
-          data: {
-            rewarded: true,
-            alreadyClaimed: false,
-            newBalance,
-          },
-        })
-      }
-
-      return NextResponse.json<ShareRewardResponse>(
-        {
-          success: false,
-          error: {
-            code: 'RPC_ERROR',
-            message: '보상 처리 중 오류가 발생했습니다.',
-          },
-        },
-        { status: 500 }
-      )
-    }
-
-    // RPC 결과 처리
-    const result = rpcResult?.[0]
-
-    if (!result || !result.success) {
-      return NextResponse.json<ShareRewardResponse>(
-        {
-          success: false,
-          error: {
-            code: 'REWARD_ERROR',
-            message: result?.error_message || '보상 처리에 실패했습니다.',
-          },
-        },
-        { status: 400 }
-      )
-    }
+    // 거래 내역 추가 (target_id에 readingId 저장)
+    await adminClient
+      .from('coin_transactions')
+      .insert({
+        user_id: user.id,
+        amount: rewardAmount,
+        type: 'reward',
+        target_id: readingId,
+        description: '공유 보상',
+        balance_before: currentBalance,
+        balance_after: newBalance,
+      })
 
     return NextResponse.json<ShareRewardResponse>({
       success: true,
       data: {
-        rewarded: !result.already_claimed,
-        alreadyClaimed: result.already_claimed,
-        newBalance: result.new_balance,
+        rewarded: true,
+        alreadyClaimed: false,
+        newBalance,
       },
     })
   } catch (error) {

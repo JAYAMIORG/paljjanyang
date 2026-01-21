@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Header, Footer } from '@/components/layout'
-import { Card, Button, LoadingScreen, LoadingCard, ErrorCard, EmptyState } from '@/components/ui'
+import { Card, Button, LoadingScreen, LoadingCard, ErrorCard, EmptyState, ConfirmDialog, AlertDialog } from '@/components/ui'
 import { useAuth } from '@/hooks'
 import type { ReadingHistoryItem } from '@/app/api/saju/history/route'
 
@@ -31,11 +31,23 @@ export default function MyPage() {
   const [error, setError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  // 기록 삭제
-  const handleDelete = async (id: string) => {
-    if (!confirm('이 기록을 삭제하시겠습니까?')) return
+  // 모달 상태
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [alertMessage, setAlertMessage] = useState<string | null>(null)
 
+  // 삭제 확인 모달 열기
+  const openDeleteConfirm = (id: string) => {
+    setDeleteConfirmId(id)
+  }
+
+  // 기록 삭제 실행
+  const handleDelete = async () => {
+    if (!deleteConfirmId) return
+
+    const id = deleteConfirmId
+    setDeleteConfirmId(null)
     setDeletingId(id)
+
     try {
       const response = await fetch(`/api/saju/history/${id}`, {
         method: 'DELETE',
@@ -45,10 +57,10 @@ export default function MyPage() {
       if (data.success) {
         setReadings(readings.filter(r => r.id !== id))
       } else {
-        alert(data.error?.message || '삭제에 실패했습니다.')
+        setAlertMessage(data.error?.message || '삭제에 실패했습니다.')
       }
     } catch {
-      alert('서버 연결에 실패했습니다.')
+      setAlertMessage('서버 연결에 실패했습니다.')
     } finally {
       setDeletingId(null)
     }
@@ -201,7 +213,7 @@ export default function MyPage() {
                     <button
                       onClick={(e) => {
                         e.preventDefault()
-                        handleDelete(reading.id)
+                        openDeleteConfirm(reading.id)
                       }}
                       disabled={deletingId === reading.id}
                       aria-label={`${reading.personName} 기록 삭제`}
@@ -250,6 +262,27 @@ export default function MyPage() {
       </main>
 
       <Footer />
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmDialog
+        isOpen={!!deleteConfirmId}
+        onClose={() => setDeleteConfirmId(null)}
+        onConfirm={handleDelete}
+        title="기록 삭제"
+        message="이 기록을 삭제하시겠습니까?"
+        confirmText="삭제"
+        cancelText="취소"
+        variant="danger"
+      />
+
+      {/* 알림 모달 */}
+      <AlertDialog
+        isOpen={!!alertMessage}
+        onClose={() => setAlertMessage(null)}
+        title="알림"
+        message={alertMessage || ''}
+        variant="error"
+      />
     </div>
   )
 }

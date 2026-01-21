@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Header } from '@/components/layout'
-import { Card, Button } from '@/components/ui'
+import { Card, Button, AlertDialog } from '@/components/ui'
 import { useAuth } from '@/hooks'
 import type { CoinPackage } from '@/app/api/coin/packages/route'
 
@@ -17,6 +17,7 @@ function CoinContent() {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<'카드' | '카카오페이' | null>(null)
   const [isPurchasing, setIsPurchasing] = useState(false)
+  const [alertMessage, setAlertMessage] = useState<string | null>(null)
 
   // redirect 파라미터 가져오기 (결제 후 이동할 URL)
   const redirectUrl = searchParams.get('redirect')
@@ -75,7 +76,7 @@ function CoinContent() {
         const data = await response.json()
 
         if (!data.success) {
-          alert(data.error?.message || '카카오페이 결제 준비에 실패했습니다.')
+          setAlertMessage(data.error?.message || '카카오페이 결제 준비에 실패했습니다.')
           setIsPurchasing(false)
           return
         }
@@ -101,7 +102,7 @@ function CoinContent() {
       const data = await response.json()
 
       if (!data.success) {
-        alert(data.error?.message || '결제 초기화에 실패했습니다.')
+        setAlertMessage(data.error?.message || '결제 초기화에 실패했습니다.')
         setIsPurchasing(false)
         return
       }
@@ -112,7 +113,7 @@ function CoinContent() {
       const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY
 
       if (!clientKey) {
-        alert('결제 설정이 올바르지 않습니다. 관리자에게 문의해주세요.')
+        setAlertMessage('결제 설정이 올바르지 않습니다. 관리자에게 문의해주세요.')
         setIsPurchasing(false)
         return
       }
@@ -135,7 +136,7 @@ function CoinContent() {
         failUrl: `${window.location.origin}/payment/fail`,
       })
     } catch {
-      alert('결제 중 오류가 발생했습니다.')
+      setAlertMessage('결제 중 오류가 발생했습니다.')
       setIsPurchasing(false)
     }
   }
@@ -298,6 +299,15 @@ function CoinContent() {
           </Button>
         </div>
       </main>
+
+      {/* 에러 알림 모달 */}
+      <AlertDialog
+        isOpen={!!alertMessage}
+        onClose={() => setAlertMessage(null)}
+        title="알림"
+        message={alertMessage || ''}
+        variant="error"
+      />
     </div>
   )
 }

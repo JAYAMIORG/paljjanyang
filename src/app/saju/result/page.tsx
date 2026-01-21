@@ -439,13 +439,13 @@ function ResultContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, result2])
 
-  // 공유 보상 수령 여부 확인
+  // 공유 보상 수령 여부 확인 (readingId 기반)
   useEffect(() => {
-    if (!user) return
+    if (!user || !readingId) return
 
     const checkShareRewardStatus = async () => {
       try {
-        const response = await fetch('/api/share/reward')
+        const response = await fetch(`/api/share/reward?readingId=${readingId}`)
         const data = await response.json()
         if (data.success && data.data?.alreadyClaimed) {
           setShareRewardClaimed(true)
@@ -456,15 +456,17 @@ function ResultContent() {
     }
 
     checkShareRewardStatus()
-  }, [user])
+  }, [user, readingId])
 
-  // 공유 보상 요청
+  // 공유 보상 요청 (readingId 기반)
   const claimShareReward = async () => {
-    if (shareRewardClaimed) return
+    if (shareRewardClaimed || !readingId) return
 
     try {
       const response = await fetch('/api/share/reward', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ readingId }),
       })
       const data = await response.json()
 
