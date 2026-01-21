@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { validatePersonInput } from '@/lib/utils'
 
 export interface Person {
   id: string
@@ -140,14 +141,24 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { name, relationship, birthYear, birthMonth, birthDay, birthHour, isLunar, gender } = body
 
-    // 유효성 검사
-    if (!name || !relationship || !birthYear || !birthMonth || !birthDay || !gender) {
+    // 입력값 검증
+    const validation = validatePersonInput({
+      name,
+      relationship,
+      birthYear,
+      birthMonth,
+      birthDay,
+      birthHour,
+      gender,
+    })
+
+    if (!validation.valid) {
       return NextResponse.json<CreatePersonResponse>(
         {
           success: false,
           error: {
             code: 'INVALID_INPUT',
-            message: '필수 정보가 누락되었습니다.',
+            message: validation.errors[0] || '입력값이 올바르지 않습니다.',
           },
         },
         { status: 400 }

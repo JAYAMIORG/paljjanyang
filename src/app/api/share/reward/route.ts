@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { checkRateLimit, RATE_LIMITS, createRateLimitResponse } from '@/lib/utils'
 
 export interface ShareRewardResponse {
   success: boolean
@@ -120,6 +121,12 @@ export async function POST() {
         },
         { status: 401 }
       )
+    }
+
+    // Rate Limit 체크 (공유 보상 - 시간당 10회)
+    const rateLimit = checkRateLimit(`share-reward:${user.id}`, RATE_LIMITS.shareReward)
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit.resetTime)
     }
 
     // Admin 클라이언트 생성 (RLS 우회)

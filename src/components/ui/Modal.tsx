@@ -66,10 +66,13 @@ export function Modal({
 
   // 모달 열릴 때 포커스 이동, 닫힐 때 원래 요소로 복원
   useEffect(() => {
+    let focusTimeoutId: NodeJS.Timeout | null = null
+    const originalOverflow = document.body.style.overflow
+
     if (isOpen) {
       previousActiveElement.current = document.activeElement as HTMLElement
       // 모달 내 첫 번째 포커스 가능 요소로 이동
-      setTimeout(() => {
+      focusTimeoutId = setTimeout(() => {
         const firstFocusable = modalRef.current?.querySelector<HTMLElement>(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         )
@@ -81,11 +84,14 @@ export function Modal({
     } else {
       // 모달 닫힐 때 이전 요소로 포커스 복원
       previousActiveElement.current?.focus()
-      document.body.style.overflow = ''
+      document.body.style.overflow = originalOverflow
     }
 
     return () => {
-      document.body.style.overflow = ''
+      if (focusTimeoutId) {
+        clearTimeout(focusTimeoutId)
+      }
+      document.body.style.overflow = originalOverflow
     }
   }, [isOpen])
 

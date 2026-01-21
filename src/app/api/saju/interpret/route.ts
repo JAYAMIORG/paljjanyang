@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
+import { checkRateLimit, RATE_LIMITS, createRateLimitResponse } from '@/lib/utils'
 import type { SajuResult } from '@/types/saju'
 import {
   SYSTEM_PROMPT,
@@ -72,6 +73,12 @@ export async function POST(request: NextRequest) {
         },
         { status: 401 }
       )
+    }
+
+    // Rate Limit 체크 (사용자당 분당 5회)
+    const rateLimit = checkRateLimit(`llm:${user.id}`, RATE_LIMITS.llm)
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit.resetTime)
     }
 
     const body: InterpretRequest = await request.json()

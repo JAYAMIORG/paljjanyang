@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import html2canvas from 'html2canvas'
 import { Header } from '@/components/layout'
-import { Button, Card, LoadingScreen, ErrorScreen, InsufficientCoinsModal, AlertDialog } from '@/components/ui'
+import { Button, Card, LoadingScreen, ErrorScreen, InsufficientCoinsModal, AlertDialog, Modal } from '@/components/ui'
 import { YearlyResultContent, CompatibilityResultContent, DailyResultContent } from '@/components/result'
 import { useAuth, useKakaoShare } from '@/hooks'
 import type { SajuResult } from '@/types/saju'
@@ -229,6 +229,8 @@ function ResultContent() {
     // 이미 시작했으면 중복 실행 방지
     if (hasStartedRef.current) return
 
+    const abortController = new AbortController()
+
     const fetchSaju = async () => {
       hasStartedRef.current = true
 
@@ -278,6 +280,7 @@ function ResultContent() {
               isLeapMonth: false,
               gender,
             }),
+            signal: abortController.signal,
           })
 
           const calcData = await calcResponse.json()
@@ -295,6 +298,7 @@ function ResultContent() {
               sajuResult: calcData.data,
               gender,
             }),
+            signal: abortController.signal,
           })
 
           const dailyData = await dailyResponse.json()
@@ -333,6 +337,7 @@ function ResultContent() {
             isLeapMonth: false,
             gender,
           }),
+          signal: abortController.signal,
         })
 
         const data = await response.json()
@@ -358,6 +363,7 @@ function ResultContent() {
               isLeapMonth: false,
               gender: gender2,
             }),
+            signal: abortController.signal,
           })
 
           const data2 = await response2.json()
@@ -369,7 +375,11 @@ function ResultContent() {
 
           setResult2(data2.data)
         }
-      } catch {
+      } catch (err) {
+        // 취소된 요청은 무시
+        if (err instanceof Error && err.name === 'AbortError') {
+          return
+        }
         // 네트워크 오류 시에도 코인 환불
         await refundCoin('서버 연결 실패')
         setError('서버 연결에 실패했습니다.')
@@ -379,6 +389,10 @@ function ResultContent() {
     }
 
     fetchSaju()
+
+    return () => {
+      abortController.abort()
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, user])
 
@@ -391,6 +405,8 @@ function ResultContent() {
 
     // 이미 저장된 결과를 불러온 경우 스킵
     if (hasSavedRef.current) return
+
+    const abortController = new AbortController()
 
     const fetchInterpretation = async () => {
       setIsInterpretLoading(true)
@@ -416,6 +432,7 @@ function ResultContent() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody),
+          signal: abortController.signal,
         })
 
         const data = await response.json()
@@ -427,7 +444,11 @@ function ResultContent() {
           // LLM 실패해도 자동 저장 (기본 해석으로)
           await autoSave(result, null)
         }
-      } catch {
+      } catch (err) {
+        // 취소된 요청은 무시
+        if (err instanceof Error && err.name === 'AbortError') {
+          return
+        }
         console.log('LLM interpretation failed, using fallback')
         // LLM 실패해도 자동 저장
         await autoSave(result, null)
@@ -437,6 +458,10 @@ function ResultContent() {
     }
 
     fetchInterpretation()
+
+    return () => {
+      abortController.abort()
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, result2])
 
@@ -444,19 +469,27 @@ function ResultContent() {
   useEffect(() => {
     if (!user) return
 
+    const abortController = new AbortController()
+
     const checkShareRewardStatus = async () => {
       try {
-        const response = await fetch('/api/share/reward')
+        const response = await fetch('/api/share/reward', {
+          signal: abortController.signal,
+        })
         const data = await response.json()
         if (data.success && data.data?.alreadyClaimed) {
           setShareRewardClaimed(true)
         }
       } catch {
-        // 실패해도 무시 (기본값 false 유지)
+        // 실패해도 무시 (기본값 false 유지, 취소 포함)
       }
     }
 
     checkShareRewardStatus()
+
+    return () => {
+      abortController.abort()
+    }
   }, [user])
 
   // 공유 보상 요청 (계정당 1회)
@@ -501,13 +534,18 @@ function ResultContent() {
   const generateShareImage = useCallback(async (): Promise<Blob | null> => {
     if (!shareCardRef.current) return null
 
+    const element = shareCardRef.current
+    const originalStyle = element.parentElement?.getAttribute('style') || ''
+
     try {
       // 캡처 전 요소를 화면에 임시로 표시 (오프스크린 렌더링 문제 해결)
-      const element = shareCardRef.current
-      const originalStyle = element.parentElement?.getAttribute('style') || ''
       if (element.parentElement) {
         element.parentElement.style.cssText = 'position: fixed; left: 0; top: 0; z-index: -1; opacity: 0;'
       }
+
+      // html2canvas 동적 로딩 (번들 최적화)
+      const html2canvasModule = await import('html2canvas')
+      const html2canvas = html2canvasModule.default
 
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -518,17 +556,17 @@ function ResultContent() {
         windowHeight: element.scrollHeight + 100,
       })
 
-      // 원래 스타일로 복원
-      if (element.parentElement) {
-        element.parentElement.style.cssText = originalStyle
-      }
-
       return new Promise((resolve) => {
         canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0)
       })
     } catch (error) {
       console.error('이미지 생성 실패:', error)
       return null
+    } finally {
+      // 항상 원래 스타일로 복원 (에러 발생 시에도)
+      if (element.parentElement) {
+        element.parentElement.style.cssText = originalStyle
+      }
     }
   }, [])
 
@@ -1009,38 +1047,38 @@ function ResultContent() {
       </main>
 
       {/* 모바일 전용 안내 모달 */}
-      {showMobileOnlyModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center">
-            <span className="text-5xl block mb-4">📱</span>
-            <h3 className="text-heading font-semibold text-text mb-2">
-              모바일에서 이용해주세요
-            </h3>
-            <p className="text-body text-text-muted mb-4">
-              카카오톡 공유는 모바일에서만 가능해요.
-              {copiedLink && (
-                <>
-                  <br />
-                  <span className="text-primary font-medium">링크가 복사되었어요!</span>
-                </>
-              )}
-            </p>
-            <div className="space-y-2">
-              {copiedLink && (
-                <p className="text-small text-text-light bg-gray-50 p-3 rounded-lg break-all">
-                  {getShareUrl()}
-                </p>
-              )}
-              <Button
-                fullWidth
-                onClick={() => setShowMobileOnlyModal(false)}
-              >
-                확인
-              </Button>
-            </div>
+      <Modal
+        isOpen={showMobileOnlyModal}
+        onClose={() => setShowMobileOnlyModal(false)}
+        title="모바일에서 이용해주세요"
+        showCloseButton={false}
+      >
+        <div className="text-center">
+          <span className="text-5xl block mb-4" aria-hidden="true">📱</span>
+          <p className="text-body text-text-muted mb-4">
+            카카오톡 공유는 모바일에서만 가능해요.
+            {copiedLink && (
+              <>
+                <br />
+                <span className="text-primary font-medium">링크가 복사되었어요!</span>
+              </>
+            )}
+          </p>
+          <div className="space-y-2">
+            {copiedLink && (
+              <p className="text-small text-text-light bg-gray-50 p-3 rounded-lg break-all">
+                {getShareUrl()}
+              </p>
+            )}
+            <Button
+              fullWidth
+              onClick={() => setShowMobileOnlyModal(false)}
+            >
+              확인
+            </Button>
           </div>
         </div>
-      )}
+      </Modal>
 
       {/* 공유 보상 토스트 */}
       {showRewardToast && (
