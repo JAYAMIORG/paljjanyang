@@ -5,7 +5,7 @@ import Link from 'next/link'
 export function Footer() {
   return (
     <footer className="bg-gray-50 border-t border-gray-200 mt-auto">
-      <div className="max-w-lg mx-auto px-4 py-6">
+      <div className="max-w-lg mx-auto px-4 py-4">
         <div className="text-caption text-text-light space-y-1">
           <p className="font-medium text-text-muted">ChartIQ</p>
           <p>대표자: 박재호</p>
