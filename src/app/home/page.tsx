@@ -68,7 +68,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
-      <main className="px-4 py-6 max-w-lg mx-auto flex-1">
+      <main className="px-4 py-6 max-w-lg flex-1">
         {/* Hero Section */}
         <section className="text-center mb-8">
           <h2 className="text-heading text-text mb-2">
