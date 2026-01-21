@@ -134,9 +134,19 @@
   - 홈 화면에 무료 버튼 추가
   - 하루 1회 제한 API 구현
   - 간소화된 결과 페이지
+- [x] 성능 최적화 ✅ (2026-01-21)
+  - html2canvas 동적 import (번들 ~400KB 절감)
+  - YearlyResultContent, CompatibilityResultContent 마크다운 파싱 memoize
+  - Kakao SDK 중복 로딩 방지
+- [x] 버그 수정 ✅ (2026-01-21)
+  - 이미지 생성 DOM 조작 try-finally로 안전하게 복원
+  - Modal overflow 메모리 누수 수정
+  - Timer cleanup 추가 (메모리 누수 방지)
+  - Ref 상태 네비게이션 시 초기화 (중복 요청 방지)
+  - Rate Limiting 추가 (API 남용 방지)
+  - 입력 검증 유틸리티 추가
+  - AbortController 적용 (요청 취소)
 - [ ] 푸시 알림
-- [ ] 성능 최적화
-- [ ] 버그 수정
 
 ---
 
