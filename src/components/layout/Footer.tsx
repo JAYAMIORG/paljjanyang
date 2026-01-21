@@ -14,7 +14,7 @@ export function Footer() {
           <p>전화: 010-5148-4187</p>
         </div>
 
-        <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200">
+        <div className="flex gap-2 mt-4 border-t border-gray-200">
           <Link href="/terms" className="text-caption text-text-light hover:text-text-muted px-2 py-3 min-h-[44px] flex items-center">
             이용약관
           </Link>
