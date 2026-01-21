@@ -1,10 +1,20 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui'
 
 export default function LandingPage() {
+  const [isEyeOpen, setIsEyeOpen] = useState(true)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsEyeOpen(prev => !prev)
+    }, 700)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -18,7 +28,7 @@ export default function LandingPage() {
           {/* 로고 */}
           <div className="mb-8 w-full flex justify-center">
             <Image
-              src="/images/logo.png"
+              src={isEyeOpen ? '/images/logo-opened.png' : '/images/logo-closed.png'}
               alt="팔자냥"
               width={0}
               height={0}
