@@ -4,6 +4,23 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks'
 
+// 뒤로가기 아이콘 SVG - 컴포넌트 외부에 정의하여 재생성 방지
+const BackIcon = () => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M15 18l-6-6 6-6" />
+  </svg>
+)
+
 interface HeaderProps {
   showBack?: boolean
   title?: string
@@ -22,63 +39,37 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
     router.push('/')
   }
 
-  const handleBack = () => {
-    router.back()
+  const renderBackElement = () => {
+    const className = "flex items-center justify-center w-10 h-10 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
+
+    if (useHistoryBack) {
+      return (
+        <button
+          onClick={() => router.back()}
+          aria-label="뒤로 가기"
+          className={className}
+        >
+          <BackIcon />
+        </button>
+      )
+    }
+
+    return (
+      <Link href={backHref} aria-label="뒤로 가기" className={className}>
+        <BackIcon />
+      </Link>
+    )
   }
-
-  const BackButton = () => (
-    <button
-      onClick={handleBack}
-      aria-label="뒤로 가기"
-      className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
-    >
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M15 18l-6-6 6-6" />
-      </svg>
-    </button>
-  )
-
-  const BackLink = () => (
-    <Link
-      href={backHref}
-      aria-label="뒤로 가기"
-      className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
-    >
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M15 18l-6-6 6-6" />
-      </svg>
-    </Link>
-  )
 
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-gray-100">
       <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto">
         <div className="flex items-center gap-2">
           {showBack ? (
-            useHistoryBack ? <BackButton /> : <BackLink />
+            renderBackElement()
           ) : (
             <Link href="/" className="flex items-center gap-2">
-              <span className="text-2xl">🐱</span>
+              <span className="text-2xl" aria-hidden="true">🐱</span>
               <span className="font-serif text-xl font-bold text-primary">팔자냥</span>
             </Link>
           )}

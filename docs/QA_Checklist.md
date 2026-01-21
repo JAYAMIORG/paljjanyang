@@ -65,7 +65,7 @@
 | 뒤로가기 버튼에 `aria-label` 없음 | `Header.tsx` | [x] ✅ aria-label, aria-hidden 추가 |
 | 에러 메시지에 `role="alert"` 없음 | 로그인 페이지들 | [x] ✅ Input/Select 에러에 role="alert" 추가 |
 | 모달에 포커스 트랩 없음 | `result/page.tsx` | [ ] |
-| 별점/이모지에 `aria-hidden` 없음 | 랜딩 페이지 | [ ] |
+| 별점/이모지에 `aria-hidden` 없음 | 랜딩 페이지 | [x] ✅ 이모지, 별점에 aria-hidden 추가 |
 | 소셜 로그인 버튼에 `aria-label` 없음 | `login/page.tsx` | [x] ✅ aria-label, aria-hidden 추가 |
 | 성별 선택 버튼에 `role="radio"` 없음 | `saju/[type]/page.tsx` | [x] ✅ role="radiogroup", role="radio", aria-checked 추가 |
 | 패키지/결제수단 선택에 ARIA 속성 없음 | `coin/page.tsx` | [x] ✅ role="radiogroup", role="radio", aria-checked 추가 |
@@ -80,7 +80,7 @@
 | 데스크톱 카카오 공유 | "모바일에서만" 모달 → 대안 제공 | [ ] |
 | 사주 기록 클릭 안 됨 | 마이페이지에서 기록 클릭 시 상세 보기 없음 | [ ] |
 | 로딩 스켈레톤 부족 | 인증 로딩 중 스켈레톤 UI 없음 | [ ] |
-| 랜딩 페이지 로그인 링크 없음 | 기존 사용자 접근성 저하 | [ ] |
+| 랜딩 페이지 로그인 링크 없음 | 기존 사용자 접근성 저하 | [x] ✅ 최종 CTA 섹션에 로그인 링크 추가 |
 | 가격 정보 미표시 | 사주 유형 선택 시 코인 가격 표시 없음 | [ ] |
 | 결제 중복 클릭 방지 없음 | `handlePurchase` 실행 중 버튼 비활성화 없음 | [x] ✅ isPurchasing 상태 추가 |
 | 결제 실패 시 재시도 옵션 없음 | 결제 확인 실패 시 사용자 대응 방법 없음 | [ ] |
@@ -91,7 +91,7 @@
 |------|------|------|
 | 코드 중복 | `InterpretationCard`, `FallbackInterpretation` 결과/공유 페이지 중복 | [ ] |
 | ESLint 비활성화 주석 | `result/page.tsx:251, 293` | [ ] |
-| Header 내부 컴포넌트 재정의 | 매 렌더링마다 BackButton/BackLink 재생성 | [ ] |
+| Header 내부 컴포넌트 재정의 | 매 렌더링마다 BackButton/BackLink 재생성 | [x] ✅ BackIcon 컴포넌트 외부 정의, 인라인 JSX로 변경 |
 | Supabase 타입 미적용 | `server.ts`, `admin.ts`에서 `any` 사용 | [ ] |
 | SVG 아이콘 중복 | 인라인 SVG 반복 사용, 컴포넌트화 필요 | [ ] |
 | 변수명 섀도잉 | `coin/page.tsx:84` redirectUrl 중복 선언 | [ ] |

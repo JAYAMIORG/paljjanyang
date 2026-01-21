@@ -44,7 +44,7 @@ export default function LandingPage() {
           {/* CTA 버튼 */}
           <Link href="/home" className="block w-full">
             <Button variant="cartoon" size="lg" fullWidth>
-              🔮 내 사주 보러가기
+              <span aria-hidden="true">🔮</span> 내 사주 보러가기
             </Button>
           </Link>
         </div>
@@ -142,7 +142,7 @@ export default function LandingPage() {
       {/* 최종 CTA */}
       <section className="py-16 px-6 bg-gradient-to-b from-primary/5 to-primary/10">
         <div className="max-w-[500px] mx-auto text-center">
-          <span className="text-5xl mb-4 block">🐱✨</span>
+          <span className="text-5xl mb-4 block" aria-hidden="true">🐱✨</span>
           <h2 className="text-heading font-semibold text-text mb-2">
             지금 바로 시작하세요
           </h2>
@@ -150,10 +150,14 @@ export default function LandingPage() {
             나의 사주팔자가 궁금하다면
           </p>
 
-          <Link href="/home" className="block w-full">
+          <Link href="/home" className="block w-full mb-4">
             <Button variant="cartoon" size="lg" fullWidth>
-              🔮 내 사주 보러가기
+              <span aria-hidden="true">🔮</span> 내 사주 보러가기
             </Button>
+          </Link>
+
+          <Link href="/auth/login" className="text-small text-text-muted hover:text-primary transition-colors">
+            이미 계정이 있으신가요? <span className="font-medium text-primary">로그인</span>
           </Link>
         </div>
       </section>
@@ -192,7 +196,7 @@ function FeatureCard({
 }) {
   return (
     <div className="flex gap-4 p-4 bg-white rounded-card shadow-card">
-      <span className="text-3xl flex-shrink-0">{icon}</span>
+      <span className="text-3xl flex-shrink-0" aria-hidden="true">{icon}</span>
       <div>
         <h3 className="text-body font-semibold text-text mb-1">{title}</h3>
         <p className="text-small text-text-muted">{description}</p>
@@ -204,7 +208,7 @@ function FeatureCard({
 function ServiceItem({ icon, text }: { icon: string; text: string }) {
   return (
     <div className="flex items-center gap-2 p-3 bg-white rounded-lg">
-      <span className="text-xl">{icon}</span>
+      <span className="text-xl" aria-hidden="true">{icon}</span>
       <span className="text-small text-text">{text}</span>
     </div>
   )
@@ -221,9 +225,9 @@ function ReviewCard({
 }) {
   return (
     <div className="p-4 bg-white rounded-card shadow-card">
-      <div className="flex gap-0.5 mb-2">
+      <div className="flex gap-0.5 mb-2" role="img" aria-label={`별점 ${rating}점`}>
         {Array.from({ length: 5 }).map((_, i) => (
-          <span key={i} className={i < rating ? 'text-accent' : 'text-gray-200'}>
+          <span key={i} className={i < rating ? 'text-accent' : 'text-gray-200'} aria-hidden="true">
             ★
           </span>
         ))}
