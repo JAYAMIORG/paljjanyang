@@ -147,8 +147,8 @@ function SignupContent() {
         {/* 약관 동의 문구 */}
         <p className="text-center text-caption text-text-light mt-4">
           가입 시{' '}
-          <a href="#" className="underline">이용약관</a>과{' '}
-          <a href="#" className="underline">개인정보처리방침</a>에 동의하게 됩니다.
+          <Link href="/terms" className="underline hover:text-text-muted">이용약관</Link>과{' '}
+          <Link href="/privacy" className="underline hover:text-text-muted">개인정보처리방침</Link>에 동의하게 됩니다.
         </p>
       </main>
     </div>

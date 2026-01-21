@@ -173,7 +173,7 @@ export default function LandingPage() {
             <Link href="/refund" className="text-caption text-text-light hover:text-text-muted transition-colors">환불정책</Link>
           </div>
           <p className="text-caption text-text-light mt-4">
-            © 2025 ChartIQ. All rights reserved.
+            © {new Date().getFullYear()} ChartIQ. All rights reserved.
           </p>
         </div>
       </footer>

@@ -109,9 +109,6 @@ function CoinContent() {
       // 2. 토스페이먼츠 결제창 호출
       const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY
 
-      // redirect 파라미터 포함 URL 생성
-      const redirectParam = redirectUrl ? `&redirect=${encodeURIComponent(redirectUrl)}` : ''
-
       if (!clientKey) {
         // 클라이언트 키가 없으면 결제 불가
         alert('결제 설정이 올바르지 않습니다. 관리자에게 문의해주세요.')
@@ -122,12 +119,17 @@ function CoinContent() {
       const { loadTossPayments } = await import('@tosspayments/payment-sdk')
       const tossPayments = await loadTossPayments(clientKey)
 
+      // redirect 파라미터 포함 URL 생성
+      const successUrl = redirectUrl
+        ? `${window.location.origin}/payment/success?redirect=${encodeURIComponent(redirectUrl)}`
+        : `${window.location.origin}/payment/success`
+
       await tossPayments.requestPayment(paymentMethod, {
         amount,
         orderId,
         orderName,
         customerEmail: user.email,
-        successUrl: `${window.location.origin}/payment/success${redirectParam ? `?redirect=${encodeURIComponent(redirectUrl!)}` : ''}`,
+        successUrl,
         failUrl: `${window.location.origin}/payment/fail`,
       })
     } catch (error) {

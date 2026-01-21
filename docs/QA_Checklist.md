@@ -39,18 +39,18 @@
 
 | 문제 | 위치 | 설명 | 상태 |
 |------|------|------|------|
-| **소셜 로그인 redirect 안 됨** | `useAuth.ts`, `callback/route.ts` | 카카오/구글 로그인 후 원래 페이지로 이동 안 함 | [ ] |
-| **날짜 유효성 검증 없음** | `saju/[type]/page.tsx` | 2월 31일 같은 잘못된 날짜 선택 가능 | [ ] |
-| **궁합 미리보기 미지원** | `preview/page.tsx` | 두 번째 사람 정보 처리 안 됨 | [ ] |
-| **토스페이먼츠 successUrl 버그** | `coin/page.tsx:131` | redirectParam 구성 불일치 | [ ] |
+| **소셜 로그인 redirect 안 됨** | `useAuth.ts`, `callback/route.ts` | 카카오/구글 로그인 후 원래 페이지로 이동 안 함 | [x] ✅ redirectTo 파라미터 추가 |
+| **날짜 유효성 검증 없음** | `saju/[type]/page.tsx` | 2월 31일 같은 잘못된 날짜 선택 가능 | [x] ✅ 월/연도에 따라 일 옵션 동적 조정 |
+| **궁합 미리보기 미지원** | `preview/page.tsx` | 두 번째 사람 정보 처리 안 됨 | [x] ✅ 두 사람 사주 비교 UI 구현 |
+| **토스페이먼츠 successUrl 버그** | `coin/page.tsx:131` | redirectParam 구성 불일치 | [x] ✅ successUrl 변수로 정리 |
 
 ### 하드코딩 이슈
 
 | 문제 | 위치 | 수정 필요 | 상태 |
 |------|------|------|------|
-| 저작권 연도 | `page.tsx:163`, `Footer.tsx` | `2025` → 동적 연도 | [ ] |
-| 신년운세 설명 | `home/page.tsx:19` | `2025년` → `${new Date().getFullYear()}년` | [ ] |
-| 약관 링크 | `signup/page.tsx:150-151` | `href="#"` → 실제 페이지 링크 | [ ] |
+| 저작권 연도 | `page.tsx:163`, `Footer.tsx` | `2025` → 동적 연도 | [x] ✅ new Date().getFullYear() 사용 |
+| 신년운세 설명 | `home/page.tsx:19` | `2025년` → `${new Date().getFullYear()}년` | [x] ✅ 동적 연도 적용 |
+| 약관 링크 | `signup/page.tsx:150-151` | `href="#"` → 실제 페이지 링크 | [x] ✅ /terms, /privacy 링크 연결 |
 
 ---
 
@@ -128,7 +128,7 @@
 | 우선순위 | 개수 | 핵심 항목 |
 |----------|------|----------|
 | 🚨 Critical | ~~8개~~ **0개** ✅ | ~~인증, Race Condition, 데이터 무결성~~ 모두 해결됨 |
-| 🟠 High | 7개 | 소셜 로그인, 날짜 검증, 하드코딩 |
+| 🟠 High | ~~7개~~ **0개** ✅ | ~~소셜 로그인, 날짜 검증, 하드코딩, 궁합 미리보기, 토스 successUrl~~ 모두 해결됨 |
 | 🟡 Medium | 25개+ | 접근성, UX, 코드 품질, API |
 | 🟢 Low | 7개 | 페이지네이션, Soft Delete 등 |
 
@@ -146,11 +146,11 @@
    - ~~결제 상태 `processing` 중간 상태 추가~~ → `process_payment()` 함수
 2. ~~코인 차감 실패 시 롤백 로직 추가~~ ✅ → `/api/saju/refund-coin`
 
-### Phase 3: 2주 내 ← **현재 진행 대상**
-1. 소셜 로그인 redirect 수정
-2. 날짜 유효성 검증 추가
-3. 하드코딩된 연도 동적 변경
-4. 약관 링크 수정
+### Phase 3: 2주 내 ✅ 완료
+1. ~~소셜 로그인 redirect 수정~~ ✅
+2. ~~날짜 유효성 검증 추가~~ ✅
+3. ~~하드코딩된 연도 동적 변경~~ ✅
+4. ~~약관 링크 수정~~ ✅
 
 ### Phase 4: 1개월 내
 1. 접근성 (a11y) 전면 개선
