@@ -7,7 +7,10 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const pgToken = searchParams.get('pg_token')
     const partnerOrderId = searchParams.get('partner_order_id')
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    // Vercel 자동 감지: NEXT_PUBLIC_BASE_URL > VERCEL_URL > localhost
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+      || 'http://localhost:3000'
 
     if (!pgToken || !partnerOrderId) {
       return NextResponse.redirect(`${baseUrl}/payment/fail?reason=invalid_params`)
@@ -156,7 +159,9 @@ export async function GET(request: NextRequest) {
     )
   } catch (error) {
     console.error('KakaoPay approve error:', error)
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+      || 'http://localhost:3000'
     return NextResponse.redirect(`${baseUrl}/payment/fail?reason=internal_error`)
   }
 }

@@ -97,7 +97,10 @@ export async function POST(request: NextRequest) {
 
     // 카카오페이 Admin Key 확인
     const kakaoAdminKey = process.env.KAKAO_ADMIN_KEY
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    // Vercel 자동 감지: NEXT_PUBLIC_BASE_URL > VERCEL_URL > localhost
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+      || 'http://localhost:3000'
 
     // 결제 레코드 생성 (pending 상태) - 테스트/실제 모두 필요
     // Admin 클라이언트 사용 (RLS 우회)
