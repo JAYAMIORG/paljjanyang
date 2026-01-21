@@ -16,6 +16,7 @@ function CoinContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<'카드' | '카카오페이' | null>(null)
+  const [isPurchasing, setIsPurchasing] = useState(false)
 
   // redirect 파라미터 가져오기 (결제 후 이동할 URL)
   const redirectUrl = searchParams.get('redirect')
@@ -58,12 +59,13 @@ function CoinContent() {
   }, [authLoading, user])
 
   const handlePurchase = async () => {
-    if (!selectedPackage || !user || !paymentMethod) return
+    if (!selectedPackage || !user || !paymentMethod || isPurchasing) return
+
+    setIsPurchasing(true)
 
     try {
       // 카카오페이 결제
       if (paymentMethod === '카카오페이') {
-        console.log('Calling KakaoPay ready API with packageId:', selectedPackage)
         const response = await fetch('/api/payment/kakaopay/ready', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -71,21 +73,20 @@ function CoinContent() {
         })
 
         const data = await response.json()
-        console.log('KakaoPay ready response:', JSON.stringify(data, null, 2))
 
         if (!data.success) {
-          console.error('KakaoPay error:', data.error)
-          alert(`[${data.error?.code}] ${data.error?.message || '카카오페이 결제 준비에 실패했습니다.'}`)
+          alert(data.error?.message || '카카오페이 결제 준비에 실패했습니다.')
+          setIsPurchasing(false)
           return
         }
 
         // 카카오페이 결제 페이지로 리다이렉트
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-        const redirectUrl = isMobile
+        const kakaoRedirectUrl = isMobile
           ? data.data.next_redirect_mobile_url
           : data.data.next_redirect_pc_url
 
-        window.location.href = redirectUrl
+        window.location.href = kakaoRedirectUrl
         return
       }
 
@@ -101,6 +102,7 @@ function CoinContent() {
 
       if (!data.success) {
         alert(data.error?.message || '결제 초기화에 실패했습니다.')
+        setIsPurchasing(false)
         return
       }
 
@@ -110,8 +112,8 @@ function CoinContent() {
       const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY
 
       if (!clientKey) {
-        // 클라이언트 키가 없으면 결제 불가
         alert('결제 설정이 올바르지 않습니다. 관리자에게 문의해주세요.')
+        setIsPurchasing(false)
         return
       }
 
@@ -132,9 +134,9 @@ function CoinContent() {
         successUrl,
         failUrl: `${window.location.origin}/payment/fail`,
       })
-    } catch (error) {
-      console.error('Payment error:', error)
+    } catch {
       alert('결제 중 오류가 발생했습니다.')
+      setIsPurchasing(false)
     }
   }
 
@@ -277,14 +279,17 @@ function CoinContent() {
           <Button
             fullWidth
             size="lg"
-            disabled={!selectedPackage || !paymentMethod}
+            disabled={!selectedPackage || !paymentMethod || isPurchasing}
+            isLoading={isPurchasing}
             onClick={handlePurchase}
           >
-            {!selectedPackage
-              ? '패키지를 선택해주세요'
-              : !paymentMethod
-                ? '결제 수단을 선택해주세요'
-                : `${formatPrice(packages.find(p => p.id === selectedPackage)?.price || 0)}원 결제하기`
+            {isPurchasing
+              ? '결제 진행 중...'
+              : !selectedPackage
+                ? '패키지를 선택해주세요'
+                : !paymentMethod
+                  ? '결제 수단을 선택해주세요'
+                  : `${formatPrice(packages.find(p => p.id === selectedPackage)?.price || 0)}원 결제하기`
             }
           </Button>
         </div>

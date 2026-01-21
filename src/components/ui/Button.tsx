@@ -63,6 +63,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={disabled || isLoading}
+        aria-busy={isLoading}
+        aria-disabled={disabled || isLoading}
         className={`
           inline-flex items-center justify-center
           font-semibold
@@ -76,9 +78,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2" role="status" aria-live="polite">
             <LoadingSpinner />
             <span>잠시만요...</span>
+            <span className="sr-only">로딩 중</span>
           </span>
         ) : (
           children
@@ -97,6 +100,7 @@ function LoadingSpinner() {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
+      aria-hidden="true"
     >
       <circle
         className="opacity-25"

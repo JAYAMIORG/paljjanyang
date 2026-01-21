@@ -91,8 +91,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('Package found:', packageData)
-
     // 주문 ID 생성
     const orderId = `KAKAO_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
     const totalCoins = Number(packageData.coins) + Number(packageData.bonus_coins || 0)
@@ -117,7 +115,6 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
-    console.log('Admin client created successfully')
 
     const paymentData = {
       user_id: user.id,
@@ -128,14 +125,10 @@ export async function POST(request: NextRequest) {
       method: 'kakao' as const,
       status: 'pending' as const,
     }
-    console.log('Creating payment:', JSON.stringify(paymentData, null, 2))
 
-    const { data: insertedPayment, error: paymentError } = await adminClient
+    const { error: paymentError } = await adminClient
       .from('payments')
       .insert(paymentData)
-      .select()
-
-    console.log('Insert result:', { insertedPayment, paymentError })
 
     if (paymentError) {
       console.error('Payment creation error:', JSON.stringify(paymentError, null, 2))

@@ -60,10 +60,10 @@
 
 | 문제 | 위치 | 상태 |
 |------|------|------|
-| Button에 `aria-busy`, `aria-disabled` 없음 | `Button.tsx` | [ ] |
-| Input/Select에 `aria-describedby`, `aria-invalid` 없음 | `Input.tsx`, `Select.tsx` | [ ] |
+| Button에 `aria-busy`, `aria-disabled` 없음 | `Button.tsx` | [x] ✅ aria-busy, aria-disabled, role="status" 추가 |
+| Input/Select에 `aria-describedby`, `aria-invalid` 없음 | `Input.tsx`, `Select.tsx` | [x] ✅ aria-invalid, aria-describedby 추가 |
 | 뒤로가기 버튼에 `aria-label` 없음 | `Header.tsx` | [ ] |
-| 에러 메시지에 `role="alert"` 없음 | 로그인 페이지들 | [ ] |
+| 에러 메시지에 `role="alert"` 없음 | 로그인 페이지들 | [x] ✅ Input/Select 에러에 role="alert" 추가 |
 | 모달에 포커스 트랩 없음 | `result/page.tsx` | [ ] |
 | 별점/이모지에 `aria-hidden` 없음 | 랜딩 페이지 | [ ] |
 | 소셜 로그인 버튼에 `aria-label` 없음 | `login/page.tsx` | [ ] |
@@ -82,7 +82,7 @@
 | 로딩 스켈레톤 부족 | 인증 로딩 중 스켈레톤 UI 없음 | [ ] |
 | 랜딩 페이지 로그인 링크 없음 | 기존 사용자 접근성 저하 | [ ] |
 | 가격 정보 미표시 | 사주 유형 선택 시 코인 가격 표시 없음 | [ ] |
-| 결제 중복 클릭 방지 없음 | `handlePurchase` 실행 중 버튼 비활성화 없음 | [ ] |
+| 결제 중복 클릭 방지 없음 | `handlePurchase` 실행 중 버튼 비활성화 없음 | [x] ✅ isPurchasing 상태 추가 |
 | 결제 실패 시 재시도 옵션 없음 | 결제 확인 실패 시 사용자 대응 방법 없음 | [ ] |
 
 ### 코드 품질
@@ -95,13 +95,13 @@
 | Supabase 타입 미적용 | `server.ts`, `admin.ts`에서 `any` 사용 | [ ] |
 | SVG 아이콘 중복 | 인라인 SVG 반복 사용, 컴포넌트화 필요 | [ ] |
 | 변수명 섀도잉 | `coin/page.tsx:84` redirectUrl 중복 선언 | [ ] |
-| 디버그 로그 정리 안 됨 | `kakaopay/ready/route.ts` console.log 다수 | [ ] |
+| 디버그 로그 정리 안 됨 | `kakaopay/ready/route.ts` console.log 다수 | [x] ✅ 디버그 로그 제거, 에러 로그만 유지 |
 
 ### API 개선
 
 | 문제 | 위치 | 상태 |
 |------|------|------|
-| API 호출 최적화 | `mypage/page.tsx` 순차 호출 → `Promise.all()` | [ ] |
+| API 호출 최적화 | `mypage/page.tsx` 순차 호출 → `Promise.all()` | [x] ✅ Promise.all로 병렬 호출 |
 | Rate Limiting 미적용 | 모든 API | [ ] |
 | 입력값 검증 강화 | `/api/persons`, `/api/saju/history` | [ ] |
 | DELETE 성공 여부 미확인 | `/api/saju/history/[id]` | [ ] |
@@ -152,10 +152,13 @@
 3. ~~하드코딩된 연도 동적 변경~~ ✅
 4. ~~약관 링크 수정~~ ✅
 
-### Phase 4: 1개월 내
-1. 접근성 (a11y) 전면 개선
+### Phase 4: 1개월 내 (진행 중)
+1. ~~접근성 (a11y) 전면 개선~~ → 일부 완료 (Button, Input, Select)
 2. UX 개선 (커스텀 모달, 에러 메시지 한국어화)
 3. 코드 중복 제거 및 리팩토링
+4. ~~결제 중복 클릭 방지~~ ✅
+5. ~~API 호출 최적화 (Promise.all)~~ ✅
+6. ~~디버그 로그 정리~~ ✅
 
 ---
 

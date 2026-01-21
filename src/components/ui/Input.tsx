@@ -11,6 +11,9 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, hint, className = '', id, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s/g, '-')
+    const errorId = error ? `${inputId}-error` : undefined
+    const hintId = hint && !error ? `${inputId}-hint` : undefined
+    const describedBy = errorId || hintId || undefined
 
     return (
       <div className="w-full">
@@ -26,6 +29,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           id={inputId}
+          aria-invalid={!!error}
+          aria-describedby={describedBy}
           className={`
             w-full h-12 px-4
             bg-white rounded-button
@@ -42,10 +47,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {error && (
-          <p className="mt-1.5 text-small text-red-500">{error}</p>
+          <p id={errorId} role="alert" className="mt-1.5 text-small text-red-500">{error}</p>
         )}
         {hint && !error && (
-          <p className="mt-1.5 text-small text-text-light">{hint}</p>
+          <p id={hintId} className="mt-1.5 text-small text-text-light">{hint}</p>
         )}
       </div>
     )

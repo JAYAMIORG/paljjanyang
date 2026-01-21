@@ -65,18 +65,23 @@ export default function MyPage() {
 
     const fetchData = async () => {
       try {
-        // 기록 조회
-        const historyRes = await fetch('/api/saju/history')
-        const historyData = await historyRes.json()
+        // 기록과 잔액을 병렬로 조회
+        const [historyRes, balanceRes] = await Promise.all([
+          fetch('/api/saju/history'),
+          fetch('/api/coin/balance'),
+        ])
+
+        const [historyData, balanceData] = await Promise.all([
+          historyRes.json(),
+          balanceRes.json(),
+        ])
+
         if (historyData.success) {
           setReadings(historyData.data.readings)
         } else {
           setError(historyData.error?.message || '기록을 불러올 수 없습니다.')
         }
 
-        // 잔액 조회
-        const balanceRes = await fetch('/api/coin/balance')
-        const balanceData = await balanceRes.json()
         if (balanceData.success) {
           setBalance(balanceData.data.balance)
         }
