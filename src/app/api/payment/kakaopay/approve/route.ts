@@ -47,18 +47,12 @@ export async function GET(request: NextRequest) {
     }
 
     const kakaoAdminKey = process.env.KAKAO_ADMIN_KEY
-    const isTestMode = process.env.PAYMENT_TEST_MODE === 'true'
 
     let externalPaymentId: string | null = null
 
     if (!kakaoAdminKey) {
-      if (!isTestMode) {
-        // 테스트 모드가 아닌데 API 키가 없으면 에러
-        console.error('KAKAO_ADMIN_KEY not set and PAYMENT_TEST_MODE is not enabled')
-        return NextResponse.redirect(`${baseUrl}/payment/fail?reason=config_error`)
-      }
-      // 명시적 테스트 모드: 바로 성공 처리
-      console.log('PAYMENT_TEST_MODE enabled, skipping KakaoPay API verification')
+      // KAKAO_ADMIN_KEY 없으면 테스트 모드 (ready 라우트와 동일한 로직)
+      console.log('KAKAO_ADMIN_KEY not set, using test mode')
     } else {
       // 카카오페이 Approve API 호출
       const kakaoResponse = await fetch('https://kapi.kakao.com/v1/payment/approve', {
