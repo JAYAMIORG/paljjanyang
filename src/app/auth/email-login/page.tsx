@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Header } from '@/components/layout'
 import { Button, Input, Card } from '@/components/ui'
 import { useAuth } from '@/hooks'
+import { getKoreanErrorMessage } from '@/lib/utils'
 
 function EmailLoginContent() {
   const router = useRouter()
@@ -26,9 +27,7 @@ function EmailLoginContent() {
     const { error } = await signInWithEmail(email, password)
 
     if (error) {
-      setError(error.message === 'Invalid login credentials'
-        ? '이메일 또는 비밀번호가 올바르지 않아요'
-        : error.message)
+      setError(getKoreanErrorMessage(error))
       setIsLoading(false)
       return
     }

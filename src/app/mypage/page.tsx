@@ -174,24 +174,35 @@ export default function MyPage() {
           ) : (
             <div className="space-y-3">
               {readings.map((reading) => (
-                <Card key={reading.id}>
+                <Card key={reading.id} className="hover:shadow-card-hover transition-shadow">
                   <div className="flex items-start gap-3">
-                    <span className="text-2xl" aria-hidden="true">{TYPE_ICONS[reading.type]}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-caption bg-primary/10 text-primary px-2 py-0.5 rounded">
-                          {TYPE_LABELS[reading.type]}
-                        </span>
-                        <span className="text-caption text-text-light">
-                          {new Date(reading.createdAt).toLocaleDateString('ko-KR')}
-                        </span>
+                    <Link
+                      href={`/saju/reading/${reading.id}`}
+                      className="flex items-start gap-3 flex-1 min-w-0"
+                    >
+                      <span className="text-2xl" aria-hidden="true">{TYPE_ICONS[reading.type]}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-caption bg-primary/10 text-primary px-2 py-0.5 rounded">
+                            {TYPE_LABELS[reading.type]}
+                          </span>
+                          <span className="text-caption text-text-light">
+                            {new Date(reading.createdAt).toLocaleDateString('ko-KR')}
+                          </span>
+                        </div>
+                        <p className="text-body font-medium text-text">
+                          {reading.personName} - {reading.birthDate}
+                        </p>
+                        <p className="text-caption text-text-muted mt-1">
+                          탭하여 상세 보기
+                        </p>
                       </div>
-                      <p className="text-body font-medium text-text">
-                        {reading.personName} - {reading.birthDate}
-                      </p>
-                    </div>
+                    </Link>
                     <button
-                      onClick={() => handleDelete(reading.id)}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handleDelete(reading.id)
+                      }}
                       disabled={deletingId === reading.id}
                       aria-label={`${reading.personName} 기록 삭제`}
                       aria-busy={deletingId === reading.id}

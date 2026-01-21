@@ -281,11 +281,12 @@ export async function DELETE(
     }
 
     // 해당 기록이 사용자의 것인지 확인 후 삭제
-    const { error: deleteError } = await supabase
+    const { data: deletedData, error: deleteError } = await supabase
       .from('readings')
       .delete()
       .eq('id', id)
       .eq('user_id', user.id)
+      .select('id')
 
     if (deleteError) {
       console.error('Delete error:', deleteError)
@@ -298,6 +299,20 @@ export async function DELETE(
           },
         },
         { status: 500 }
+      )
+    }
+
+    // 삭제된 레코드가 없는 경우 (존재하지 않거나 권한 없음)
+    if (!deletedData || deletedData.length === 0) {
+      return NextResponse.json<DeleteResponse>(
+        {
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: '삭제할 기록을 찾을 수 없습니다.',
+          },
+        },
+        { status: 404 }
       )
     }
 

@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { Header } from '@/components/layout'
 import { Button, Input, Card } from '@/components/ui'
 import { useAuth } from '@/hooks'
+import { getKoreanErrorMessage } from '@/lib/utils'
 
 function SignupContent() {
   const searchParams = useSearchParams()
@@ -40,11 +41,7 @@ function SignupContent() {
     const { error } = await signUpWithEmail(email, password)
 
     if (error) {
-      if (error.message.includes('already registered')) {
-        setError('이미 가입된 이메일이에요')
-      } else {
-        setError(error.message)
-      }
+      setError(getKoreanErrorMessage(error))
       setIsLoading(false)
       return
     }

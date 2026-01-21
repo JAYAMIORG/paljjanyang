@@ -75,10 +75,10 @@
 | 문제 | 설명 | 상태 |
 |------|------|------|
 | `alert()`/`confirm()` 사용 | 네이티브 대화상자 → 커스텀 모달 권장 | [ ] |
-| 에러 메시지 영문 노출 | Supabase 에러 한국어화 필요 | [ ] |
+| 에러 메시지 영문 노출 | Supabase 에러 한국어화 필요 | [x] ✅ error-messages.ts 유틸리티 생성 및 적용 |
 | 비밀번호 찾기 없음 | 이메일 로그인 페이지에 추가 필요 | [x] ✅ reset-password, update-password 페이지 추가 |
 | 데스크톱 카카오 공유 | "모바일에서만" 모달 → 대안 제공 | [ ] |
-| 사주 기록 클릭 안 됨 | 마이페이지에서 기록 클릭 시 상세 보기 없음 | [ ] |
+| 사주 기록 클릭 안 됨 | 마이페이지에서 기록 클릭 시 상세 보기 없음 | [x] ✅ reading/[id] 상세 페이지 생성 및 링크 연결 |
 | 로딩 스켈레톤 부족 | 인증 로딩 중 스켈레톤 UI 없음 | [ ] |
 | 랜딩 페이지 로그인 링크 없음 | 기존 사용자 접근성 저하 | [x] ✅ 최종 CTA 섹션에 로그인 링크 추가 |
 | 가격 정보 미표시 | 사주 유형 선택 시 코인 가격 표시 없음 | [x] ✅ SajuTypeCard에 코인 가격 배지 추가 |
@@ -90,7 +90,7 @@
 | 문제 | 위치 | 상태 |
 |------|------|------|
 | 코드 중복 | `InterpretationCard`, `FallbackInterpretation` 결과/공유 페이지 중복 | [ ] |
-| ESLint 비활성화 주석 | `result/page.tsx:251, 293` | [ ] |
+| ESLint 비활성화 주석 | `result/page.tsx:251, 293` | [x] ✅ 의도적 의존성 제한 (무한루프 방지) |
 | Header 내부 컴포넌트 재정의 | 매 렌더링마다 BackButton/BackLink 재생성 | [x] ✅ BackIcon 컴포넌트 외부 정의, 인라인 JSX로 변경 |
 | Supabase 타입 미적용 | `server.ts`, `admin.ts`에서 `any` 사용 | [ ] |
 | SVG 아이콘 중복 | 인라인 SVG 반복 사용, 컴포넌트화 필요 | [ ] |
@@ -104,7 +104,7 @@
 | API 호출 최적화 | `mypage/page.tsx` 순차 호출 → `Promise.all()` | [x] ✅ Promise.all로 병렬 호출 |
 | Rate Limiting 미적용 | 모든 API | [ ] |
 | 입력값 검증 강화 | `/api/persons`, `/api/saju/history` | [ ] |
-| DELETE 성공 여부 미확인 | `/api/saju/history/[id]` | [ ] |
+| DELETE 성공 여부 미확인 | `/api/saju/history/[id]` | [x] ✅ select() 추가하여 삭제 확인 |
 | 비동기 작업 정리 없음 | result/page.tsx AbortController 미사용 | [ ] |
 
 ---
