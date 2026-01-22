@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Header } from '@/components/layout'
 import { Button, Input, Card } from '@/components/ui'
@@ -72,7 +73,13 @@ export default function UpdatePasswordPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce" aria-hidden="true">🐱</div>
+          <Image
+            src="/images/brand-character.png"
+            alt=""
+            width={96}
+            height={96}
+            className="h-24 w-auto mx-auto mb-4 animate-bounce"
+          />
           <p className="text-body text-text-muted">확인 중...</p>
         </div>
       </div>

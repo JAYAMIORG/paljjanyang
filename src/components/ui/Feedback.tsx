@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
+import Image from 'next/image'
 import { Button } from './Button'
 
 // ============================================
@@ -10,16 +11,30 @@ import { Button } from './Button'
 interface LoadingScreenProps {
   message?: string
   emoji?: string
+  useCharacter?: boolean
 }
 
 export function LoadingScreen({
   message = '로딩 중...',
-  emoji = '🐱'
+  emoji,
+  useCharacter = true
 }: LoadingScreenProps) {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="text-center">
-        <div className="text-6xl mb-4 animate-bounce">{emoji}</div>
+        {emoji ? (
+          <div className="text-6xl mb-4 animate-bounce">{emoji}</div>
+        ) : useCharacter ? (
+          <Image
+            src="/images/brand-character.png"
+            alt=""
+            width={96}
+            height={96}
+            className="h-24 w-auto mx-auto mb-4 animate-bounce"
+          />
+        ) : (
+          <div className="text-6xl mb-4 animate-bounce">🐱</div>
+        )}
         <p className="text-body text-text-muted">{message}</p>
       </div>
     </div>
@@ -29,17 +44,31 @@ export function LoadingScreen({
 interface LoadingCardProps {
   message?: string
   emoji?: string
+  useCharacter?: boolean
 }
 
 export function LoadingCard({
   message = '불러오는 중...',
-  emoji = '🐱'
+  emoji,
+  useCharacter = true
 }: LoadingCardProps) {
   return (
     <div className="bg-white rounded-2xl p-6">
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
-          <div className="text-4xl mb-3 animate-pulse">{emoji}</div>
+          {emoji ? (
+            <div className="text-4xl mb-3 animate-pulse">{emoji}</div>
+          ) : useCharacter ? (
+            <Image
+              src="/images/brand-character.png"
+              alt=""
+              width={64}
+              height={64}
+              className="h-16 w-auto mx-auto mb-3 animate-pulse"
+            />
+          ) : (
+            <div className="text-4xl mb-3 animate-pulse">🐱</div>
+          )}
           <p className="text-body text-text-muted">{message}</p>
         </div>
       </div>

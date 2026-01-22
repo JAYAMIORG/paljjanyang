@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Header } from '@/components/layout'
 import { Card, Button } from '@/components/ui'
@@ -148,7 +149,13 @@ function CoinContent() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce">🐱</div>
+          <Image
+            src="/images/brand-character.png"
+            alt=""
+            width={96}
+            height={96}
+            className="h-24 w-auto mx-auto mb-4 animate-bounce"
+          />
           <p className="text-body text-text-muted">로딩 중...</p>
         </div>
       </div>
@@ -308,7 +315,13 @@ export default function CoinPage() {
       fallback={
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
-            <div className="text-6xl mb-4 animate-bounce">🐱</div>
+            <Image
+            src="/images/brand-character.png"
+            alt=""
+            width={96}
+            height={96}
+            className="h-24 w-auto mx-auto mb-4 animate-bounce"
+          />
             <p className="text-body text-text-muted">로딩 중...</p>
           </div>
         </div>

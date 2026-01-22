@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Header, Footer } from '@/components/layout'
@@ -137,8 +138,14 @@ export default function MyPage() {
         {/* 프로필 섹션 */}
         <Card>
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-3xl" aria-hidden="true">🐱</span>
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+              <Image
+                src="/images/brand-character.png"
+                alt=""
+                width={48}
+                height={48}
+                className="h-12 w-auto"
+              />
             </div>
             <div>
               <h2 className="text-subheading font-semibold text-text">
