@@ -76,8 +76,17 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     // 에러 시 기본값 사용
   }
 
-  // 동물 이미지 URL
-  const animalImageUrl = `${baseUrl}/images/animals/test.png`
+  // 동물 이미지를 ArrayBuffer로 가져오기
+  let imageData: ArrayBuffer | null = null
+  try {
+    const imageUrl = `${baseUrl}/images/animals/test.png`
+    const imageResponse = await fetch(imageUrl)
+    if (imageResponse.ok) {
+      imageData = await imageResponse.arrayBuffer()
+    }
+  } catch (e) {
+    console.error('Failed to fetch animal image:', e)
+  }
 
   return new ImageResponse(
     (
@@ -94,25 +103,27 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         }}
       >
         {/* 동물 이미지 */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 24,
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={animalImageUrl}
-            alt=""
-            width={160}
-            height={160}
+        {imageData && (
+          <div
             style={{
-              objectFit: 'contain',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 24,
             }}
-          />
-        </div>
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`data:image/png;base64,${Buffer.from(imageData).toString('base64')}`}
+              alt=""
+              width={160}
+              height={160}
+              style={{
+                objectFit: 'contain',
+              }}
+            />
+          </div>
+        )}
 
         {/* 타이틀 */}
         <div
