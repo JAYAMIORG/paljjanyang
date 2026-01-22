@@ -79,7 +79,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   try {
     const imageUrl = `${productionUrl}/images/animals/test.png`
     const imageResponse = await fetch(imageUrl, {
-      cache: 'force-cache', // 캐시 활용으로 안정성 향상
+      cache: 'no-store', // 캐시 비활성화
     })
     if (imageResponse.ok) {
       imageData = await imageResponse.arrayBuffer()
