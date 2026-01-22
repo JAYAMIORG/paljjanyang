@@ -631,9 +631,16 @@ function ResultContent() {
       love: '연애운',
     }[type] || '사주'
 
+    // OG 이미지 URL (공유 페이지의 동적 OG 이미지 또는 기본 이미지)
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    const imageUrl = readingId
+      ? `${baseUrl}/saju/shared/${readingId}/opengraph-image`
+      : `${baseUrl}/images/animals/test.png`
+
     shareKakao({
       title: `${result.dayMasterKorean}의 ${typeLabel} 결과`,
       description: `${result.koreanGanji} - 나의 사주를 확인해보세요!`,
+      imageUrl,
       buttonText: '결과 보러가기',
       shareUrl,
     })

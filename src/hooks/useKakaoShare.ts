@@ -110,7 +110,7 @@ export function useKakaoShare() {
           content: {
             title,
             description,
-            imageUrl: imageUrl || `${baseUrl}/og-image.png`,
+            imageUrl: imageUrl || `${baseUrl}/images/animals/test.png`,
             link: {
               mobileWebUrl: contentUrl,
               webUrl: contentUrl,
