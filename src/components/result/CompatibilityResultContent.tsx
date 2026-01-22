@@ -351,6 +351,30 @@ export function CompatibilityResultContent({
         </Card>
       )}
 
+      {/* 일주 동물 궁합 */}
+      {result1.dayPillarAnimal && result2.dayPillarAnimal && (
+        <Card>
+          <h3 className="text-subheading font-semibold text-text mb-4">
+            🐾 일주 동물 궁합
+          </h3>
+          <div className="text-center py-4">
+            <div className="flex items-center justify-center gap-4">
+              <div className="text-center">
+                <p className="text-2xl font-serif mb-1">{result1.bazi.day}</p>
+                <p className="text-lg font-bold text-primary">{result1.dayPillarAnimal}</p>
+                <p className="text-caption text-text-muted">{name1}</p>
+              </div>
+              <span className="text-3xl">❤️</span>
+              <div className="text-center">
+                <p className="text-2xl font-serif mb-1">{result2.bazi.day}</p>
+                <p className="text-lg font-bold text-primary">{result2.dayPillarAnimal}</p>
+                <p className="text-caption text-text-muted">{name2}</p>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* 일간 궁합 */}
       {parsed?.dayMasterAnalysis && (
         <Card>

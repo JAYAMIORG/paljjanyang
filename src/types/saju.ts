@@ -73,6 +73,8 @@ export interface SajuResult {
   zodiac: string       // 띠 (예: 돼지띠)
   zodiacEmoji: string  // 띠 이모지
   naYin: string        // 납음 (예: 山頭火)
+  dayPillarAnimal: string  // 일주 동물 별칭 (예: 황말, 백호)
+  dayNaYin: string     // 일주 납음 (예: 钗钏金)
 }
 
 // API 응답

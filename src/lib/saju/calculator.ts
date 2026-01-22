@@ -14,6 +14,7 @@ import {
   ZODIAC_EMOJI,
   WUXING_KOREAN,
 } from '@/types/saju'
+import { getJiaziAnimalName } from './constants'
 
 /**
  * 사주팔자 계산기
@@ -102,6 +103,12 @@ export function calculateSaju(request: SajuCalculateRequest): SajuResult {
   // 납음
   const naYin = eightChar.getYearNaYin()
 
+  // 일주 동물 별칭 (예: 戊午 → 황말)
+  const dayPillarAnimal = getJiaziAnimalName(bazi.day)
+
+  // 일주 납음
+  const dayNaYin = eightChar.getDayNaYin()
+
   // 가장 강한/약한 오행 찾기
   const wuXingEntries = Object.entries(wuXing) as [keyof WuXing, number][]
   const sorted = wuXingEntries.sort((a, b) => b[1] - a[1])
@@ -121,6 +128,8 @@ export function calculateSaju(request: SajuCalculateRequest): SajuResult {
     zodiac,
     zodiacEmoji,
     naYin,
+    dayPillarAnimal,
+    dayNaYin,
   }
 }
 

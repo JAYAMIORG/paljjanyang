@@ -208,6 +208,8 @@ function ResultContent() {
           shiShen: { yearGan: '', monthGan: '', hourGan: null },
           zodiac: '',
           naYin: '',
+          dayPillarAnimal: data.data.dayPillarAnimal || '',
+          dayNaYin: data.data.dayNaYin || '',
         })
         setInterpretation(data.data.interpretation)
         setReadingId(id)
@@ -908,6 +910,26 @@ function ResultContent() {
           <InterpretationCard content={interpretation} />
         ) : (
           <FallbackInterpretation result={result} />
+        )}
+
+        {/* 일주 동물 - 개인 사주만 */}
+        {type === 'personal' && result.dayPillarAnimal && (
+          <Card>
+            <h3 className="text-subheading font-semibold text-text mb-4">
+              나의 일주
+            </h3>
+            <div className="text-center py-4">
+              <p className="text-4xl font-serif mb-2">
+                {result.bazi.day}
+              </p>
+              <p className="text-heading font-bold text-primary">
+                {result.dayPillarAnimal}
+              </p>
+              <p className="text-small text-text-muted mt-2">
+                일주(日柱)는 타고난 본성과 성격을 나타내요
+              </p>
+            </div>
+          </Card>
         )}
 
         {/* 대운 흐름 - 신년운세/궁합/오늘의운세 외 타입에서만 표시 */}
