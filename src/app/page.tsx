@@ -40,7 +40,7 @@ export default function LandingPage() {
           <p className="mb-2 text-xl max-[400px]:text-base sm:text-2xl text-text" style={{ fontFamily: 'GanaChocolate, sans-serif' }}>
             40년 경력 역술가의 노하우를 담았습니다.
           </p>
-          <p className="text-body text-text-muted mb-8 font-bold">
+          <p className="text-body text-text-muted mb-8">
             만세력 기반 정통 사주 분석
           </p>
 
