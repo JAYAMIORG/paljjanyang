@@ -955,7 +955,7 @@ function ResultContent() {
                   <div
                     ref={dayPillarImageRef}
                     onClick={handleDownloadDayPillarImage}
-                    className="mb-4 relative inline-block cursor-pointer hover:opacity-90 transition-opacity pr-2 pb-2"
+                    className="mb-4 inline-block cursor-pointer hover:opacity-90 transition-opacity"
                     title="클릭하여 이미지 저장"
                   >
                     <Image
@@ -964,13 +964,6 @@ function ResultContent() {
                       width={400}
                       height={400}
                       className="rounded-2xl"
-                    />
-                    <Image
-                      src="/images/brand-character.png"
-                      alt=""
-                      width={32}
-                      height={32}
-                      className="absolute bottom-1 right-1 h-[32px] w-auto"
                     />
                   </div>
                 ) : null
