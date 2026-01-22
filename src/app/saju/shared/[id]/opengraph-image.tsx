@@ -44,6 +44,11 @@ export const contentType = 'image/png'
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
+  // Base URL 결정 (Vercel 환경변수 사용)
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
+
   // 데이터 조회
   let title = '팔자냥'
   let subtitle = 'MZ세대를 위한 사주 서비스'
@@ -71,6 +76,9 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     // 에러 시 기본값 사용
   }
 
+  // 동물 이미지 URL
+  const animalImageUrl = `${baseUrl}/images/animals/test.png`
+
   return new ImageResponse(
     (
       <div
@@ -85,6 +93,27 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           backgroundImage: 'linear-gradient(135deg, #FFF9F5 0%, #FFE5D9 100%)',
         }}
       >
+        {/* 동물 이미지 */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 24,
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={animalImageUrl}
+            alt=""
+            width={160}
+            height={160}
+            style={{
+              objectFit: 'contain',
+            }}
+          />
+        </div>
+
         {/* 타이틀 */}
         <div
           style={{
