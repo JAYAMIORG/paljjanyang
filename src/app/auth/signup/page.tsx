@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
 import { Header } from '@/components/layout'
 import { Button, Input, Card } from '@/components/ui'
@@ -83,9 +84,14 @@ function SignupContent() {
 
       <main className="px-4 py-8 max-w-lg mx-auto">
         <div className="text-center mb-8">
-          <span className="text-5xl block mb-4">🐱</span>
-          <h1 className="font-serif text-heading text-primary">팔자냥</h1>
-          <p className="text-body text-text-muted mt-2">
+          <Image
+            src="/images/brand-copy.png"
+            alt="팔자냥"
+            width={240}
+            height={72}
+            className="h-20 w-auto mx-auto mb-4"
+          />
+          <p className="text-body text-text-muted">
             사주로 나를 알아가는 여정을 시작해요
           </p>
         </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks'
 import { BackIcon } from '@/components/ui/Icons'
@@ -52,9 +53,14 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
           {showBack ? (
             renderBackElement()
           ) : (
-            <Link href="/" className="flex items-center gap-2">
-              <span className="text-2xl" aria-hidden="true">🐱</span>
-              <span className="font-serif text-xl font-bold text-primary">팔자냥</span>
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/images/brand-copy.png"
+                alt="팔자냥"
+                width={240}
+                height={72}
+                className="h-10 w-auto"
+              />
             </Link>
           )}
           {title && (

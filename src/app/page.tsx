@@ -71,22 +71,22 @@ export default function LandingPage() {
 
           <div className="space-y-6">
             <FeatureCard
-              icon="📚"
+              imageSrc="/icons/landing-1.png"
               title="만세력 기반 정통 분석"
               description="전통 명리학에 기반한 정확한 사주팔자 계산"
             />
             <FeatureCard
-              icon="👨‍🏫"
+              imageSrc="/icons/landing-2.png"
               title="전문가 맞춤 해석"
               description="당신만을 위한 개인화된 상세 해석 제공"
             />
             <FeatureCard
-              icon="🎯"
+              imageSrc="/icons/landing-3.png"
               title="쉽고 명확한 결과"
               description="어려운 사주 용어 없이 누구나 이해할 수 있는 설명"
             />
             <FeatureCard
-              icon="💕"
+              imageSrc="/icons/landing-4.png"
               title="다양한 운세"
               description="개인 사주, 신년운세, 궁합, 연애운까지"
             />
@@ -145,7 +145,13 @@ export default function LandingPage() {
       {/* 최종 CTA */}
       <section className="py-16 px-6 bg-gradient-to-b from-primary/5 to-primary/10">
         <div className="max-w-[500px] mx-auto text-center">
-          <span className="text-5xl mb-4 block" aria-hidden="true">🐱✨</span>
+          <Image
+            src="/images/brand-character.png"
+            alt=""
+            width={120}
+            height={120}
+            className="h-[104px] w-auto mx-auto"
+          />
           <h2 className="text-heading font-semibold text-text mb-2">
             지금 바로 시작하세요
           </h2>
@@ -190,16 +196,28 @@ export default function LandingPage() {
 
 function FeatureCard({
   icon,
+  imageSrc,
   title,
   description,
 }: {
-  icon: string
+  icon?: string
+  imageSrc?: string
   title: string
   description: string
 }) {
   return (
     <div className="flex gap-4 p-4 bg-white rounded-card shadow-card">
-      <span className="text-3xl flex-shrink-0" aria-hidden="true">{icon}</span>
+      {imageSrc ? (
+        <Image
+          src={imageSrc}
+          alt=""
+          width={40}
+          height={40}
+          className="flex-shrink-0 object-contain"
+        />
+      ) : (
+        <span className="text-3xl flex-shrink-0" aria-hidden="true">{icon}</span>
+      )}
       <div>
         <h3 className="text-body font-semibold text-text mb-1">{title}</h3>
         <p className="text-small text-text-muted">{description}</p>
