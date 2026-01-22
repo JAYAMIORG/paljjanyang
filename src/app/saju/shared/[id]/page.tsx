@@ -184,7 +184,7 @@ export default function SharedResultPage() {
             나도 내 사주가 궁금하다면?
           </h3>
           <p className="text-body text-text-muted mb-4">
-            단돈 1코인으로 AI가 분석해주는<br />
+            단돈 880원으로<br />
             나만의 사주를 확인해보세요!
           </p>
           <Button
