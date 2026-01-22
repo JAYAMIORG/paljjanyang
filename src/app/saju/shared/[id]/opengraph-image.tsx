@@ -71,8 +71,8 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   }
 
   // TODO: 추후 동물별 이미지 분기 적용
-  // const imageFileName = dayPillarAnimal ? `${dayPillarAnimal}.png` : 'test.png'
-  const imageFileName = 'test.png'
+  // const imageFileName = dayPillarAnimal ? `${dayPillarAnimal}.jpg` : 'test.jpg'
+  const imageFileName = 'test.jpg'
   const imageUrl = `${productionUrl}/images/animals/${imageFileName}`
 
   // 이미지를 ArrayBuffer로 가져오기
@@ -100,7 +100,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         {imageData ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={`data:image/png;base64,${Buffer.from(imageData).toString('base64')}`}
+            src={`data:image/jpeg;base64,${Buffer.from(imageData).toString('base64')}`}
             alt=""
             style={{
               width: '100%',
