@@ -902,45 +902,7 @@ function ResultContent() {
       </div>
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
-        {/* 요약 카드 - 신년운세/궁합/오늘의운세 외 타입에서만 표시 */}
-        {type !== 'yearly' && type !== 'compatibility' && type !== 'daily' && (
-          <Card variant="highlighted">
-            <div className="text-center">
-              <span className="text-5xl mb-3 block">{getDayMasterEmoji(result.dayMaster)}</span>
-              <h2 className="text-heading font-semibold text-text mb-2">
-                {result.dayMasterKorean}의 기운
-              </h2>
-              <p className="text-body text-text-muted">
-                {result.koreanGanji}
-              </p>
-            </div>
-
-            {/* 오행 미니 차트 */}
-            <div className="mt-6 flex justify-center gap-2">
-              {(Object.entries(result.wuXing) as [keyof typeof result.wuXing, number][]).map(
-                ([element, value]) => (
-                  <div
-                    key={element}
-                    className="flex flex-col items-center"
-                    style={{ opacity: value > 10 ? 1 : 0.4 }}
-                  >
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-small font-bold"
-                      style={{ backgroundColor: WUXING_COLORS[element] }}
-                    >
-                      {value}
-                    </div>
-                    <span className="text-caption text-text-light mt-1">
-                      {WUXING_KOREAN[element].charAt(0)}
-                    </span>
-                  </div>
-                )
-              )}
-            </div>
-          </Card>
-        )}
-
-        {/* 일주 동물 - 개인 사주만 */}
+        {/* 일주 동물 - 개인 사주만 (가장 상단) */}
         {type === 'personal' && result.dayPillarAnimal && (
           <Card>
             <h3 className="text-subheading font-semibold text-text mb-4">
@@ -977,6 +939,44 @@ function ResultContent() {
               <p className="text-small text-text-muted mt-2">
                 일주(日柱)는 타고난 본성과 성격을 나타내요
               </p>
+            </div>
+          </Card>
+        )}
+
+        {/* 요약 카드 - 신년운세/궁합/오늘의운세 외 타입에서만 표시 */}
+        {type !== 'yearly' && type !== 'compatibility' && type !== 'daily' && (
+          <Card variant="highlighted">
+            <div className="text-center">
+              <span className="text-5xl mb-3 block">{getDayMasterEmoji(result.dayMaster)}</span>
+              <h2 className="text-heading font-semibold text-text mb-2">
+                {result.dayMasterKorean}의 기운
+              </h2>
+              <p className="text-body text-text-muted">
+                {result.koreanGanji}
+              </p>
+            </div>
+
+            {/* 오행 미니 차트 */}
+            <div className="mt-6 flex justify-center gap-2">
+              {(Object.entries(result.wuXing) as [keyof typeof result.wuXing, number][]).map(
+                ([element, value]) => (
+                  <div
+                    key={element}
+                    className="flex flex-col items-center"
+                    style={{ opacity: value > 10 ? 1 : 0.4 }}
+                  >
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-small font-bold"
+                      style={{ backgroundColor: WUXING_COLORS[element] }}
+                    >
+                      {value}
+                    </div>
+                    <span className="text-caption text-text-light mt-1">
+                      {WUXING_KOREAN[element].charAt(0)}
+                    </span>
+                  </div>
+                )
+              )}
             </div>
           </Card>
         )}
