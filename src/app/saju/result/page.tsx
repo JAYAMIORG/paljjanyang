@@ -44,11 +44,9 @@ function ResultContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
-  const { share: shareKakao, isReady: isKakaoReady, isMobile } = useKakaoShare()
+  const { share: shareKakao, isReady: isKakaoReady } = useKakaoShare()
   const [result, setResult] = useState<SajuResult | null>(null)
   const [result2, setResult2] = useState<SajuResult | null>(null) // 궁합용
-  const [showMobileOnlyModal, setShowMobileOnlyModal] = useState(false)
-  const [copiedLink, setCopiedLink] = useState(false)
   const [isShareLoading, setIsShareLoading] = useState(false)
   const [interpretation, setInterpretation] = useState<string | null>(null)
   const shareCardRef = useRef<HTMLDivElement>(null)
@@ -611,19 +609,6 @@ function ResultContent() {
 
     const shareUrl = getShareUrl()
 
-    // 데스크톱에서는 안내 모달 표시
-    if (!isMobile) {
-      try {
-        await navigator.clipboard.writeText(shareUrl)
-        setCopiedLink(true)
-        await claimShareReward()
-      } catch {
-        setCopiedLink(false)
-      }
-      setShowMobileOnlyModal(true)
-      return
-    }
-
     const typeLabel = {
       personal: '개인 사주',
       yearly: '신년운세',
@@ -635,9 +620,9 @@ function ResultContent() {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
     const imageUrl = readingId
       ? `${baseUrl}/saju/shared/${readingId}/opengraph-image`
-      : `${baseUrl}/images/animals/test.png`
+      : `${baseUrl}/images/animals/test.jpg`
 
-    shareKakao({
+    const shared = shareKakao({
       title: `${result.dayMasterKorean}의 ${typeLabel} 결과`,
       description: `${result.koreanGanji} - 나의 사주를 확인해보세요!`,
       imageUrl,
@@ -645,8 +630,10 @@ function ResultContent() {
       shareUrl,
     })
 
-    // 카카오 공유 시 보상 지급 (실제 공유 여부 확인 불가)
-    await claimShareReward()
+    // 카카오 공유 성공 시 보상 지급
+    if (shared) {
+      await claimShareReward()
+    }
   }
 
   // 사주 계산 중이거나 LLM 해석 로딩 중일 때 전체 로딩 화면 표시
@@ -1044,40 +1031,6 @@ function ResultContent() {
           다른 사주 보러가기
         </Button>
       </main>
-
-      {/* 모바일 전용 안내 모달 */}
-      {showMobileOnlyModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center">
-            <span className="text-5xl block mb-4">📱</span>
-            <h3 className="text-heading font-semibold text-text mb-2">
-              모바일에서 이용해주세요
-            </h3>
-            <p className="text-body text-text-muted mb-4">
-              카카오톡 공유는 모바일에서만 가능해요.
-              {copiedLink && (
-                <>
-                  <br />
-                  <span className="text-primary font-medium">링크가 복사되었어요!</span>
-                </>
-              )}
-            </p>
-            <div className="space-y-2">
-              {copiedLink && (
-                <p className="text-small text-text-light bg-gray-50 p-3 rounded-lg break-all">
-                  {getShareUrl()}
-                </p>
-              )}
-              <Button
-                fullWidth
-                onClick={() => setShowMobileOnlyModal(false)}
-              >
-                확인
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 공유 보상 토스트 */}
       {showRewardToast && (
