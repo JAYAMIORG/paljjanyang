@@ -32,6 +32,8 @@ export interface ReadingDetailResponse {
       endAge: number
       ganZhi: string
     }>
+    dayPillarAnimal: string
+    dayNaYin: string
     createdAt: string
   }
   error?: {
@@ -46,6 +48,30 @@ export interface DeleteResponse {
     code: string
     message: string
   }
+}
+
+// 천간 → 색상 (오행 기반)
+const TIANGAN_COLOR: Record<string, string> = {
+  '甲': '청', '乙': '청',
+  '丙': '적', '丁': '적',
+  '戊': '황', '己': '황',
+  '庚': '백', '辛': '백',
+  '壬': '흑', '癸': '흑',
+}
+
+// 지지 → 동물
+const DIZHI_ANIMAL: Record<string, string> = {
+  '子': '쥐', '丑': '소', '寅': '호랑이', '卯': '토끼',
+  '辰': '용', '巳': '뱀', '午': '말', '未': '양',
+  '申': '원숭이', '酉': '닭', '戌': '개', '亥': '돼지',
+}
+
+// 간지에서 일주 동물 별칭 가져오기 (예: 戊午 → 황말)
+function getJiaziAnimalName(ganZhi: string): string {
+  if (!ganZhi || ganZhi.length !== 2) return ''
+  const color = TIANGAN_COLOR[ganZhi[0]] || ''
+  const animal = DIZHI_ANIMAL[ganZhi[1]] || ''
+  return `${color}${animal}`
 }
 
 // 일간(day master)에 따른 한글명과 이모지 매핑
@@ -209,6 +235,10 @@ export async function GET(
       }
     }
 
+    // 일주 동물 별칭 (예: 황말, 백개)
+    const bazi = reading.person1_bazi || { year: '', month: '', day: '', time: null }
+    const dayPillarAnimal = getJiaziAnimalName(bazi.day || '')
+
     return NextResponse.json<ReadingDetailResponse>({
       success: true,
       data: {
@@ -216,7 +246,7 @@ export async function GET(
         type: reading.type,
         koreanGanji: reading.korean_ganji || '',
         interpretation: reading.interpretation?.text || null,
-        bazi: reading.person1_bazi || { year: '', month: '', day: '', time: null },
+        bazi,
         wuXing,
         dayMaster,
         dayMasterKorean: dayMasterInfo.korean,
@@ -224,6 +254,8 @@ export async function GET(
         dominantElement,
         weakElement,
         daYun,
+        dayPillarAnimal,
+        dayNaYin: '', // DB에 저장되지 않음
         createdAt: reading.created_at,
       },
     })
