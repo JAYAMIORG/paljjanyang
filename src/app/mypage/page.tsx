@@ -196,7 +196,7 @@ export default function MyPage() {
                 <Card key={reading.id} className="hover:shadow-card-hover transition-shadow">
                   <div className="flex items-start gap-3">
                     <Link
-                      href={`/saju/reading/${reading.id}`}
+                      href={`/saju/result?id=${reading.id}&type=${reading.type}`}
                       className="flex items-start gap-3 flex-1 min-w-0"
                     >
                       <span className="text-2xl" aria-hidden="true">{TYPE_ICONS[reading.type]}</span>
