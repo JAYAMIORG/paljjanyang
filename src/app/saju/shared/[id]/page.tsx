@@ -102,11 +102,6 @@ export default function SharedResultPage() {
             <p className="text-body text-text-muted">
               {data.koreanGanji}
             </p>
-            {data.dayPillarAnimal && (
-              <p className="text-lg font-bold text-primary mt-2">
-                {data.dayPillarAnimal}
-              </p>
-            )}
           </div>
 
           {/* 오행 미니 차트 */}
@@ -154,6 +149,26 @@ export default function SharedResultPage() {
             })}
           </div>
         </Card>
+
+        {/* 일주 동물 */}
+        {data.dayPillarAnimal && (
+          <Card>
+            <h3 className="text-subheading font-semibold text-text mb-4">
+              일주 동물
+            </h3>
+            <div className="text-center py-4">
+              <p className="text-4xl font-serif mb-2">
+                {data.bazi.day}
+              </p>
+              <p className="text-heading font-bold text-primary">
+                {data.dayPillarAnimal}
+              </p>
+              <p className="text-small text-text-muted mt-2">
+                일주(日柱)는 타고난 본성과 성격을 나타내요
+              </p>
+            </div>
+          </Card>
+        )}
 
         {/* 해석 - 원본과 동일한 형태로 표시 */}
         {data.interpretation ? (
