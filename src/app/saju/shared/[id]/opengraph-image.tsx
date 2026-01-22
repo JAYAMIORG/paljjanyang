@@ -44,10 +44,8 @@ export const contentType = 'image/png'
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  // Base URL 결정 (Vercel 환경변수 사용)
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
+  // Base URL - 정적 에셋은 항상 프로덕션 URL 사용 (preview URL fetch 문제 방지)
+  const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
 
   // 데이터 조회
   let title = '팔자냥'
@@ -79,8 +77,10 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   // 동물 이미지를 ArrayBuffer로 가져오기
   let imageData: ArrayBuffer | null = null
   try {
-    const imageUrl = `${baseUrl}/images/animals/test.png`
-    const imageResponse = await fetch(imageUrl)
+    const imageUrl = `${productionUrl}/images/animals/test.png`
+    const imageResponse = await fetch(imageUrl, {
+      cache: 'force-cache', // 캐시 활용으로 안정성 향상
+    })
     if (imageResponse.ok) {
       imageData = await imageResponse.arrayBuffer()
     }

@@ -19,6 +19,20 @@ export const metadata: Metadata = {
     description: 'MZ세대를 위한 프리미엄 사주 서비스',
     type: 'website',
     locale: 'ko_KR',
+    images: [
+      {
+        url: 'https://bazi-azure.vercel.app/images/animals/test.png',
+        width: 400,
+        height: 400,
+        alt: '팔자냥',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: '팔자냥 - 나만의 사주 이야기',
+    description: 'MZ세대를 위한 프리미엄 사주 서비스',
+    images: ['https://bazi-azure.vercel.app/images/animals/test.png'],
   },
 }
 
