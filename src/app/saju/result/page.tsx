@@ -40,6 +40,26 @@ const getDayMasterEmoji = (dayMaster: string): string => {
   return DAY_MASTER_EMOJI[dayMaster] || '🐱'
 }
 
+// 천간 한글 변환
+const TIANGAN_KOREAN: Record<string, string> = {
+  '甲': '갑', '乙': '을', '丙': '병', '丁': '정', '戊': '무',
+  '己': '기', '庚': '경', '辛': '신', '壬': '임', '癸': '계',
+}
+
+// 지지 한글 변환
+const DIZHI_KOREAN: Record<string, string> = {
+  '子': '자', '丑': '축', '寅': '인', '卯': '묘', '辰': '진', '巳': '사',
+  '午': '오', '未': '미', '申': '신', '酉': '유', '戌': '술', '亥': '해',
+}
+
+// 일주 한글 변환 (예: 戊午 → 무오)
+const getDayPillarKorean = (dayPillar: string): string => {
+  if (!dayPillar || dayPillar.length !== 2) return ''
+  const gan = TIANGAN_KOREAN[dayPillar[0]] || ''
+  const zhi = DIZHI_KOREAN[dayPillar[1]] || ''
+  return `${gan}${zhi}`
+}
+
 function ResultContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -620,12 +640,15 @@ function ResultContent() {
     const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
     const imageUrl = `${productionUrl}/images/animals/test.jpg`
 
-    // 이름 설정 (궁합은 name1, 그 외는 name1 또는 기본값)
+    // 일주 한글 변환 (예: 戊午 → 무오)
+    const dayPillarKorean = getDayPillarKorean(result.bazi.day)
+
+    // 이름이 있으면 사용 (기본값 '첫 번째 사람'은 제외)
     const personName = name1 !== '첫 번째 사람' ? name1 : ''
     const titleName = personName ? `${personName}님의 ` : ''
 
     const shared = shareKakao({
-      title: `${result.bazi.day} ${titleName}${typeLabel} - 팔자냥`,
+      title: `${dayPillarKorean} ${titleName}${typeLabel} - 팔자냥`,
       description: `${result.koreanGanji} - 나의 사주를 확인해보세요!`,
       imageUrl,
       buttonText: '결과 보러가기',
