@@ -1,43 +1,43 @@
 import { ImageResponse } from 'next/og'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// 천간 → 색상 (친근한 표현 + 한자어)
-const TIANGAN_COLOR: Record<string, { friendly: string; short: string }> = {
-  '甲': { friendly: '푸른', short: '청' },
-  '乙': { friendly: '푸른', short: '청' },
-  '丙': { friendly: '빨간', short: '적' },
-  '丁': { friendly: '빨간', short: '적' },
-  '戊': { friendly: '노란', short: '황' },
-  '己': { friendly: '노란', short: '황' },
-  '庚': { friendly: '하얀', short: '백' },
-  '辛': { friendly: '하얀', short: '백' },
-  '壬': { friendly: '검은', short: '흑' },
-  '癸': { friendly: '검은', short: '흑' },
+// 천간 → 색상 + 한글 음독
+const TIANGAN_INFO: Record<string, { color: string; korean: string }> = {
+  '甲': { color: '푸른', korean: '갑' },
+  '乙': { color: '푸른', korean: '을' },
+  '丙': { color: '빨간', korean: '병' },
+  '丁': { color: '빨간', korean: '정' },
+  '戊': { color: '노란', korean: '무' },
+  '己': { color: '노란', korean: '기' },
+  '庚': { color: '하얀', korean: '경' },
+  '辛': { color: '하얀', korean: '신' },
+  '壬': { color: '검은', korean: '임' },
+  '癸': { color: '검은', korean: '계' },
 }
 
-// 지지 → 동물 (친근한 표현 + 한자어)
-const DIZHI_ANIMAL: Record<string, { friendly: string; short: string }> = {
-  '子': { friendly: '쥐', short: '쥐' },
-  '丑': { friendly: '소', short: '소' },
-  '寅': { friendly: '호랑이', short: '호' },
-  '卯': { friendly: '토끼', short: '토' },
-  '辰': { friendly: '용', short: '용' },
-  '巳': { friendly: '뱀', short: '사' },
-  '午': { friendly: '말', short: '마' },
-  '未': { friendly: '양', short: '양' },
-  '申': { friendly: '원숭이', short: '원' },
-  '酉': { friendly: '닭', short: '닭' },
-  '戌': { friendly: '강아지', short: '개' },
-  '亥': { friendly: '돼지', short: '돼' },
+// 지지 → 동물 + 한글 음독
+const DIZHI_INFO: Record<string, { animal: string; korean: string }> = {
+  '子': { animal: '쥐', korean: '자' },
+  '丑': { animal: '소', korean: '축' },
+  '寅': { animal: '호랑이', korean: '인' },
+  '卯': { animal: '토끼', korean: '묘' },
+  '辰': { animal: '용', korean: '진' },
+  '巳': { animal: '뱀', korean: '사' },
+  '午': { animal: '말', korean: '오' },
+  '未': { animal: '양', korean: '미' },
+  '申': { animal: '원숭이', korean: '신' },
+  '酉': { animal: '닭', korean: '유' },
+  '戌': { animal: '강아지', korean: '술' },
+  '亥': { animal: '돼지', korean: '해' },
 }
 
-// 간지에서 일주 동물 별칭 가져오기 (예: 庚戌 → 하얀 강아지 (백개))
+// 간지에서 일주 동물 별칭 가져오기 (예: 庚戌 → 하얀 강아지 (경술))
 function getJiaziAnimalName(ganZhi: string): string {
   if (!ganZhi || ganZhi.length !== 2) return ''
-  const colorInfo = TIANGAN_COLOR[ganZhi[0]]
-  const animalInfo = DIZHI_ANIMAL[ganZhi[1]]
-  if (!colorInfo || !animalInfo) return ''
-  return `${colorInfo.friendly} ${animalInfo.friendly} (${colorInfo.short}${animalInfo.short})`
+  const tianganInfo = TIANGAN_INFO[ganZhi[0]]
+  const dizhiInfo = DIZHI_INFO[ganZhi[1]]
+  if (!tianganInfo || !dizhiInfo) return ''
+  return `${tianganInfo.color} ${dizhiInfo.animal} (${tianganInfo.korean}${dizhiInfo.korean})`
 }
 
 // 사주 타입 한글명
