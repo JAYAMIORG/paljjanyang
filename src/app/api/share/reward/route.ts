@@ -202,7 +202,7 @@ export async function POST() {
           .insert({
             user_id: user.id,
             amount: rewardAmount,
-            type: 'bonus',
+            type: 'reward',
             description: '공유 보상',
             balance_before: currentBalance,
             balance_after: newBalance,
