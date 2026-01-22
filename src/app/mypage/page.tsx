@@ -142,9 +142,9 @@ export default function MyPage() {
               <Image
                 src="/images/brand-character.png"
                 alt=""
-                width={48}
-                height={48}
-                className="h-12 w-auto"
+                width={40}
+                height={40}
+                className="h-10 w-auto"
               />
             </div>
             <div>

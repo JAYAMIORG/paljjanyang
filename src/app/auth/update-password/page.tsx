@@ -76,9 +76,9 @@ export default function UpdatePasswordPage() {
           <Image
             src="/images/brand-character.png"
             alt=""
-            width={96}
-            height={96}
-            className="h-24 w-auto mx-auto mb-4 animate-bounce"
+            width={72}
+            height={72}
+            className="h-[72px] w-auto mx-auto mb-4 animate-bounce"
           />
           <p className="text-body text-text-muted">확인 중...</p>
         </div>

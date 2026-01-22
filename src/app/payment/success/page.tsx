@@ -94,9 +94,9 @@ function PaymentSuccessContent() {
           <Image
             src="/images/brand-character.png"
             alt=""
-            width={96}
-            height={96}
-            className="h-24 w-auto mx-auto mb-4 animate-bounce"
+            width={72}
+            height={72}
+            className="h-[72px] w-auto mx-auto mb-4 animate-bounce"
           />
           <p className="text-body text-text-muted">결제를 처리하고 있어요...</p>
         </div>
@@ -178,9 +178,9 @@ export default function PaymentSuccessPage() {
             <Image
             src="/images/brand-character.png"
             alt=""
-            width={96}
-            height={96}
-            className="h-24 w-auto mx-auto mb-4 animate-bounce"
+            width={72}
+            height={72}
+            className="h-[72px] w-auto mx-auto mb-4 animate-bounce"
           />
             <p className="text-body text-text-muted">로딩 중...</p>
           </div>

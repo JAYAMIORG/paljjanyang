@@ -148,9 +148,9 @@ export default function LandingPage() {
           <Image
             src="/images/brand-character.png"
             alt=""
-            width={120}
-            height={120}
-            className="h-[104px] w-auto mx-auto"
+            width={80}
+            height={80}
+            className="h-[72px] w-auto mx-auto mb-2"
           />
           <h2 className="text-heading font-semibold text-text mb-2">
             지금 바로 시작하세요
