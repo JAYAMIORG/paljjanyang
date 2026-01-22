@@ -616,11 +616,9 @@ function ResultContent() {
       love: '연애운',
     }[type] || '사주'
 
-    // OG 이미지 URL (공유 페이지의 동적 OG 이미지 또는 기본 이미지)
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
-    const imageUrl = readingId
-      ? `${baseUrl}/saju/shared/${readingId}/opengraph-image`
-      : `${baseUrl}/images/animals/test.jpg`
+    // OG 이미지 URL - 카카오는 외부 접근 가능한 URL 필요
+    const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
+    const imageUrl = `${productionUrl}/images/animals/test.jpg`
 
     const shared = shareKakao({
       title: `${result.dayMasterKorean}의 ${typeLabel} 결과`,
