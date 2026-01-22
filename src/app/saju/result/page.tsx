@@ -463,25 +463,35 @@ function ResultContent() {
 
   // 공유 보상 요청
   const claimShareReward = async () => {
-    if (shareRewardClaimed) return
+    if (shareRewardClaimed) {
+      console.log('Share reward already claimed, skipping')
+      return
+    }
 
     try {
+      console.log('Claiming share reward...')
       const response = await fetch('/api/share/reward', {
         method: 'POST',
       })
       const data = await response.json()
+      console.log('Share reward response:', data)
 
       if (data.success) {
         if (data.data.rewarded) {
           // 보상 지급됨
+          console.log('Share reward granted!')
           setShowRewardToast(true)
           setTimeout(() => setShowRewardToast(false), 3000)
+        } else {
+          console.log('Share reward already claimed previously')
         }
         setShareRewardClaimed(true)
+      } else {
+        console.error('Share reward API error:', data.error)
       }
-    } catch {
+    } catch (err) {
       // 보상 실패해도 공유는 진행
-      console.error('Share reward failed')
+      console.error('Share reward failed:', err)
     }
   }
 

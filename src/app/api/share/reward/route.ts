@@ -143,11 +143,13 @@ export async function POST() {
       })
 
     if (rpcError) {
-      console.error('RPC claim_share_reward error:', rpcError)
+      console.error('RPC claim_share_reward error:', rpcError, 'code:', rpcError.code)
 
-      // RPC 함수가 없는 경우 fallback (마이그레이션 실행 전)
-      if (rpcError.code === 'PGRST202') {
-        console.warn('claim_share_reward RPC not found, using fallback logic')
+      // RPC 함수가 없거나 에러인 경우 fallback
+      // PGRST202: function not found, 42883: function does not exist
+      const fallbackCodes = ['PGRST202', '42883', 'PGRST301']
+      if (fallbackCodes.includes(rpcError.code) || rpcError.message?.includes('function') || rpcError.message?.includes('does not exist')) {
+        console.warn('claim_share_reward RPC not available, using fallback logic. Error code:', rpcError.code)
 
         // profiles에서 이미 공유 보상을 받았는지 확인
         const { data: profile } = await adminClient
@@ -222,6 +224,8 @@ export async function POST() {
 
         if (profileError) {
           console.error('Profile upsert error:', profileError)
+        } else {
+          console.log('Share reward claimed successfully via fallback for user:', user.id)
         }
 
         return NextResponse.json<ShareRewardResponse>({
@@ -247,9 +251,11 @@ export async function POST() {
     }
 
     // RPC 결과 처리
+    console.log('RPC result:', JSON.stringify(rpcResult))
     const result = rpcResult?.[0]
 
     if (!result || !result.success) {
+      console.error('RPC result failed:', result)
       return NextResponse.json<ShareRewardResponse>(
         {
           success: false,
@@ -262,6 +268,7 @@ export async function POST() {
       )
     }
 
+    console.log('Share reward claimed successfully via RPC for user:', user.id, 'result:', result)
     return NextResponse.json<ShareRewardResponse>({
       success: true,
       data: {
