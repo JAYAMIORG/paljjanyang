@@ -201,7 +201,7 @@ export default function SajuInputPage() {
     } else {
       // 단일 선택
       const params = personToParams(person)
-      const searchParams = new URLSearchParams({ ...params, type })
+      const searchParams = new URLSearchParams({ ...params, type, name1: person.name })
       // 오늘의 운세는 preview 스킵하고 바로 결과 페이지로
       const targetPage = info.skipPreview ? '/saju/result' : '/saju/preview'
       router.push(`${targetPage}?${searchParams.toString()}`)
@@ -286,7 +286,11 @@ export default function SajuInputPage() {
       // 궁합이 아닌 경우 바로 결과 페이지로
       if (!info.needsTwoPeople) {
         const params = formToParams()
-        const searchParams = new URLSearchParams({ ...params, type })
+        const searchParams = new URLSearchParams({
+          ...params,
+          type,
+          ...(formData.name && { name1: formData.name }),
+        })
         // 오늘의 운세는 preview 스킵하고 바로 결과 페이지로
         const targetPage = info.skipPreview ? '/saju/result' : '/saju/preview'
         router.push(`${targetPage}?${searchParams.toString()}`)
