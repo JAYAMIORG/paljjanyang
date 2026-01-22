@@ -620,8 +620,12 @@ function ResultContent() {
     const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
     const imageUrl = `${productionUrl}/images/animals/test.jpg`
 
+    // 이름 설정 (궁합은 name1, 그 외는 name1 또는 기본값)
+    const personName = name1 !== '첫 번째 사람' ? name1 : ''
+    const titleName = personName ? `${personName}님의 ` : ''
+
     const shared = shareKakao({
-      title: `${result.dayMasterKorean}의 ${typeLabel} 결과`,
+      title: `${result.bazi.day} ${titleName}${typeLabel} - 팔자냥`,
       description: `${result.koreanGanji} - 나의 사주를 확인해보세요!`,
       imageUrl,
       buttonText: '결과 보러가기',
