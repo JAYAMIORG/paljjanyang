@@ -70,6 +70,7 @@ function ResultContent() {
   const [isShareLoading, setIsShareLoading] = useState(false)
   const [interpretation, setInterpretation] = useState<string | null>(null)
   const shareCardRef = useRef<HTMLDivElement>(null)
+  const dayPillarImageRef = useRef<HTMLDivElement>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isInterpretLoading, setIsInterpretLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -525,6 +526,27 @@ function ResultContent() {
     }
   }
 
+  // 일주 동물 이미지 다운로드
+  const handleDownloadDayPillarImage = async () => {
+    if (!dayPillarImageRef.current || !result) return
+
+    try {
+      const canvas = await html2canvas(dayPillarImageRef.current, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+      })
+
+      const link = document.createElement('a')
+      link.download = `나의일주_${result.dayPillarAnimal}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    } catch (err) {
+      console.error('이미지 다운로드 실패:', err)
+      alert('이미지 다운로드에 실패했습니다.')
+    }
+  }
+
   // 공유 카드 이미지 생성
   const generateShareImage = useCallback(async (): Promise<Blob | null> => {
     if (!shareCardRef.current) return null
@@ -916,6 +938,54 @@ function ResultContent() {
           </Card>
         )}
 
+        {/* 일주 동물 - 개인 사주만 */}
+        {type === 'personal' && result.dayPillarAnimal && (
+          <Card>
+            <h3 className="text-subheading font-semibold text-text mb-4">
+              나의 일주
+            </h3>
+            <div className="text-center">
+              {/* 동물 이미지 - 괄호 안의 간지로 이미지 경로 생성 */}
+              {(() => {
+                const match = result.dayPillarAnimal.match(/\(([^)]+)\)/)
+                const ganziKorean = match ? match[1] : null
+                return ganziKorean ? (
+                  <div
+                    ref={dayPillarImageRef}
+                    onClick={handleDownloadDayPillarImage}
+                    className="mb-4 relative inline-block cursor-pointer hover:opacity-90 transition-opacity"
+                    title="클릭하여 이미지 저장"
+                  >
+                    <Image
+                      src={`/images/animals/${ganziKorean}.png`}
+                      alt={result.dayPillarAnimal}
+                      width={400}
+                      height={400}
+                      className="rounded-2xl"
+                    />
+                    <Image
+                      src="/images/brand-character.png"
+                      alt=""
+                      width={32}
+                      height={32}
+                      className="absolute bottom-0 -right-4 h-[32px] w-auto"
+                    />
+                  </div>
+                ) : null
+              })()}
+              <p className="text-4xl font-serif mb-2">
+                {result.bazi.day}
+              </p>
+              <p className="text-heading font-bold text-primary">
+                {result.dayPillarAnimal}
+              </p>
+              <p className="text-small text-text-muted mt-2">
+                일주(日柱)는 타고난 본성과 성격을 나타내요
+              </p>
+            </div>
+          </Card>
+        )}
+
         {/* 전문가 해석 또는 폴백 - 타입별 분기 */}
         {type === 'daily' ? (
           <DailyResultContent
@@ -939,26 +1009,6 @@ function ResultContent() {
           <InterpretationCard content={interpretation} />
         ) : (
           <FallbackInterpretation result={result} />
-        )}
-
-        {/* 일주 동물 - 개인 사주만 */}
-        {type === 'personal' && result.dayPillarAnimal && (
-          <Card>
-            <h3 className="text-subheading font-semibold text-text mb-4">
-              나의 일주
-            </h3>
-            <div className="text-center py-4">
-              <p className="text-4xl font-serif mb-2">
-                {result.bazi.day}
-              </p>
-              <p className="text-heading font-bold text-primary">
-                {result.dayPillarAnimal}
-              </p>
-              <p className="text-small text-text-muted mt-2">
-                일주(日柱)는 타고난 본성과 성격을 나타내요
-              </p>
-            </div>
-          </Card>
         )}
 
         {/* 대운 흐름 - 신년운세/궁합/오늘의운세 외 타입에서만 표시 */}
