@@ -105,11 +105,11 @@ export default function LandingPage() {
           </p>
 
           <div className="grid grid-cols-2 gap-4 text-left">
-            <ServiceItem icon="🌟" text="성격과 기질" />
+            <ServiceItem imageSrc="/icons/landing-5.png" text="성격과 기질" />
             <ServiceItem icon="💎" text="타고난 재능" />
-            <ServiceItem icon="📈" text="대운 흐름" />
-            <ServiceItem icon="💼" text="적성과 진로" />
-            <ServiceItem icon="💑" text="연애와 결혼" />
+            <ServiceItem imageSrc="/icons/landing-7.png" text="대운 흐름" />
+            <ServiceItem imageSrc="/icons/landing-8.png" text="적성과 진로" />
+            <ServiceItem imageSrc="/icons/landing-9.png" text="연애와 결혼" />
             <ServiceItem icon="🍀" text="올해의 운세" />
           </div>
         </div>
@@ -226,10 +226,20 @@ function FeatureCard({
   )
 }
 
-function ServiceItem({ icon, text }: { icon: string; text: string }) {
+function ServiceItem({ icon, imageSrc, text }: { icon?: string; imageSrc?: string; text: string }) {
   return (
     <div className="flex items-center gap-2 p-3 bg-white rounded-lg">
-      <span className="text-xl" aria-hidden="true">{icon}</span>
+      {imageSrc ? (
+        <Image
+          src={imageSrc}
+          alt=""
+          width={24}
+          height={24}
+          className="w-6 h-6 object-contain"
+        />
+      ) : (
+        <span className="text-xl" aria-hidden="true">{icon}</span>
+      )}
       <span className="text-small text-text">{text}</span>
     </div>
   )
