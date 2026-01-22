@@ -532,9 +532,11 @@ function ResultContent() {
 
     try {
       const canvas = await html2canvas(dayPillarImageRef.current, {
-        backgroundColor: null,
+        backgroundColor: '#FFFFFF',
         scale: 2,
         useCORS: true,
+        allowTaint: true,
+        logging: false,
       })
 
       const link = document.createElement('a')
@@ -953,7 +955,7 @@ function ResultContent() {
                   <div
                     ref={dayPillarImageRef}
                     onClick={handleDownloadDayPillarImage}
-                    className="mb-4 relative inline-block cursor-pointer hover:opacity-90 transition-opacity"
+                    className="mb-4 relative inline-block cursor-pointer hover:opacity-90 transition-opacity pr-2 pb-2"
                     title="클릭하여 이미지 저장"
                   >
                     <Image
@@ -968,7 +970,7 @@ function ResultContent() {
                       alt=""
                       width={32}
                       height={32}
-                      className="absolute bottom-0 -right-4 h-[32px] w-auto"
+                      className="absolute bottom-1 right-1 h-[32px] w-auto"
                     />
                   </div>
                 ) : null
