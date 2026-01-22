@@ -102,6 +102,11 @@ export default function SharedResultPage() {
             <p className="text-body text-text-muted">
               {data.koreanGanji}
             </p>
+            {data.dayPillarAnimal && (
+              <p className="text-lg font-bold text-primary mt-2">
+                {data.dayPillarAnimal}
+              </p>
+            )}
           </div>
 
           {/* 오행 미니 차트 */}
