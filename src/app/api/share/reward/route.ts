@@ -183,7 +183,7 @@ export async function POST() {
         const rewardAmount = 1
         const newBalance = currentBalance + rewardAmount
 
-        await adminClient
+        const { error: balanceError } = await adminClient
           .from('coin_balances')
           .upsert({
             user_id: user.id,
@@ -191,7 +191,11 @@ export async function POST() {
             updated_at: new Date().toISOString(),
           })
 
-        await adminClient
+        if (balanceError) {
+          console.error('Balance upsert error:', balanceError)
+        }
+
+        const { error: transactionError } = await adminClient
           .from('coin_transactions')
           .insert({
             user_id: user.id,
@@ -202,10 +206,23 @@ export async function POST() {
             balance_after: newBalance,
           })
 
-        await adminClient
+        if (transactionError) {
+          console.error('Transaction insert error:', transactionError)
+        }
+
+        const { error: profileError } = await adminClient
           .from('profiles')
-          .update({ share_reward_claimed: true, updated_at: new Date().toISOString() })
-          .eq('id', user.id)
+          .upsert({
+            id: user.id,
+            share_reward_claimed: true,
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: 'id',
+          })
+
+        if (profileError) {
+          console.error('Profile upsert error:', profileError)
+        }
 
         return NextResponse.json<ShareRewardResponse>({
           success: true,

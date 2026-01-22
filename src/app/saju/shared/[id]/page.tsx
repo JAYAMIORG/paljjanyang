@@ -150,7 +150,14 @@ export default function SharedResultPage() {
           </div>
         </Card>
 
-        {/* 일주 동물 */}
+        {/* 해석 - 원본과 동일한 형태로 표시 */}
+        {data.interpretation ? (
+          <InterpretationCard content={data.interpretation} />
+        ) : (
+          <FallbackInterpretation data={data} isShared />
+        )}
+
+        {/* 일주 동물 - 해석 아래에 위치 */}
         {data.dayPillarAnimal && (
           <Card>
             <h3 className="text-subheading font-semibold text-text mb-4">
@@ -168,13 +175,6 @@ export default function SharedResultPage() {
               </p>
             </div>
           </Card>
-        )}
-
-        {/* 해석 - 원본과 동일한 형태로 표시 */}
-        {data.interpretation ? (
-          <InterpretationCard content={data.interpretation} />
-        ) : (
-          <FallbackInterpretation data={data} isShared />
         )}
 
         {/* CTA 영역 */}
