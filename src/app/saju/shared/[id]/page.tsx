@@ -82,7 +82,7 @@ export default function SharedResultPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header title="공유된 사주 결과" />
+      <Header />
 
       <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
         {/* 공유 안내 배너 */}
