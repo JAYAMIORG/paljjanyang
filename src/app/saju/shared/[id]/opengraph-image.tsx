@@ -71,9 +71,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     // 에러 시 기본값 사용
   }
 
-  // 동물 이미지 URL (현재는 test.png 사용)
-  const animalImageUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://paljjanyang.com'}/images/animals/test.png`
-
   return new ImageResponse(
     (
       <div
@@ -88,29 +85,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           backgroundImage: 'linear-gradient(135deg, #FFF9F5 0%, #FFE5D9 100%)',
         }}
       >
-        {/* 동물 이미지 */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 200,
-            height: 200,
-            marginBottom: 32,
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={animalImageUrl}
-            alt=""
-            width={200}
-            height={200}
-            style={{
-              objectFit: 'contain',
-            }}
-          />
-        </div>
-
         {/* 타이틀 */}
         <div
           style={{
