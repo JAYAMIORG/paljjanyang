@@ -18,7 +18,7 @@ export default async function Image() {
 
   try {
     const [bgResponse, logoResponse] = await Promise.all([
-      fetch(`${productionUrl}/images/main-bg-4.png`),
+      fetch(`${productionUrl}/images/main-bg-1.png`),
       fetch(`${productionUrl}/images/logo-opened.png`),
     ])
 
