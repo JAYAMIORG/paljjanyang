@@ -30,3 +30,4 @@ export {
   KakaoIcon,
   SpinnerIcon,
 } from './Icons'
+export { WuXingRadarChart } from './WuXingRadarChart'
