@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 테스트 모드: KAKAO_ADMIN_KEY 없으면 바로 approve로 리다이렉트
+    // 테스트 모드: KAKAO_ADMIN_KEY 없으면 테스트 결제 UI 페이지로 리다이렉트
     if (!kakaoAdminKey) {
       const testTid = `test_tid_${Date.now()}`
 
@@ -157,13 +157,16 @@ export async function POST(request: NextRequest) {
         .update({ external_payment_id: testTid })
         .eq('external_order_id', orderId)
 
+      // 테스트 결제 UI 페이지 URL (카카오페이 UI 시뮬레이션)
+      const testPaymentUrl = `${baseUrl}/payment/kakaopay-test?orderId=${orderId}&amount=${packageData.price}&itemName=${encodeURIComponent(`팔자냥 ${packageData.name}`)}`
+
       return NextResponse.json<KakaoPayReadyResponse>({
         success: true,
         data: {
           tid: testTid,
-          next_redirect_pc_url: `${baseUrl}/api/payment/kakaopay/approve?partner_order_id=${orderId}&pg_token=test_token`,
-          next_redirect_mobile_url: `${baseUrl}/api/payment/kakaopay/approve?partner_order_id=${orderId}&pg_token=test_token`,
-          next_redirect_app_url: `${baseUrl}/api/payment/kakaopay/approve?partner_order_id=${orderId}&pg_token=test_token`,
+          next_redirect_pc_url: testPaymentUrl,
+          next_redirect_mobile_url: testPaymentUrl,
+          next_redirect_app_url: testPaymentUrl,
         },
       })
     }
