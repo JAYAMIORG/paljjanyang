@@ -300,9 +300,9 @@ function PreviewContent() {
 
               {/* 일간 정보 - 카드 내부로 통합 */}
               <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-center gap-3">
-                <span className="text-2xl font-serif">{result.dayMaster}</span>
+                <span className="text-3xl font-serif">{result.dayMaster}</span>
                 <div>
-                  <p className="text-body font-semibold text-text">{result.dayMasterKorean}</p>
+                  <p className="text-subheading font-semibold text-text">{result.dayMasterKorean}</p>
                   <p className="text-caption text-text-muted">당신의 본질적 성향</p>
                 </div>
               </div>
