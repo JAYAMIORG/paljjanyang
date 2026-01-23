@@ -705,15 +705,11 @@ function ResultContent() {
     const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
     const imageUrl = `${productionUrl}/images/animals/test.jpg`
 
-    // 일주 동물 이름 (예: 하얀 강아지(경술))
+    // 일주 동물 이름 (예: 하얀 강아지(경술일주))
     const dayPillarAnimal = result.dayPillarAnimal || getDayPillarKorean(result.bazi.day)
 
-    // 이름이 있으면 사용 (기본값 '첫 번째 사람'은 제외)
-    const personName = name1 !== '첫 번째 사람' ? name1 : ''
-    const titleName = personName ? `${personName}님의 ` : ''
-
     const shared = shareKakao({
-      title: `${dayPillarAnimal}의 ${titleName}${typeLabel} - 팔자냥`,
+      title: `${dayPillarAnimal}의 ${typeLabel} - 팔자냥`,
       description: `${result.koreanGanji} - 나의 사주를 확인해보세요!`,
       imageUrl,
       buttonText: '결과 보러가기',
