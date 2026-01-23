@@ -85,10 +85,11 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     // 에러 시 기본값 사용
   }
 
-  // TODO: 추후 동물별 이미지 분기 적용
-  // const imageFileName = dayPillarAnimal ? `${dayPillarAnimal}.jpg` : 'test.jpg'
-  const imageFileName = 'test.jpg'
-  const imageUrl = `${productionUrl}/images/animals/${imageFileName}`
+  // 일주에서 간지 한글 추출 (예: "하얀 강아지(경술일주)" → "경술")
+  const ganziMatch = dayPillarAnimal.match(/\(([가-힣]{2})/)
+  const ganziKorean = ganziMatch ? ganziMatch[1] : null
+  const imageFileName = ganziKorean ? `${ganziKorean}.png` : 'test.jpg'
+  const imageUrl = `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
 
   // 이미지를 ArrayBuffer로 가져오기
   let imageData: ArrayBuffer | null = null
