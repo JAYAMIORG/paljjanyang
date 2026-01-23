@@ -281,8 +281,9 @@
 /api/saju/history       - 조회 기록 (GET)
 /api/saju/history/[id]  - 기록 조회/삭제 (GET/DELETE)
 /api/saju/use-coin      - 코인 차감
-/api/saju/refund-coin   - 코인 환불 (실패 시 롤백) ✅ NEW
-/api/saju/daily         - 오늘의 운세 (하루 1회) ✅ NEW
+/api/saju/refund-coin   - 코인 환불 (실패 시 롤백)
+/api/saju/daily         - 오늘의 운세 (하루 1회)
+/api/saju/check-existing - 기존 기록 확인 (중복 결제 방지) ✅ NEW
 /api/saju/shared/[id]   - 공유 결과 조회 (공개)
 /api/coin/balance       - 코인 잔액 조회
 /api/coin/packages      - 코인 패키지 목록
@@ -360,6 +361,11 @@
 - [x] 마이페이지 결과 조회 개선 ✅ (2026-01-23)
   - 기존 /saju/reading/[id] → /saju/result?id=[id] 로 변경
   - 본 결과 페이지와 동일한 포맷으로 표시
+- [x] 동일 프로필 재조회 시 기존 기록 표시 ✅ (2026-01-23)
+  - /api/saju/check-existing API 추가
+  - 같은 계정 + 생년월일 + 성별 + 타입으로 기존 기록 확인
+  - 기존 기록 있으면 코인 미차감, 기록 없으면 코인 차감
+  - 신년운세는 연도도 확인, 궁합은 두 사람 모두 확인
 - [ ] 푸시 알림
 
 ---
