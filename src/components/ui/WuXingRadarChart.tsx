@@ -175,12 +175,12 @@ export function WuXingRadarChart({ wuXing, size = 200 }: WuXingRadarChartProps) 
             }}
           >
             <span
-              className="text-caption font-bold whitespace-nowrap"
+              className="text-small font-bold whitespace-nowrap"
               style={{ color: WUXING_COLORS[element] }}
             >
               {WUXING_LABELS[element]}
             </span>
-            <span className="text-caption text-text-muted whitespace-nowrap">
+            <span className="text-small text-text-muted whitespace-nowrap">
               {wuXing[element]}%
             </span>
           </div>
