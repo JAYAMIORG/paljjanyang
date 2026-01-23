@@ -950,9 +950,9 @@ function ResultContent() {
               나의 일주
             </h3>
             <div className="text-center">
-              {/* 동물 이미지 - 괄호 안의 간지로 이미지 경로 생성 */}
+              {/* 동물 이미지 - 괄호 안의 간지로 이미지 경로 생성 (일주 제외) */}
               {(() => {
-                const match = result.dayPillarAnimal.match(/\(([^)]+)\)/)
+                const match = result.dayPillarAnimal.match(/\(([가-힣]{2})/)
                 const ganziKorean = match ? match[1] : null
                 return ganziKorean ? (
                   <div
