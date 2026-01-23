@@ -70,7 +70,6 @@ function ResultContent() {
   const [isShareLoading, setIsShareLoading] = useState(false)
   const [interpretation, setInterpretation] = useState<string | null>(null)
   const shareCardRef = useRef<HTMLDivElement>(null)
-  const dayPillarImageRef = useRef<HTMLDivElement>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isInterpretLoading, setIsInterpretLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -581,21 +580,22 @@ function ResultContent() {
 
   // 일주 동물 이미지 다운로드
   const handleDownloadDayPillarImage = async () => {
-    if (!dayPillarImageRef.current || !result) return
+    if (!result?.dayPillarAnimal) return
 
     try {
-      const canvas = await html2canvas(dayPillarImageRef.current, {
-        backgroundColor: '#FFFFFF',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-      })
+      const match = result.dayPillarAnimal.match(/\(([가-힣]{2})/)
+      const ganziKorean = match ? match[1] : null
+      if (!ganziKorean) return
+
+      const imageUrl = `/images/animals/${ganziKorean}.png`
+      const response = await fetch(imageUrl)
+      const blob = await response.blob()
 
       const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
       link.download = `나의일주_${result.dayPillarAnimal}.png`
-      link.href = canvas.toDataURL('image/png')
       link.click()
+      URL.revokeObjectURL(link.href)
     } catch (err) {
       console.error('이미지 다운로드 실패:', err)
       alert('이미지 다운로드에 실패했습니다.')
@@ -968,7 +968,6 @@ function ResultContent() {
                 const ganziKorean = match ? match[1] : null
                 return ganziKorean ? (
                   <div
-                    ref={dayPillarImageRef}
                     onClick={handleDownloadDayPillarImage}
                     className="mb-4 inline-block cursor-pointer hover:opacity-90 transition-opacity"
                     title="클릭하여 이미지 저장"
