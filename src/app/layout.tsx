@@ -14,9 +14,6 @@ export const metadata: Metadata = {
   description: 'MZ세대를 위한 프리미엄 사주 서비스. 개인 사주, 신년운세, 궁합, 연애운을 확인해보세요.',
   keywords: ['사주', '운세', '궁합', '신년운세', '연애운', 'MZ', '팔자냥'],
   authors: [{ name: '팔자냥' }],
-  icons: {
-    icon: '/favicon.ico',
-  },
   openGraph: {
     title: '팔자냥 - 나만의 사주 이야기',
     description: 'MZ세대를 위한 프리미엄 사주 서비스',
