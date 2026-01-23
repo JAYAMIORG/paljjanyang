@@ -334,7 +334,48 @@ function ResultContent() {
           return
         }
 
-        // 코인 차감 먼저 시도 (daily 외 타입)
+        // 기존 기록 확인 (같은 프로필 + 같은 타입으로 이미 본 적 있는지)
+        const checkExistingBody: Record<string, unknown> = {
+          type,
+          birthYear: parseInt(year),
+          birthMonth: parseInt(month),
+          birthDay: parseInt(day),
+          birthHour: hour && parseInt(hour) >= 0 ? parseInt(hour) : null,
+          isLunar: lunar === '1',
+          gender,
+        }
+
+        // 궁합인 경우 두 번째 사람 정보도 추가
+        if (isCompatibility && year2 && month2 && day2 && gender2) {
+          checkExistingBody.birthYear2 = parseInt(year2)
+          checkExistingBody.birthMonth2 = parseInt(month2)
+          checkExistingBody.birthDay2 = parseInt(day2)
+          checkExistingBody.birthHour2 = hour2 && parseInt(hour2) >= 0 ? parseInt(hour2) : null
+          checkExistingBody.isLunar2 = lunar2 === '1'
+          checkExistingBody.gender2 = gender2
+        }
+
+        const checkResponse = await fetch('/api/saju/check-existing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(checkExistingBody),
+        })
+
+        const checkData = await checkResponse.json()
+        if (checkData.success && checkData.data?.exists && checkData.data?.readingId) {
+          // 기존 기록이 있으면 해당 기록으로 리다이렉트
+          const loaded = await fetchSavedReading(checkData.data.readingId)
+          if (loaded) {
+            setIsLoading(false)
+            // URL 업데이트
+            const newUrl = new URL(window.location.href)
+            newUrl.searchParams.set('id', checkData.data.readingId)
+            window.history.replaceState({}, '', newUrl.toString())
+            return
+          }
+        }
+
+        // 코인 차감 (기존 기록이 없는 경우만)
         const coinDeducted = await deductCoin()
         if (!coinDeducted) {
           setIsLoading(false)
