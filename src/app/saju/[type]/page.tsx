@@ -35,41 +35,6 @@ const relationshipOptions = [
   { value: 'other', label: '기타' },
 ]
 
-const currentYear = new Date().getFullYear()
-
-const yearOptions = Array.from({ length: 100 }, (_, i) => ({
-  value: currentYear - i,
-  label: `${currentYear - i}년`,
-}))
-
-const monthOptions = Array.from({ length: 12 }, (_, i) => ({
-  value: i + 1,
-  label: `${i + 1}월`,
-}))
-
-// 월과 연도에 따른 최대 일수 계산
-function getMaxDaysInMonth(year: number, month: number): number {
-  if (!year || !month) return 31
-  // month는 1-12, Date에서는 0-11 사용하므로 month를 그대로 전달하면 다음 달의 0일 = 해당 월의 마지막 날
-  return new Date(year, month, 0).getDate()
-}
-
-function getDayOptions(year: number, month: number) {
-  const maxDays = getMaxDaysInMonth(year, month)
-  return Array.from({ length: maxDays }, (_, i) => ({
-    value: i + 1,
-    label: `${i + 1}일`,
-  }))
-}
-
-const hourOptions = [
-  { value: -1, label: '모르겠어요' },
-  ...Array.from({ length: 24 }, (_, i) => ({
-    value: i,
-    label: `${i.toString().padStart(2, '0')}시 (${getHourLabel(i)})`,
-  })),
-]
-
 function getHourLabel(hour: number): string {
   const labels = [
     '자시', '자시', '축시', '축시', '인시', '인시',
@@ -104,14 +69,89 @@ export default function SajuInputPage() {
   const [formData, setFormData] = useState({
     name: '',
     relationship: 'self',
-    birthYear: '',
-    birthMonth: '',
-    birthDay: '',
-    birthHour: '-1',
+    birthDate: '', // YYYYMMDD 형식으로 저장
+    birthTime: '', // HHMM 형식으로 저장 (빈 문자열 = 모름)
     isLunar: false,
     gender: '' as 'male' | 'female' | '',
     saveInfo: true, // 정보 저장 여부
   })
+
+  // 해당 월의 최대 일수 계산
+  const getMaxDaysInMonth = (year: number, month: number): number => {
+    if (!year || !month) return 31
+    return new Date(year, month, 0).getDate()
+  }
+
+  // 생년월일 유효성 검사
+  const validateBirthDate = (digits: string): boolean => {
+    if (digits.length <= 4) return true // 년도만 입력 중
+
+    // 월 검사 (5-6자리)
+    if (digits.length >= 5) {
+      const month = parseInt(digits.slice(4, 6))
+      if (digits.length === 5) {
+        // 첫 자리가 0 또는 1만 허용
+        if (month > 1 && month < 10) return true // 단일 숫자 월 (1-9)
+        if (parseInt(digits[4]) > 1) return false
+      }
+      if (digits.length >= 6 && (month < 1 || month > 12)) return false
+    }
+
+    // 일 검사 (7-8자리)
+    if (digits.length >= 7) {
+      const year = parseInt(digits.slice(0, 4))
+      const month = parseInt(digits.slice(4, 6))
+      const maxDays = getMaxDaysInMonth(year, month)
+      const day = parseInt(digits.slice(6, 8))
+
+      if (digits.length === 7) {
+        // 첫 자리가 최대 일수의 십의 자리보다 크면 안됨
+        const firstDigit = parseInt(digits[6])
+        const maxFirstDigit = Math.floor(maxDays / 10)
+        if (firstDigit > maxFirstDigit && firstDigit > 3) return false
+      }
+      if (digits.length === 8 && (day < 1 || day > maxDays)) return false
+    }
+
+    return true
+  }
+
+  // 생년월일 포맷팅 (YYYYMMDD → YYYY-MM-DD)
+  const formatBirthDate = (value: string): string => {
+    const digits = value.replace(/\D/g, '').slice(0, 8)
+    if (digits.length <= 4) return digits
+    if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`
+    return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`
+  }
+
+  // 생년월일에서 년/월/일 추출
+  const parseBirthDate = (value: string) => {
+    const digits = value.replace(/\D/g, '')
+    if (digits.length < 8) return { year: '', month: '', day: '' }
+    return {
+      year: digits.slice(0, 4),
+      month: digits.slice(4, 6),
+      day: digits.slice(6, 8),
+    }
+  }
+
+  // 태어난 시간 포맷팅 (HHMM → HH:MM)
+  const formatBirthTime = (value: string): string => {
+    const digits = value.replace(/\D/g, '').slice(0, 4)
+    if (digits.length <= 2) return digits
+    return `${digits.slice(0, 2)}:${digits.slice(2)}`
+  }
+
+  // 태어난 시간에서 시/분 추출
+  const parseBirthTime = (value: string) => {
+    const digits = value.replace(/\D/g, '')
+    if (digits.length === 0) return { hour: '', minute: '' }
+    if (digits.length <= 2) return { hour: digits, minute: '' }
+    return {
+      hour: digits.slice(0, 2),
+      minute: digits.slice(2, 4),
+    }
+  }
 
   const [isLoading, setIsLoading] = useState(false)
   const [alertMessage, setAlertMessage] = useState<string | null>(null)
@@ -150,10 +190,14 @@ export default function SajuInputPage() {
     }
   }, [user, authLoading, isConfigured])
 
+  const { year: birthYear, month: birthMonth, day: birthDay } = parseBirthDate(formData.birthDate)
+
   const isFormValid =
-    formData.birthYear &&
-    formData.birthMonth &&
-    formData.birthDay &&
+    birthYear.length === 4 &&
+    birthMonth.length === 2 &&
+    birthDay.length === 2 &&
+    parseInt(birthMonth) >= 1 && parseInt(birthMonth) <= 12 &&
+    parseInt(birthDay) >= 1 && parseInt(birthDay) <= 31 &&
     formData.gender &&
     (formData.saveInfo ? formData.name : true)
 
@@ -168,14 +212,18 @@ export default function SajuInputPage() {
   })
 
   // 폼 데이터를 URL 파라미터로 변환
-  const formToParams = () => ({
-    year: formData.birthYear,
-    month: formData.birthMonth,
-    day: formData.birthDay,
-    hour: formData.birthHour,
-    lunar: formData.isLunar ? '1' : '0',
-    gender: formData.gender,
-  })
+  const formToParams = () => {
+    const { year, month, day } = parseBirthDate(formData.birthDate)
+    const { hour } = parseBirthTime(formData.birthTime)
+    return {
+      year,
+      month,
+      day,
+      hour: hour || '-1',
+      lunar: formData.isLunar ? '1' : '0',
+      gender: formData.gender,
+    }
+  }
 
   // 인물 선택 (단일 선택 - 개인사주, 신년운세, 연애운)
   const handleSelectPerson = (person: Person) => {
@@ -248,16 +296,18 @@ export default function SajuInputPage() {
     try {
       // 정보 저장 옵션이 켜져 있고 로그인 상태면 저장
       if (formData.saveInfo && user && formData.name) {
+        const { year, month, day } = parseBirthDate(formData.birthDate)
+        const { hour } = parseBirthTime(formData.birthTime)
         const response = await fetch('/api/persons', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: formData.name,
             relationship: formData.relationship,
-            birthYear: parseInt(formData.birthYear),
-            birthMonth: parseInt(formData.birthMonth),
-            birthDay: parseInt(formData.birthDay),
-            birthHour: formData.birthHour === '-1' ? null : parseInt(formData.birthHour),
+            birthYear: parseInt(year),
+            birthMonth: parseInt(month),
+            birthDay: parseInt(day),
+            birthHour: hour === '' ? null : parseInt(hour),
             isLunar: formData.isLunar,
             gender: formData.gender,
           }),
@@ -307,10 +357,8 @@ export default function SajuInputPage() {
     setFormData({
       name: '',
       relationship: 'self',
-      birthYear: '',
-      birthMonth: '',
-      birthDay: '',
-      birthHour: '-1',
+      birthDate: '',
+      birthTime: '',
       isLunar: false,
       gender: '',
       saveInfo: true,
@@ -357,6 +405,7 @@ export default function SajuInputPage() {
                 options={relationshipOptions}
                 value={formData.relationship}
                 onChange={(e) => setFormData({ ...formData, relationship: e.target.value })}
+                required
               />
             </div>
           )}
@@ -365,60 +414,29 @@ export default function SajuInputPage() {
 
       {/* 생년월일 */}
       <Card>
-        <h3 className="text-subheading font-semibold text-text mb-4">
+        <h3 className="text-subheading font-semibold text-text mb-2">
           생년월일 <span className="text-accent-rose">*</span>
         </h3>
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <Select
-            options={yearOptions}
-            placeholder="년도"
-            value={formData.birthYear}
-            onChange={(e) => {
-              const newYear = e.target.value
-              const maxDays = getMaxDaysInMonth(
-                parseInt(newYear),
-                parseInt(formData.birthMonth) || 1
-              )
-              // 선택된 일이 최대 일수를 초과하면 자동 조정 (윤년 처리)
-              const newDay = formData.birthDay && parseInt(formData.birthDay) > maxDays
-                ? maxDays.toString()
-                : formData.birthDay
-              setFormData({ ...formData, birthYear: newYear, birthDay: newDay })
-            }}
-            required
-          />
-          <Select
-            options={monthOptions}
-            placeholder="월"
-            value={formData.birthMonth}
-            onChange={(e) => {
-              const newMonth = e.target.value
-              const maxDays = getMaxDaysInMonth(
-                parseInt(formData.birthYear) || currentYear,
-                parseInt(newMonth)
-              )
-              // 선택된 일이 최대 일수를 초과하면 자동 조정
-              const newDay = formData.birthDay && parseInt(formData.birthDay) > maxDays
-                ? maxDays.toString()
-                : formData.birthDay
-              setFormData({ ...formData, birthMonth: newMonth, birthDay: newDay })
-            }}
-            required
-          />
-          <Select
-            options={getDayOptions(
-              parseInt(formData.birthYear) || currentYear,
-              parseInt(formData.birthMonth) || 1
-            )}
-            placeholder="일"
-            value={formData.birthDay}
-            onChange={(e) => setFormData({ ...formData, birthDay: e.target.value })}
-            required
-          />
-        </div>
+        <p className="text-small text-text-muted mb-3">
+          8자리로 입력하세요
+        </p>
+        <input
+          type="tel"
+          inputMode="numeric"
+          placeholder="2026-01-01"
+          value={formatBirthDate(formData.birthDate)}
+          onChange={(e) => {
+            const digits = e.target.value.replace(/\D/g, '').slice(0, 8)
+            if (validateBirthDate(digits)) {
+              setFormData({ ...formData, birthDate: digits })
+            }
+          }}
+          className="w-full h-12 px-4 border border-gray-200 rounded-lg text-center text-lg tracking-wider bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          required
+        />
 
         {/* 음력/양력 */}
-        <div className="flex gap-4">
+        <div className="flex gap-4 mt-4 justify-center">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
@@ -447,14 +465,44 @@ export default function SajuInputPage() {
         <h3 className="text-subheading font-semibold text-text mb-2">
           태어난 시간
         </h3>
-        <p className="text-small text-text-muted mb-4">
-          시간을 모르면 &apos;모르겠어요&apos;를 선택하세요
+        <p className="text-small text-text-muted mb-3">
+          시간을 모르면 비워두세요
         </p>
-        <Select
-          options={hourOptions}
-          value={formData.birthHour}
-          onChange={(e) => setFormData({ ...formData, birthHour: e.target.value })}
-        />
+        <div className="relative">
+          <input
+            type="tel"
+            inputMode="numeric"
+            placeholder="14:30"
+            value={formatBirthTime(formData.birthTime)}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, '').slice(0, 4)
+              if (digits.length === 0) {
+                setFormData({ ...formData, birthTime: '' })
+                return
+              }
+              const hour = parseInt(digits.slice(0, 2))
+              const minute = digits.length > 2 ? parseInt(digits.slice(2)) : 0
+              if (hour <= 23 && minute <= 59) {
+                setFormData({ ...formData, birthTime: digits })
+              }
+            }}
+            className="w-full h-12 px-4 border border-gray-200 rounded-lg text-center text-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          />
+          {formData.birthTime !== '' && (() => {
+            const { hour } = parseBirthTime(formData.birthTime)
+            const hourNum = parseInt(hour)
+            return !isNaN(hourNum) ? (
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted">
+                {getHourLabel(hourNum)}
+              </span>
+            ) : null
+          })()}
+        </div>
+        {formData.birthTime === '' && (
+          <p className="text-center text-small text-text-muted mt-2">
+            시간 미입력 시 시주 없이 계산됩니다
+          </p>
+        )}
       </Card>
 
       {/* 성별 */}
@@ -515,20 +563,6 @@ export default function SajuInputPage() {
           }
         </Button>
 
-        {persons.length > 0 && (
-          <Button
-            type="button"
-            variant="ghost"
-            fullWidth
-            onClick={() => {
-              setShowInputForm(false)
-              setSelectingFor(null)
-              resetForm()
-            }}
-          >
-            뒤로가기
-          </Button>
-        )}
       </div>
     </form>
   )

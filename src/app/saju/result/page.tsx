@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useSearchParams, useRouter } from 'next/navigation'
 import html2canvas from 'html2canvas'
 import { Header } from '@/components/layout'
-import { Button, Card, LoadingScreen, ErrorScreen, InsufficientCoinsModal } from '@/components/ui'
+import { Button, Card, LoadingScreen, ErrorScreen, InsufficientCoinsModal, WuXingRadarChart } from '@/components/ui'
 import { YearlyResultContent, CompatibilityResultContent, DailyResultContent } from '@/components/result'
 import { useAuth, useKakaoShare } from '@/hooks'
 import type { SajuResult } from '@/types/saju'
@@ -995,27 +995,12 @@ function ResultContent() {
               </p>
             </div>
 
-            {/* 오행 미니 차트 */}
-            <div className="mt-6 flex justify-center gap-2">
-              {(Object.entries(result.wuXing) as [keyof typeof result.wuXing, number][]).map(
-                ([element, value]) => (
-                  <div
-                    key={element}
-                    className="flex flex-col items-center"
-                    style={{ opacity: value > 10 ? 1 : 0.4 }}
-                  >
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-small font-bold"
-                      style={{ backgroundColor: WUXING_COLORS[element] }}
-                    >
-                      {value}
-                    </div>
-                    <span className="text-caption text-text-light mt-1">
-                      {WUXING_KOREAN[element].charAt(0)}
-                    </span>
-                  </div>
-                )
-              )}
+            {/* 오행 분포 - 오각형 레이더 차트 */}
+            <div className="mt-6 flex flex-col items-center">
+              <WuXingRadarChart wuXing={result.wuXing} size={180} />
+              <p className="text-center text-caption text-text-muted mt-2">
+                <span className="text-primary font-medium">강:</span> {result.dominantElement} · <span className="text-accent-rose font-medium">약:</span> {result.weakElement}
+              </p>
             </div>
           </Card>
         )}
