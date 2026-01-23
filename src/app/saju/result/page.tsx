@@ -84,6 +84,7 @@ function ResultContent() {
   const hasSavedRef = useRef(false)
   const hasDeductedCoinRef = useRef(false)
   const hasStartedRef = useRef(false)
+  const isMountedRef = useRef(true)
 
   const type = searchParams.get('type') || 'personal'
   const gender = searchParams.get('gender') || 'female'
@@ -239,6 +240,19 @@ function ResultContent() {
       return false
     }
   }
+
+  // 컴포넌트 마운트/언마운트 관리
+  useEffect(() => {
+    isMountedRef.current = true
+    // 컴포넌트가 새로 마운트되면 refs 초기화 (뒤로가기/앞으로가기 대응)
+    hasStartedRef.current = false
+    hasSavedRef.current = false
+    hasDeductedCoinRef.current = false
+
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   // 사주 계산 및 코인 차감
   useEffect(() => {
