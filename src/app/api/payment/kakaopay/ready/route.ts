@@ -95,14 +95,28 @@ export async function POST(request: NextRequest) {
     const orderId = `KAKAO_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
     const totalCoins = Number(packageData.coins) + Number(packageData.bonus_coins || 0)
 
-    // 카카오페이 Admin Key 확인
-    const kakaoAdminKey = process.env.KAKAO_ADMIN_KEY
+    // 카카오페이 Secret Key 확인 (2024년 2월부터 새 API 사용)
+    const kakaoSecretKey = process.env.KAKAOPAY_SECRET_KEY
     // Vercel 자동 감지: NEXT_PUBLIC_BASE_URL > VERCEL_URL > localhost
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
       || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
       || 'http://localhost:3000'
 
-    // 결제 레코드 생성 (pending 상태) - 테스트/실제 모두 필요
+    if (!kakaoSecretKey) {
+      console.error('KAKAOPAY_SECRET_KEY is not set')
+      return NextResponse.json<KakaoPayReadyResponse>(
+        {
+          success: false,
+          error: {
+            code: 'CONFIG_ERROR',
+            message: '카카오페이 설정이 필요합니다. (KAKAOPAY_SECRET_KEY)',
+          },
+        },
+        { status: 500 }
+      )
+    }
+
+    // 결제 레코드 생성 (pending 상태)
     // Admin 클라이언트 사용 (RLS 우회)
     const adminClient = createAdminClient()
     if (!adminClient) {
@@ -147,51 +161,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 테스트 모드: KAKAO_ADMIN_KEY 없으면 테스트 결제 UI 페이지로 리다이렉트
-    if (!kakaoAdminKey) {
-      const testTid = `test_tid_${Date.now()}`
-
-      // TID 저장 (admin 클라이언트 사용)
-      await adminClient
-        .from('payments')
-        .update({ external_payment_id: testTid })
-        .eq('external_order_id', orderId)
-
-      // 테스트 결제 UI 페이지 URL (카카오페이 UI 시뮬레이션)
-      const testPaymentUrl = `${baseUrl}/payment/kakaopay-test?orderId=${orderId}&amount=${packageData.price}&itemName=${encodeURIComponent(`팔자냥 ${packageData.name}`)}`
-
-      return NextResponse.json<KakaoPayReadyResponse>({
-        success: true,
-        data: {
-          tid: testTid,
-          next_redirect_pc_url: testPaymentUrl,
-          next_redirect_mobile_url: testPaymentUrl,
-          next_redirect_app_url: testPaymentUrl,
-        },
-      })
-    }
-
-    // 카카오페이 Ready API 호출
-    const kakaoParams = new URLSearchParams({
-      cid: process.env.KAKAO_CID || 'TC0ONETIME', // 테스트용 CID
+    // 카카오페이 Ready API 호출 (2024년 새 API)
+    // https://developers.kakaopay.com/docs/payment/online/single-payment
+    const kakaoRequestBody = {
+      cid: process.env.KAKAOPAY_CID || 'TC0ONETIME', // 테스트용 CID
       partner_order_id: orderId,
       partner_user_id: user.id,
       item_name: `팔자냥 ${packageData.name}`,
-      quantity: '1',
-      total_amount: String(packageData.price),
-      tax_free_amount: '0',
+      quantity: 1,
+      total_amount: packageData.price,
+      tax_free_amount: 0,
       approval_url: `${baseUrl}/api/payment/kakaopay/approve?partner_order_id=${orderId}`,
       cancel_url: `${baseUrl}/payment/fail?reason=cancel`,
       fail_url: `${baseUrl}/payment/fail?reason=fail`,
-    })
+    }
 
-    const kakaoResponse = await fetch('https://kapi.kakao.com/v1/payment/ready', {
+    const kakaoResponse = await fetch('https://open-api.kakaopay.com/online/v1/payment/ready', {
       method: 'POST',
       headers: {
-        'Authorization': `KakaoAK ${kakaoAdminKey}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `SECRET_KEY ${kakaoSecretKey}`,
+        'Content-Type': 'application/json',
       },
-      body: kakaoParams.toString(),
+      body: JSON.stringify(kakaoRequestBody),
     })
 
     if (!kakaoResponse.ok) {
@@ -202,7 +193,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: {
             code: 'KAKAOPAY_ERROR',
-            message: '카카오페이 결제 준비에 실패했습니다.',
+            message: errorData.error_message || '카카오페이 결제 준비에 실패했습니다.',
           },
         },
         { status: 500 }

@@ -158,24 +158,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const kakaoAdminKey = process.env.KAKAO_ADMIN_KEY
+    const kakaoSecretKey = process.env.KAKAOPAY_SECRET_KEY
 
-    // 실제 카카오페이 취소 API 호출 (KAKAO_ADMIN_KEY가 있는 경우)
-    if (kakaoAdminKey && payment.external_payment_id) {
-      const kakaoParams = new URLSearchParams({
-        cid: process.env.KAKAO_CID || 'TC0ONETIME',
+    // 실제 카카오페이 취소 API 호출 (KAKAOPAY_SECRET_KEY가 있는 경우)
+    if (kakaoSecretKey && payment.external_payment_id) {
+      // 카카오페이 Cancel API 호출 (2024년 새 API)
+      // https://developers.kakaopay.com/docs/payment/online/single-payment
+      const kakaoRequestBody = {
+        cid: process.env.KAKAOPAY_CID || 'TC0ONETIME',
         tid: payment.external_payment_id,
-        cancel_amount: String(payment.amount),
-        cancel_tax_free_amount: '0',
-      })
+        cancel_amount: payment.amount,
+        cancel_tax_free_amount: 0,
+      }
 
-      const kakaoResponse = await fetch('https://kapi.kakao.com/v1/payment/cancel', {
+      const kakaoResponse = await fetch('https://open-api.kakaopay.com/online/v1/payment/cancel', {
         method: 'POST',
         headers: {
-          'Authorization': `KakaoAK ${kakaoAdminKey}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `SECRET_KEY ${kakaoSecretKey}`,
+          'Content-Type': 'application/json',
         },
-        body: kakaoParams.toString(),
+        body: JSON.stringify(kakaoRequestBody),
       })
 
       if (!kakaoResponse.ok) {
@@ -186,7 +188,7 @@ export async function POST(request: NextRequest) {
             success: false,
             error: {
               code: 'KAKAOPAY_CANCEL_ERROR',
-              message: '카카오페이 결제 취소에 실패했습니다.',
+              message: errorData.error_message || '카카오페이 결제 취소에 실패했습니다.',
             },
           },
           { status: 500 }

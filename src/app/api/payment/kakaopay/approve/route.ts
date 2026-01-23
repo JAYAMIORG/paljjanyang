@@ -49,39 +49,40 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${baseUrl}/payment/fail?reason=payment_not_found`)
     }
 
-    const kakaoAdminKey = process.env.KAKAO_ADMIN_KEY
+    const kakaoSecretKey = process.env.KAKAOPAY_SECRET_KEY
 
-    let externalPaymentId: string | null = null
-
-    if (!kakaoAdminKey) {
-      // KAKAO_ADMIN_KEY 없으면 테스트 모드 (ready 라우트와 동일한 로직)
-      console.log('KAKAO_ADMIN_KEY not set, using test mode')
-    } else {
-      // 카카오페이 Approve API 호출
-      const kakaoResponse = await fetch('https://kapi.kakao.com/v1/payment/approve', {
-        method: 'POST',
-        headers: {
-          'Authorization': `KakaoAK ${kakaoAdminKey}`,
-          'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
-        },
-        body: new URLSearchParams({
-          cid: process.env.KAKAO_CID || 'TC0ONETIME',
-          tid: payment.external_payment_id,
-          partner_order_id: partnerOrderId,
-          partner_user_id: user.id,
-          pg_token: pgToken,
-        }),
-      })
-
-      if (!kakaoResponse.ok) {
-        const errorData = await kakaoResponse.json()
-        console.error('KakaoPay approve error:', errorData)
-        return NextResponse.redirect(`${baseUrl}/payment/fail?reason=kakaopay_error`)
-      }
-
-      const kakaoData = await kakaoResponse.json()
-      externalPaymentId = kakaoData.tid
+    if (!kakaoSecretKey) {
+      console.error('KAKAOPAY_SECRET_KEY is not set')
+      return NextResponse.redirect(`${baseUrl}/payment/fail?reason=config_error`)
     }
+
+    // 카카오페이 Approve API 호출 (2024년 새 API)
+    // https://developers.kakaopay.com/docs/payment/online/single-payment
+    const kakaoRequestBody = {
+      cid: process.env.KAKAOPAY_CID || 'TC0ONETIME',
+      tid: payment.external_payment_id,
+      partner_order_id: partnerOrderId,
+      partner_user_id: user.id,
+      pg_token: pgToken,
+    }
+
+    const kakaoResponse = await fetch('https://open-api.kakaopay.com/online/v1/payment/approve', {
+      method: 'POST',
+      headers: {
+        'Authorization': `SECRET_KEY ${kakaoSecretKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(kakaoRequestBody),
+    })
+
+    if (!kakaoResponse.ok) {
+      const errorData = await kakaoResponse.json()
+      console.error('KakaoPay approve error:', errorData)
+      return NextResponse.redirect(`${baseUrl}/payment/fail?reason=kakaopay_error`)
+    }
+
+    const kakaoData = await kakaoResponse.json()
+    const externalPaymentId = kakaoData.tid
 
     // Atomic 결제 처리 (RPC 함수 사용)
     const { data: rpcResult, error: rpcError } = await adminClient
