@@ -60,6 +60,7 @@ export default function SajuInputPage() {
   const [persons, setPersons] = useState<Person[]>([])
   const [isLoadingPersons, setIsLoadingPersons] = useState(true)
   const [showInputForm, setShowInputForm] = useState(false)
+  const [completedPersonIds, setCompletedPersonIds] = useState<Set<string>>(new Set())
 
   // 궁합용 선택된 인물
   const [selectedPerson1, setSelectedPerson1] = useState<Person | null>(null)
@@ -189,6 +190,28 @@ export default function SajuInputPage() {
       fetchPersons()
     }
   }, [user, authLoading, isConfigured])
+
+  // 해당 type의 분석 완료된 person 목록 조회
+  useEffect(() => {
+    const fetchCompletedPersons = async () => {
+      if (!isConfigured || !user || !type) return
+
+      try {
+        const response = await fetch(`/api/saju/completed-persons?type=${type}`)
+        const data = await response.json()
+
+        if (data.success && data.data?.completedPersonIds) {
+          setCompletedPersonIds(new Set(data.data.completedPersonIds))
+        }
+      } catch {
+        // 에러 시 무시 (뱃지만 안 보임)
+      }
+    }
+
+    if (!authLoading && user) {
+      fetchCompletedPersons()
+    }
+  }, [user, authLoading, isConfigured, type])
 
   const { year: birthYear, month: birthMonth, day: birthDay } = parseBirthDate(formData.birthDate)
 
@@ -696,9 +719,16 @@ export default function SajuInputPage() {
                     {person.is_lunar && ' (음력)'}
                   </p>
                 </div>
-                <span className={`text-2xl ${person.gender === 'male' ? 'text-blue-500' : 'text-red-500'}`}>
-                  {person.gender === 'male' ? '♂' : '♀'}
-                </span>
+                <div className="flex items-center gap-2">
+                  {completedPersonIds.has(person.id) && (
+                    <span className="px-2 py-0.5 text-xs font-medium bg-primary text-white rounded-full">
+                      분석 완료
+                    </span>
+                  )}
+                  <span className={`text-2xl ${person.gender === 'male' ? 'text-blue-500' : 'text-red-500'}`}>
+                    {person.gender === 'male' ? '♂' : '♀'}
+                  </span>
+                </div>
               </div>
             </button>
           ))}
