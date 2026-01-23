@@ -1,7 +1,6 @@
 import { ImageResponse } from 'next/og'
 
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const runtime = 'edge'
 export const alt = '팔자냥 - 나만의 사주 이야기'
 export const size = {
   width: 1200,
@@ -11,25 +10,16 @@ export const contentType = 'image/png'
 
 export default async function Image() {
   const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
+  const imageUrl = `${productionUrl}/images/og-main.png`
 
-  // 이미지 가져오기
-  let bgImageData: ArrayBuffer | null = null
-  let logoImageData: ArrayBuffer | null = null
-
+  let imageData: ArrayBuffer | null = null
   try {
-    const [bgResponse, logoResponse] = await Promise.all([
-      fetch(`${productionUrl}/images/main-bg-1.png`),
-      fetch(`${productionUrl}/images/logo-opened.png`),
-    ])
-
-    if (bgResponse.ok) {
-      bgImageData = await bgResponse.arrayBuffer()
-    }
-    if (logoResponse.ok) {
-      logoImageData = await logoResponse.arrayBuffer()
+    const response = await fetch(imageUrl, { cache: 'no-store' })
+    if (response.ok) {
+      imageData = await response.arrayBuffer()
     }
   } catch (e) {
-    console.error('Failed to fetch images:', e)
+    console.error('Failed to fetch og-main.png:', e)
   }
 
   return new ImageResponse(
@@ -39,20 +29,14 @@ export default async function Image() {
           width: '100%',
           height: '100%',
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
         }}
       >
-        {/* 배경 이미지 */}
-        {bgImageData ? (
+        {imageData ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={`data:image/png;base64,${Buffer.from(bgImageData).toString('base64')}`}
+            src={`data:image/png;base64,${Buffer.from(imageData).toString('base64')}`}
             alt=""
             style={{
-              position: 'absolute',
               width: '100%',
               height: '100%',
               objectFit: 'cover',
@@ -61,60 +45,20 @@ export default async function Image() {
         ) : (
           <div
             style={{
-              position: 'absolute',
               width: '100%',
               height: '100%',
-              background: 'linear-gradient(135deg, #FFF8F0 0%, #F5E6D3 100%)',
-            }}
-          />
-        )}
-
-        {/* 로고 이미지 */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            zIndex: 1,
-          }}
-        >
-          {logoImageData ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={`data:image/png;base64,${Buffer.from(logoImageData).toString('base64')}`}
-              alt=""
-              style={{
-                width: '600px',
-                height: 'auto',
-                objectFit: 'contain',
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                fontSize: '80px',
-                fontWeight: 'bold',
-                color: '#D4A574',
-              }}
-            >
-              팔자냥
-            </div>
-          )}
-
-          {/* 서브 텍스트 */}
-          <p
-            style={{
-              fontSize: '32px',
-              color: '#4B5563',
-              marginTop: '20px',
-              fontFamily: 'sans-serif',
+              backgroundColor: '#6B5B95',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: 64,
+              fontWeight: 'bold',
             }}
           >
-            나만의 사주 이야기
-          </p>
-        </div>
+            팔자냥
+          </div>
+        )}
       </div>
     ),
     {
