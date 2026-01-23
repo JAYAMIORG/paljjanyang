@@ -11,10 +11,10 @@
 
 /* Tailwind CSS v4 Theme Configuration */
 @theme {
-  /* Colors - Primary (Deep Purple) */
-  --color-primary: #5428c6;
-  --color-primary-light: #7a5ad4;
-  --color-primary-dark: #4320a0;
+  /* Colors - Primary (Purple) */
+  --color-primary: #6a3ae7;
+  --color-primary-light: #8a62ed;
+  --color-primary-dark: #552eb9;
 
   /* Colors - Accent (Gold) */
   --color-accent: #D4AF37;
