@@ -46,8 +46,8 @@ export default function LandingPage() {
 
           {/* CTA 버튼 */}
           <Link href="/home" className="block w-full">
-            <Button variant="cartoon" size="lg" fullWidth>
-              <span aria-hidden="true">🔮</span> 내 사주 보러가기
+            <Button variant="cartoon" size="lg" fullWidth className="h-[60px] cursor-pointer" style={{ borderRadius: '15px', fontSize: '17px' }}>
+              🔮&nbsp; 내 사주 보러가기
             </Button>
           </Link>
         </div>
