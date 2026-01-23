@@ -134,10 +134,8 @@ function ResultContent() {
       const data = await response.json()
       if (data.success && data.data?.readingId) {
         setReadingId(data.data.readingId)
-        // URL에 id 추가하여 새로고침 시 저장된 결과 사용
-        const newUrl = new URL(window.location.href)
-        newUrl.searchParams.set('id', data.data.readingId)
-        window.history.replaceState({}, '', newUrl.toString())
+        // URL을 공유 가능한 형태로 변경
+        window.history.replaceState({}, '', `/saju/shared/${data.data.readingId}`)
       }
     } catch {
       // 저장 실패해도 결과는 보여줌
@@ -266,6 +264,8 @@ function ResultContent() {
           const loaded = await fetchSavedReading(savedId)
           if (loaded) {
             setIsLoading(false)
+            // URL을 공유 가능한 형태로 변경
+            window.history.replaceState({}, '', `/saju/shared/${savedId}`)
             return
           }
         }
@@ -367,10 +367,8 @@ function ResultContent() {
           const loaded = await fetchSavedReading(checkData.data.readingId)
           if (loaded) {
             setIsLoading(false)
-            // URL 업데이트
-            const newUrl = new URL(window.location.href)
-            newUrl.searchParams.set('id', checkData.data.readingId)
-            window.history.replaceState({}, '', newUrl.toString())
+            // URL을 공유 가능한 형태로 변경
+            window.history.replaceState({}, '', `/saju/shared/${checkData.data.readingId}`)
             return
           }
         }

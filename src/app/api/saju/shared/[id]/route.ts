@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { Solar, Lunar } from 'lunar-typescript'
 
 export interface SharedReadingResponse {
   success: boolean
@@ -12,7 +13,7 @@ export interface SharedReadingResponse {
       year: string
       month: string
       day: string
-      time: string
+      hour: string | null
     }
     wuXing: {
       wood: number
@@ -25,7 +26,13 @@ export interface SharedReadingResponse {
     dayMasterKorean: string
     zodiacEmoji: string
     dominantElement: string
+    weakElement: string
     dayPillarAnimal: string
+    daYun: Array<{
+      startAge: number
+      endAge: number
+      ganZhi: string
+    }>
     createdAt: string
   }
   error?: {
@@ -119,7 +126,7 @@ export async function GET(
       )
     }
 
-    // 결과 조회
+    // 결과 조회 (person 정보 포함)
     const { data: reading, error } = await supabase
       .from('readings')
       .select(`
@@ -130,7 +137,16 @@ export async function GET(
         person1_bazi,
         person1_wuxing,
         person1_day_master,
-        created_at
+        person1_id,
+        created_at,
+        persons:person1_id (
+          birth_year,
+          birth_month,
+          birth_day,
+          birth_hour,
+          is_lunar,
+          gender
+        )
       `)
       .eq('id', id)
       .single()
@@ -153,15 +169,67 @@ export async function GET(
     const dayMasterInfo = DAY_MASTER_MAP[dayMaster] || { korean: dayMaster, emoji: '🐱' }
 
     // 일주 동물 별칭 (예: 황말, 백개)
-    const bazi = reading.person1_bazi || { year: '', month: '', day: '', time: '' }
+    const rawBazi = reading.person1_bazi || { year: '', month: '', day: '', time: null }
+    const bazi = {
+      year: rawBazi.year || '',
+      month: rawBazi.month || '',
+      day: rawBazi.day || '',
+      hour: rawBazi.time || null,
+    }
     const dayPillarAnimal = getJiaziAnimalName(bazi.day || '')
 
-    // 오행에서 가장 강한 요소 찾기
+    // 오행에서 가장 강한/약한 요소 찾기
     const wuXing = reading.person1_wuxing || { wood: 20, fire: 20, earth: 20, metal: 20, water: 20 }
-    const dominantEntry = Object.entries(wuXing).reduce((a, b) =>
-      (a[1] as number) > (b[1] as number) ? a : b
-    )
+    const entries = Object.entries(wuXing) as [string, number][]
+    const dominantEntry = entries.reduce((a, b) => a[1] > b[1] ? a : b)
+    const weakEntry = entries.reduce((a, b) => a[1] < b[1] ? a : b)
     const dominantElement = WUXING_KOREAN[dominantEntry[0]] || dominantEntry[0]
+    const weakElement = WUXING_KOREAN[weakEntry[0]] || weakEntry[0]
+
+    // 대운 계산
+    let daYun: Array<{ startAge: number; endAge: number; ganZhi: string }> = []
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const person = reading.persons as any
+    if (person && person.birth_year && person.birth_month && person.birth_day) {
+      try {
+        let lunar
+        if (person.is_lunar) {
+          lunar = Lunar.fromYmd(person.birth_year, person.birth_month, person.birth_day)
+        } else {
+          const solar = Solar.fromYmd(person.birth_year, person.birth_month, person.birth_day)
+          lunar = solar.getLunar()
+        }
+
+        let eightChar
+        if (person.birth_hour !== null && person.birth_hour !== undefined) {
+          const solarDate = lunar.getSolar()
+          const solarWithTime = Solar.fromYmdHms(
+            solarDate.getYear(),
+            solarDate.getMonth(),
+            solarDate.getDay(),
+            person.birth_hour,
+            0,
+            0
+          )
+          eightChar = solarWithTime.getLunar().getEightChar()
+        } else {
+          eightChar = lunar.getEightChar()
+        }
+
+        const genderValue = person.gender === 'male' ? 1 : 0
+        const yun = eightChar.getYun(genderValue)
+        const daYunList = yun.getDaYun(10)
+
+        daYun = daYunList.map((dy: { getStartAge: () => number; getEndAge: () => number; getGanZhi: () => string }) => ({
+          startAge: dy.getStartAge(),
+          endAge: dy.getEndAge(),
+          ganZhi: dy.getGanZhi(),
+        }))
+      } catch (e) {
+        console.error('DaYun calculation error:', e)
+      }
+    }
 
     return NextResponse.json<SharedReadingResponse>({
       success: true,
@@ -176,7 +244,9 @@ export async function GET(
         dayMasterKorean: dayMasterInfo.korean,
         zodiacEmoji: dayMasterInfo.emoji,
         dominantElement,
+        weakElement,
         dayPillarAnimal,
+        daYun,
         createdAt: reading.created_at,
       },
     })
