@@ -208,7 +208,7 @@ function PreviewContent() {
     <div className="min-h-screen bg-background">
       <Header showBack useHistoryBack title={isCompatibility ? '궁합 미리보기' : '내 만세력'} />
 
-      <main className="px-4 py-6 max-w-lg mx-auto space-y-6">
+      <main className="px-4 py-4 max-w-lg mx-auto space-y-4">
         {isCompatibility && result2 ? (
           // 궁합: 두 사람의 사주 비교
           <>
@@ -271,19 +271,19 @@ function PreviewContent() {
             </Card>
           </>
         ) : (
-          // 단일 사주
+          // 단일 사주 - 간소화된 버전
           <>
             {/* 사주팔자 카드 */}
             <Card variant="highlighted">
-              <div className="text-center mb-4">
-                <span className="text-4xl">{result.zodiacEmoji}</span>
-                <h2 className="text-heading font-semibold text-text mt-2">
+              <div className="text-center mb-3">
+                <span className="text-3xl">{result.zodiacEmoji}</span>
+                <h2 className="text-subheading font-semibold text-text mt-1">
                   {result.zodiac}
                 </h2>
               </div>
 
               {/* 사주팔자 표시 */}
-              <div className="grid grid-cols-4 gap-2 text-center mb-4">
+              <div className="grid grid-cols-4 gap-2 text-center mb-3">
                 <PillarCard label="년주" value={result.bazi.year} />
                 <PillarCard label="월주" value={result.bazi.month} />
                 <PillarCard label="일주" value={result.bazi.day} />
@@ -294,45 +294,53 @@ function PreviewContent() {
                 />
               </div>
 
-              <p className="text-center text-small text-text-muted">
+              <p className="text-center text-caption text-text-muted">
                 {result.koreanGanji}
               </p>
-            </Card>
 
-            {/* 일간 정보 */}
-            <Card>
-              <h3 className="text-subheading font-semibold text-text mb-3">일간 (Day Master)</h3>
-              <div className="flex items-center gap-3">
-                <span className="text-3xl font-serif">{result.dayMaster}</span>
+              {/* 일간 정보 - 카드 내부로 통합 */}
+              <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-center gap-3">
+                <span className="text-2xl font-serif">{result.dayMaster}</span>
                 <div>
                   <p className="text-body font-semibold text-text">{result.dayMasterKorean}</p>
-                  <p className="text-small text-text-muted">당신의 본질적 성향</p>
+                  <p className="text-caption text-text-muted">당신의 본질적 성향</p>
                 </div>
               </div>
             </Card>
 
-            {/* 오행 분포 */}
+            {/* 오행 분포 - 간소화 */}
             <Card>
-              <h3 className="text-subheading font-semibold text-text mb-4">오행 분포</h3>
-              <div className="space-y-3">
+              <h3 className="text-body font-semibold text-text mb-3">오행 분포</h3>
+              <div className="flex justify-center gap-2">
                 {(Object.entries(result.wuXing) as [keyof typeof result.wuXing, number][]).map(
                   ([element, value]) => (
-                    <WuXingBar key={element} element={element} value={value} />
+                    <div
+                      key={element}
+                      className="flex flex-col items-center"
+                      style={{ opacity: value > 10 ? 1 : 0.4 }}
+                    >
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white text-small font-bold"
+                        style={{ backgroundColor: WUXING_COLORS[element] }}
+                      >
+                        {value}
+                      </div>
+                      <span className="text-caption text-text-light mt-1">
+                        {WUXING_KOREAN[element].charAt(0)}
+                      </span>
+                    </div>
                   )
                 )}
               </div>
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-small text-text-muted">
-                  <span className="font-semibold text-primary">강한 오행:</span> {result.dominantElement} |{' '}
-                  <span className="font-semibold text-accent-rose">약한 오행:</span> {result.weakElement}
-                </p>
-              </div>
+              <p className="text-center text-caption text-text-muted mt-3">
+                <span className="text-primary font-medium">강:</span> {result.dominantElement} · <span className="text-accent-rose font-medium">약:</span> {result.weakElement}
+              </p>
             </Card>
           </>
         )}
 
         {/* CTA 버튼 */}
-        <div className="pt-4">
+        <div className="pt-2">
           <Button
             fullWidth
             size="lg"
@@ -341,7 +349,7 @@ function PreviewContent() {
             {isCompatibility ? '💕 궁합 분석 보기 (1코인)' : '🔮 전체 해석 보기 (1코인)'}
           </Button>
           {/* 보유 코인 표시 */}
-          <p className="text-center text-small text-text-light mt-2">
+          <p className="text-center text-caption text-text-light mt-2">
             보유 코인: {coinBalance !== null ? coinBalance : '...'} 🪙
           </p>
         </div>
@@ -365,26 +373,6 @@ function PillarCard({
       <div className="bg-white rounded-lg p-2 border border-gray-100">
         <p className="text-heading font-serif text-primary">{value}</p>
       </div>
-    </div>
-  )
-}
-
-function WuXingBar({ element, value }: { element: string; value: number }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="w-16 text-small text-text-muted">
-        {WUXING_KOREAN[element]}
-      </span>
-      <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{
-            width: `${value}%`,
-            backgroundColor: WUXING_COLORS[element],
-          }}
-        />
-      </div>
-      <span className="w-10 text-small text-text-muted text-right">{value}%</span>
     </div>
   )
 }
