@@ -31,24 +31,16 @@ const DIZHI_INFO: Record<string, { animal: string; korean: string }> = {
   '亥': { animal: '돼지', korean: '해' },
 }
 
-// 간지에서 일주 동물 별칭 가져오기 (예: 庚戌 → 하얀 강아지(경술일주))
-function getJiaziAnimalName(ganZhi: string): string {
-  if (!ganZhi || ganZhi.length !== 2) return ''
+// 간지에서 한글 간지만 추출 (예: 庚戌 → 경술)
+function getKoreanGanzi(ganZhi: string): string | null {
+  if (!ganZhi || ganZhi.length !== 2) return null
   const tianganInfo = TIANGAN_INFO[ganZhi[0]]
   const dizhiInfo = DIZHI_INFO[ganZhi[1]]
-  if (!tianganInfo || !dizhiInfo) return ''
-  return `${tianganInfo.color} ${dizhiInfo.animal}(${tianganInfo.korean}${dizhiInfo.korean}일주)`
+  if (!tianganInfo || !dizhiInfo) return null
+  return `${tianganInfo.korean}${dizhiInfo.korean}`
 }
 
-// 사주 타입 한글명
-const TYPE_LABEL: Record<string, string> = {
-  personal: '개인 사주',
-  yearly: '신년운세',
-  compatibility: '궁합',
-  love: '연애운',
-}
-
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 export const alt = '팔자냥 사주 결과'
 export const size = {
   width: 1200,
@@ -59,49 +51,56 @@ export const contentType = 'image/png'
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  // Base URL - 정적 에셋은 항상 프로덕션 URL 사용 (preview URL fetch 문제 방지)
+  // Base URL
   const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
 
-  // 데이터 조회 (추후 동물별 이미지 분기에 사용)
-  let dayPillarAnimal = ''
-  let typeLabel = ''
+  // 데이터 조회 - 일주의 한자 간지를 직접 가져옴
+  let ganziKorean: string | null = null
 
   try {
     const supabase = createAdminClient()
     if (supabase) {
       const { data: reading } = await supabase
         .from('readings')
-        .select('type, person1_bazi, korean_ganji')
+        .select('person1_bazi')
         .eq('id', id)
         .single()
 
       if (reading) {
         const bazi = reading.person1_bazi || {}
-        dayPillarAnimal = getJiaziAnimalName(bazi.day || '')
-        typeLabel = TYPE_LABEL[reading.type] || '사주'
+        // 한자 간지(庚戌)에서 직접 한글 간지(경술) 추출
+        ganziKorean = getKoreanGanzi(bazi.day || '')
       }
     }
-  } catch {
-    // 에러 시 기본값 사용
+  } catch (e) {
+    console.error('DB fetch error:', e)
   }
 
-  // 일주에서 간지 한글 추출 (예: "하얀 강아지(경술일주)" → "경술")
-  const ganziMatch = dayPillarAnimal.match(/\(([가-힣]{2})/)
-  const ganziKorean = ganziMatch ? ganziMatch[1] : null
+  const isPng = !!ganziKorean
   const imageFileName = ganziKorean ? `${ganziKorean}.png` : 'test.jpg'
   const imageUrl = `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
 
   // 이미지를 ArrayBuffer로 가져오기
   let imageData: ArrayBuffer | null = null
   try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
+
     const imageResponse = await fetch(imageUrl, {
-      cache: 'no-store',
+      signal: controller.signal,
+      headers: {
+        'Accept': 'image/*',
+      },
     })
+    clearTimeout(timeoutId)
+
     if (imageResponse.ok) {
       imageData = await imageResponse.arrayBuffer()
+    } else {
+      console.error('Image fetch failed:', imageResponse.status, imageUrl)
     }
   } catch (e) {
-    console.error('Failed to fetch image:', e)
+    console.error('Failed to fetch image:', e, imageUrl)
   }
 
   return new ImageResponse(
@@ -116,7 +115,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         {imageData ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={`data:image/jpeg;base64,${Buffer.from(imageData).toString('base64')}`}
+            src={`data:image/${isPng ? 'png' : 'jpeg'};base64,${Buffer.from(imageData).toString('base64')}`}
             alt=""
             style={{
               width: '100%',
