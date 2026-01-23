@@ -33,6 +33,7 @@ function PreviewContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [coinBalance, setCoinBalance] = useState<number | null>(null)
+  const [hasExistingRecord, setHasExistingRecord] = useState<boolean | null>(null)
 
   const type = searchParams.get('type') || 'personal'
   const isCompatibility = type === 'compatibility'
@@ -155,6 +156,77 @@ function PreviewContent() {
     fetchCoinBalance()
   }, [user, isConfigured, authLoading])
 
+  // 기존 기록 확인 (인증 로딩 완료 후)
+  useEffect(() => {
+    const checkExistingRecord = async () => {
+      if (authLoading) return
+      if (!isConfigured || !user) {
+        setHasExistingRecord(false)
+        return
+      }
+
+      const year = searchParams.get('year')
+      const month = searchParams.get('month')
+      const day = searchParams.get('day')
+      const hour = searchParams.get('hour')
+      const lunar = searchParams.get('lunar')
+      const gender = searchParams.get('gender')
+
+      if (!year || !month || !day || !gender) {
+        setHasExistingRecord(false)
+        return
+      }
+
+      try {
+        const checkBody: Record<string, unknown> = {
+          type,
+          birthYear: parseInt(year),
+          birthMonth: parseInt(month),
+          birthDay: parseInt(day),
+          birthHour: hour && parseInt(hour) >= 0 ? parseInt(hour) : null,
+          isLunar: lunar === '1',
+          gender,
+        }
+
+        // 궁합인 경우 두 번째 사람 정보도 추가
+        if (isCompatibility) {
+          const year2 = searchParams.get('year2')
+          const month2 = searchParams.get('month2')
+          const day2 = searchParams.get('day2')
+          const hour2 = searchParams.get('hour2')
+          const lunar2 = searchParams.get('lunar2')
+          const gender2 = searchParams.get('gender2')
+
+          if (year2 && month2 && day2 && gender2) {
+            checkBody.birthYear2 = parseInt(year2)
+            checkBody.birthMonth2 = parseInt(month2)
+            checkBody.birthDay2 = parseInt(day2)
+            checkBody.birthHour2 = hour2 && parseInt(hour2) >= 0 ? parseInt(hour2) : null
+            checkBody.isLunar2 = lunar2 === '1'
+            checkBody.gender2 = gender2
+          }
+        }
+
+        const response = await fetch('/api/saju/check-existing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(checkBody),
+        })
+
+        const data = await response.json()
+        if (data.success) {
+          setHasExistingRecord(data.data?.exists || false)
+        } else {
+          setHasExistingRecord(false)
+        }
+      } catch {
+        setHasExistingRecord(false)
+      }
+    }
+
+    checkExistingRecord()
+  }, [user, isConfigured, authLoading, searchParams, type, isCompatibility])
+
   // 전체 해석 보기 (결과 페이지에서 코인 차감)
   const handleViewResult = () => {
     // 인증 로딩 중이면 대기
@@ -167,7 +239,8 @@ function PreviewContent() {
       return
     }
 
-    if (coinBalance !== null && coinBalance < 1) {
+    // 기존 기록이 있으면 코인 체크 없이 바로 이동
+    if (!hasExistingRecord && coinBalance !== null && coinBalance < 1) {
       // 코인 부족 시 결제 페이지로 이동
       const resultUrl = `/saju/result?${searchParams.toString()}`
       router.push(`/coin?redirect=${encodeURIComponent(resultUrl)}`)
@@ -346,11 +419,17 @@ function PreviewContent() {
             size="lg"
             onClick={handleViewResult}
           >
-            {isCompatibility ? '💕 궁합 분석 보기 (1코인)' : '🔮 전체 해석 보기 (1코인)'}
+            {hasExistingRecord
+              ? (isCompatibility ? '💕 이전 궁합 결과 보기' : '🔮 이전 분석 결과 보기')
+              : (isCompatibility ? '💕 궁합 분석 보기 (1코인)' : '🔮 전체 해석 보기 (1코인)')
+            }
           </Button>
-          {/* 보유 코인 표시 */}
+          {/* 보유 코인 또는 기존 기록 안내 */}
           <p className="text-center text-caption text-text-light mt-2">
-            보유 코인: {coinBalance !== null ? coinBalance : '...'} 🪙
+            {hasExistingRecord
+              ? '✨ 이미 분석한 기록이 있어요'
+              : `보유 코인: ${coinBalance !== null ? coinBalance : '...'} 🪙`
+            }
           </p>
         </div>
       </main>
