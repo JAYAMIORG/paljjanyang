@@ -22,7 +22,7 @@ export default function LandingPage() {
         {/* 배경 이미지 */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-90"
-          style={{ backgroundImage: "url('/images/main-bg-4.png')" }}
+          style={{ backgroundImage: "url('/images/main-bg-4.webp')" }}
         />
         <div className="relative max-w-[500px] mx-auto">
           {/* 로고 */}
