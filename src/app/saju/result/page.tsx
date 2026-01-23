@@ -575,7 +575,7 @@ function ResultContent() {
       const ganziKorean = match ? match[1] : null
       if (!ganziKorean) return
 
-      const imageUrl = `/images/animals/${ganziKorean}.png`
+      const imageUrl = `/images/animals/${ganziKorean}.webp`
       const response = await fetch(imageUrl)
       const blob = await response.blob()
 
@@ -708,8 +708,9 @@ function ResultContent() {
     const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
     const ganziMatch = dayPillarAnimal.match(/\(([가-힣]{2})/)
     const ganziKorean = ganziMatch ? ganziMatch[1] : null
+    // 카카오 공유용 이미지는 JPG 사용 (WebP 미지원)
     const imageUrl = ganziKorean
-      ? `${productionUrl}/images/animals/${encodeURIComponent(ganziKorean)}.png`
+      ? `${productionUrl}/images/animals/${encodeURIComponent(ganziKorean)}.jpg`
       : `${productionUrl}/images/og-default.png`
 
     const shared = shareKakao({
@@ -961,7 +962,7 @@ function ResultContent() {
                     title="클릭하여 이미지 저장"
                   >
                     <Image
-                      src={`/images/animals/${ganziKorean}.png`}
+                      src={`/images/animals/${ganziKorean}.webp`}
                       alt={result.dayPillarAnimal}
                       width={400}
                       height={400}
@@ -1284,7 +1285,7 @@ export default function ResultPage() {
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
             <Image
-              src="/images/brand-character.png"
+              src="/images/brand-character.webp"
               alt=""
               width={72}
               height={72}

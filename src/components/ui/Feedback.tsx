@@ -26,7 +26,7 @@ export function LoadingScreen({
           <div className="text-6xl mb-4 animate-bounce">{emoji}</div>
         ) : useCharacter ? (
           <Image
-            src="/images/brand-character.png"
+            src="/images/brand-character.webp"
             alt=""
             width={72}
             height={72}
@@ -60,7 +60,7 @@ export function LoadingCard({
             <div className="text-4xl mb-3 animate-pulse">{emoji}</div>
           ) : useCharacter ? (
             <Image
-              src="/images/brand-character.png"
+              src="/images/brand-character.webp"
               alt=""
               width={48}
               height={48}
@@ -224,7 +224,7 @@ export function ErrorScreen({
           <div className="text-6xl mb-4">{emoji}</div>
         ) : useCharacter ? (
           <Image
-            src="/images/brand-character.png"
+            src="/images/brand-character.webp"
             alt=""
             width={80}
             height={80}
@@ -274,7 +274,7 @@ export function ErrorCard({
           <div className="text-4xl mb-3">{emoji}</div>
         ) : useCharacter ? (
           <Image
-            src="/images/brand-character.png"
+            src="/images/brand-character.webp"
             alt=""
             width={48}
             height={48}
@@ -431,7 +431,7 @@ export function InsufficientCoinsModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center">
         <Image
-          src="/images/brand-character.png"
+          src="/images/brand-character.webp"
           alt=""
           width={64}
           height={64}

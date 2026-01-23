@@ -55,7 +55,7 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
           ) : (
             <Link href="/" className="flex items-center">
               <Image
-                src="/images/brand-copy.png"
+                src="/images/brand-copy.webp"
                 alt="팔자냥"
                 width={240}
                 height={72}

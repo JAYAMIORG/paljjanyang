@@ -28,7 +28,7 @@ export default function LandingPage() {
           {/* 로고 */}
           <div className="mb-8 w-full flex justify-center">
             <Image
-              src={isEyeOpen ? '/images/logo-opened.png' : '/images/logo-closed.png'}
+              src={isEyeOpen ? '/images/logo-opened.webp' : '/images/logo-closed.webp'}
               alt="팔자냥"
               width={0}
               height={0}
@@ -71,22 +71,22 @@ export default function LandingPage() {
 
           <div className="space-y-6">
             <FeatureCard
-              imageSrc="/icons/landing-1.png"
+              imageSrc="/icons/landing-1.webp"
               title="만세력 기반 정통 분석"
               description="전통 명리학에 기반한 정확한 사주팔자 계산"
             />
             <FeatureCard
-              imageSrc="/icons/landing-2.png"
+              imageSrc="/icons/landing-2.webp"
               title="전문가 맞춤 해석"
               description="당신만을 위한 개인화된 상세 해석 제공"
             />
             <FeatureCard
-              imageSrc="/icons/landing-3.png"
+              imageSrc="/icons/landing-3.webp"
               title="쉽고 명확한 결과"
               description="어려운 사주 용어 없이 누구나 이해할 수 있는 설명"
             />
             <FeatureCard
-              imageSrc="/icons/landing-4.png"
+              imageSrc="/icons/landing-4.webp"
               title="다양한 운세"
               description="개인 사주, 신년운세, 궁합, 연애운까지"
             />
@@ -105,11 +105,11 @@ export default function LandingPage() {
           </p>
 
           <div className="grid grid-cols-2 gap-4 text-left">
-            <ServiceItem imageSrc="/icons/landing-5.png" text="성격과 기질" />
+            <ServiceItem imageSrc="/icons/landing-5.webp" text="성격과 기질" />
             <ServiceItem icon="💎" text="타고난 재능" />
-            <ServiceItem imageSrc="/icons/landing-7.png" text="대운 흐름" />
-            <ServiceItem imageSrc="/icons/landing-8.png" text="적성과 진로" />
-            <ServiceItem imageSrc="/icons/landing-9.png" text="연애와 결혼" />
+            <ServiceItem imageSrc="/icons/landing-7.webp" text="대운 흐름" />
+            <ServiceItem imageSrc="/icons/landing-8.webp" text="적성과 진로" />
+            <ServiceItem imageSrc="/icons/landing-9.webp" text="연애와 결혼" />
             <ServiceItem icon="🍀" text="올해의 운세" />
           </div>
         </div>
@@ -146,7 +146,7 @@ export default function LandingPage() {
       <section className="py-16 px-6 bg-gradient-to-b from-primary/5 to-primary/10">
         <div className="max-w-[500px] mx-auto text-center">
           <Image
-            src="/images/brand-character.png"
+            src="/images/brand-character.webp"
             alt=""
             width={80}
             height={80}

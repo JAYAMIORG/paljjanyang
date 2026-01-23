@@ -46,7 +46,7 @@ function LoginContent() {
       <main className="px-4 py-8 max-w-lg mx-auto">
         <div className="text-center mb-8">
           <Image
-            src="/images/brand-copy.png"
+            src="/images/brand-copy.webp"
             alt="팔자냥"
             width={240}
             height={72}
@@ -134,7 +134,7 @@ export default function LoginPage() {
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
             <Image
-              src="/images/brand-character.png"
+              src="/images/brand-character.webp"
               alt=""
               width={72}
               height={72}

@@ -10,7 +10,7 @@ export const contentType = 'image/png'
 
 export default async function Image() {
   const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
-  const imageUrl = `${productionUrl}/images/og-main.png`
+  const imageUrl = `${productionUrl}/images/og-main.webp`
 
   let imageData: ArrayBuffer | null = null
   try {
@@ -19,7 +19,7 @@ export default async function Image() {
       imageData = await response.arrayBuffer()
     }
   } catch (e) {
-    console.error('Failed to fetch og-main.png:', e)
+    console.error('Failed to fetch og-main.webp:', e)
   }
 
   return new ImageResponse(
@@ -34,7 +34,7 @@ export default async function Image() {
         {imageData ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={`data:image/png;base64,${Buffer.from(imageData).toString('base64')}`}
+            src={`data:image/webp;base64,${Buffer.from(imageData).toString('base64')}`}
             alt=""
             style={{
               width: '100%',

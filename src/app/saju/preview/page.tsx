@@ -429,7 +429,7 @@ export default function PreviewPage() {
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
             <Image
-              src="/images/brand-character.png"
+              src="/images/brand-character.webp"
               alt=""
               width={72}
               height={72}

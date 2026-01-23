@@ -140,7 +140,7 @@ export default function MyPage() {
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
               <Image
-                src="/images/brand-character.png"
+                src="/images/brand-character.webp"
                 alt=""
                 width={40}
                 height={40}
