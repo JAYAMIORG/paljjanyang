@@ -701,12 +701,16 @@ function ResultContent() {
       love: '연애운',
     }[type] || '사주'
 
-    // OG 이미지 URL - 카카오는 외부 접근 가능한 URL 필요
-    const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
-    const imageUrl = `${productionUrl}/images/animals/test.jpg`
-
     // 일주 동물 이름 (예: 하얀 강아지(경술일주))
     const dayPillarAnimal = result.dayPillarAnimal || getDayPillarKorean(result.bazi.day)
+
+    // OG 이미지 URL - 일주에 맞는 동물 이미지 사용
+    const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
+    const ganziMatch = dayPillarAnimal.match(/\(([가-힣]{2})/)
+    const ganziKorean = ganziMatch ? ganziMatch[1] : null
+    const imageUrl = ganziKorean
+      ? `${productionUrl}/images/animals/${encodeURIComponent(ganziKorean)}.png`
+      : `${productionUrl}/images/og-default.png`
 
     const shared = shareKakao({
       title: `${dayPillarAnimal}의 ${typeLabel} - 팔자냥`,
