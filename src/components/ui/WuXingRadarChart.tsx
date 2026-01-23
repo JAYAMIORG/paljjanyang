@@ -34,8 +34,8 @@ const ELEMENTS_ORDER = ['wood', 'fire', 'earth', 'metal', 'water'] as const
 
 export function WuXingRadarChart({ wuXing, size = 200 }: WuXingRadarChartProps) {
   const center = size / 2
-  const maxRadius = size * 0.38 // 최대 반경
-  const labelRadius = size * 0.48 // 라벨 위치
+  const maxRadius = size * 0.32 // 최대 반경
+  const labelRadius = size * 0.52 // 라벨 위치 (그래프와 간격 확보)
 
   // 5개 중 최댓값 계산
   const maxValue = useMemo(() => {
@@ -167,7 +167,7 @@ export function WuXingRadarChart({ wuXing, size = 200 }: WuXingRadarChartProps) 
         return (
           <div
             key={element}
-            className="absolute flex flex-col items-center"
+            className="absolute flex flex-col items-center whitespace-nowrap"
             style={{
               left: labelPoint.x,
               top: labelPoint.y,
@@ -175,12 +175,12 @@ export function WuXingRadarChart({ wuXing, size = 200 }: WuXingRadarChartProps) 
             }}
           >
             <span
-              className="text-caption font-bold"
+              className="text-caption font-bold whitespace-nowrap"
               style={{ color: WUXING_COLORS[element] }}
             >
               {WUXING_LABELS[element]}
             </span>
-            <span className="text-caption text-text-muted">
+            <span className="text-caption text-text-muted whitespace-nowrap">
               {wuXing[element]}%
             </span>
           </div>
