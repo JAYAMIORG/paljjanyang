@@ -246,17 +246,13 @@ function ResultContent() {
     // 컴포넌트 마운트 상태 추적
     isMountedRef.current = true
 
-    // URL이 변경되면 refs 초기화 (뒤로가기/앞으로가기 대응)
-    hasStartedRef.current = false
-    hasSavedRef.current = false
-    hasDeductedCoinRef.current = false
-
     // 인증 로딩 중이면 대기
     if (authLoading) return
 
+    // 이미 시작했으면 중복 실행 방지
+    if (hasStartedRef.current) return
+
     const fetchSaju = async () => {
-      // 이미 시작했으면 중복 실행 방지
-      if (hasStartedRef.current) return
       hasStartedRef.current = true
 
       try {
@@ -451,7 +447,7 @@ function ResultContent() {
       isMountedRef.current = false
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, user, searchParams])
+  }, [authLoading, user])
 
   // LLM 해석 요청 및 자동 저장 (저장된 결과가 아닌 경우만)
   useEffect(() => {

@@ -167,12 +167,17 @@ export default function SharedResultPage() {
   const [data, setData] = useState<SharedReadingResponse['data'] | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const isMountedRef = useRef(true)
 
   useEffect(() => {
+    isMountedRef.current = true
+
     const fetchSharedResult = async () => {
       try {
         const response = await fetch(`/api/saju/shared/${id}`)
         const result: SharedReadingResponse = await response.json()
+
+        if (!isMountedRef.current) return
 
         if (result.success && result.data) {
           setData(result.data)
@@ -180,14 +185,25 @@ export default function SharedResultPage() {
           setError(result.error?.message || '결과를 찾을 수 없습니다.')
         }
       } catch {
+        if (!isMountedRef.current) return
         setError('서버 연결에 실패했습니다.')
       } finally {
-        setIsLoading(false)
+        if (isMountedRef.current) {
+          setIsLoading(false)
+        }
       }
     }
 
     if (id) {
+      // 상태 초기화 (뒤로가기/앞으로가기 대응)
+      setData(null)
+      setError(null)
+      setIsLoading(true)
       fetchSharedResult()
+    }
+
+    return () => {
+      isMountedRef.current = false
     }
   }, [id])
 
@@ -356,7 +372,13 @@ export default function SharedResultPage() {
       <div className="min-h-screen bg-background">
         <Header showBack useHistoryBack />
         <main className="px-4 py-6 max-w-lg mx-auto text-center">
-          <div className="text-6xl mb-4">😿</div>
+          <Image
+            src="/images/brand-character.png"
+            alt=""
+            width={80}
+            height={80}
+            className="h-20 w-auto mx-auto mb-4"
+          />
           <p className="text-body text-text mb-6">{error || '결과를 불러올 수 없습니다.'}</p>
           <Button onClick={() => router.push('/home')}>
             홈으로 가기
