@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense, useRef, useCallback } from 'react'
+import { useEffect, useState, Suspense, useRef, useCallback, ReactNode } from 'react'
 import Image from 'next/image'
 import { useSearchParams, useRouter } from 'next/navigation'
 import html2canvas from 'html2canvas'
@@ -1154,6 +1154,39 @@ function ResultContent() {
   )
 }
 
+// 인라인 마크다운 파싱 (볼드, 이탤릭)
+function parseInlineMarkdown(text: string): ReactNode[] {
+  const parts: React.ReactNode[] = []
+  // **bold** 와 *italic* 패턴 매칭
+  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*)/g
+  let lastIndex = 0
+  let match
+
+  while ((match = regex.exec(text)) !== null) {
+    // 매치 전 텍스트
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index))
+    }
+
+    if (match[2]) {
+      // **bold**
+      parts.push(<strong key={match.index} className="font-semibold text-text">{match[2]}</strong>)
+    } else if (match[3]) {
+      // *italic*
+      parts.push(<em key={match.index}>{match[3]}</em>)
+    }
+
+    lastIndex = regex.lastIndex
+  }
+
+  // 마지막 남은 텍스트
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex))
+  }
+
+  return parts.length > 0 ? parts : [text]
+}
+
 // LLM 해석 표시 컴포넌트
 function InterpretationCard({ content }: { content: string }) {
   const sections = parseMarkdownSections(content)
@@ -1168,7 +1201,7 @@ function InterpretationCard({ content }: { content: string }) {
             </h3>
           )}
           <div className="text-body text-text-muted leading-relaxed whitespace-pre-wrap">
-            {section.content}
+            {parseInlineMarkdown(section.content)}
           </div>
         </Card>
       ))}
