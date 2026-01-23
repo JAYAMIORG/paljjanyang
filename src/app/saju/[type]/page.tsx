@@ -21,7 +21,7 @@ interface Person {
 
 const sajuTypeInfo: Record<string, { title: string; icon: string; needsTwoPeople: boolean; skipPreview?: boolean }> = {
   personal: { title: '개인 사주', icon: '🔮', needsTwoPeople: false },
-  yearly: { title: '신년운세', icon: '📅', needsTwoPeople: false },
+  yearly: { title: '신년운세', icon: '🌅', needsTwoPeople: false },
   compatibility: { title: '궁합', icon: '💕', needsTwoPeople: true },
   love: { title: '연애운', icon: '💝', needsTwoPeople: false },
   daily: { title: '오늘의 운세', icon: '☀️', needsTwoPeople: false, skipPreview: true },
