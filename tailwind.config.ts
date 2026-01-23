@@ -9,11 +9,11 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Primary - Deep Lavender
+        // Primary - Vivid Purple
         primary: {
-          DEFAULT: '#6B5B95',
-          light: '#9B8FB7',
-          dark: '#5A4A84',
+          DEFAULT: '#6b3fdc',
+          light: '#8f6ce8',
+          dark: '#5632b3',
         },
         // Accent - Gold
         accent: {
@@ -51,7 +51,7 @@ const config: Config = {
       boxShadow: {
         'card': '0 2px 8px rgba(0, 0, 0, 0.08)',
         'card-hover': '0 8px 24px rgba(0, 0, 0, 0.12)',
-        'button': '0 2px 4px rgba(107, 91, 149, 0.2)',
+        'button': '0 2px 4px rgba(107, 63, 220, 0.2)',
       },
       animation: {
         'bounce-slow': 'bounce 2s infinite',
