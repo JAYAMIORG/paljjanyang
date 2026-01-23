@@ -76,13 +76,13 @@ export const DIZHI_INFO: Record<string, { animal: string; korean: string }> = {
   '亥': { animal: '돼지', korean: '해' },
 }
 
-// 간지에서 육십갑자 별칭 가져오기 (예: 庚戌 → 하얀 강아지 (경술))
+// 간지에서 육십갑자 별칭 가져오기 (예: 庚戌 → 하얀 강아지(경술일주))
 export function getJiaziAnimalName(ganZhi: string): string {
   if (!ganZhi || ganZhi.length !== 2) return ''
   const tianganInfo = TIANGAN_INFO[ganZhi[0]]
   const dizhiInfo = DIZHI_INFO[ganZhi[1]]
   if (!tianganInfo || !dizhiInfo) return ''
-  return `${tianganInfo.color} ${dizhiInfo.animal} (${tianganInfo.korean}${dizhiInfo.korean})`
+  return `${tianganInfo.color} ${dizhiInfo.animal}(${tianganInfo.korean}${dizhiInfo.korean}일주)`
 }
 
 // 납음 한글 번역 및 설명
