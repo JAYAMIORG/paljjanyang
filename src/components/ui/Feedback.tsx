@@ -200,6 +200,7 @@ interface ErrorScreenProps {
   title?: string
   message?: string
   emoji?: string
+  useCharacter?: boolean
   showRetry?: boolean
   onRetry?: () => void
   showHome?: boolean
@@ -209,7 +210,8 @@ interface ErrorScreenProps {
 export function ErrorScreen({
   title = '오류가 발생했어요',
   message = '잠시 후 다시 시도해주세요.',
-  emoji = '😿',
+  emoji,
+  useCharacter = true,
   showRetry = false,
   onRetry,
   showHome = false,
@@ -218,9 +220,21 @@ export function ErrorScreen({
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="text-center max-w-sm">
-        <div className="text-6xl mb-4">{emoji}</div>
+        {emoji ? (
+          <div className="text-6xl mb-4">{emoji}</div>
+        ) : useCharacter ? (
+          <Image
+            src="/images/brand-character.png"
+            alt=""
+            width={80}
+            height={80}
+            className="h-20 w-auto mx-auto mb-4"
+          />
+        ) : (
+          <div className="text-6xl mb-4">😿</div>
+        )}
         <h2 className="text-heading font-semibold text-text mb-2">{title}</h2>
-        <p className="text-body text-text-muted mb-6">{message}</p>
+        <p className="text-body text-text-muted mb-6 whitespace-pre-line">{message}</p>
         <div className="flex flex-col gap-3">
           {showRetry && onRetry && (
             <Button onClick={onRetry} fullWidth>
@@ -241,20 +255,34 @@ export function ErrorScreen({
 interface ErrorCardProps {
   message?: string
   emoji?: string
+  useCharacter?: boolean
   showRetry?: boolean
   onRetry?: () => void
 }
 
 export function ErrorCard({
   message = '오류가 발생했어요',
-  emoji = '😿',
+  emoji,
+  useCharacter = true,
   showRetry = false,
   onRetry,
 }: ErrorCardProps) {
   return (
     <div className="bg-white rounded-2xl p-6">
       <div className="text-center py-4">
-        <div className="text-4xl mb-3">{emoji}</div>
+        {emoji ? (
+          <div className="text-4xl mb-3">{emoji}</div>
+        ) : useCharacter ? (
+          <Image
+            src="/images/brand-character.png"
+            alt=""
+            width={48}
+            height={48}
+            className="h-12 w-auto mx-auto mb-3"
+          />
+        ) : (
+          <div className="text-4xl mb-3">😿</div>
+        )}
         <p className="text-body text-text-muted mb-4">{message}</p>
         {showRetry && onRetry && (
           <Button size="sm" onClick={onRetry}>
@@ -402,7 +430,13 @@ export function InsufficientCoinsModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center">
-        <span className="text-5xl block mb-4">😿</span>
+        <Image
+          src="/images/brand-character.png"
+          alt=""
+          width={64}
+          height={64}
+          className="h-16 w-auto mx-auto mb-4"
+        />
         <h3 className="text-heading font-semibold text-text mb-2">
           코인이 부족해요
         </h3>
