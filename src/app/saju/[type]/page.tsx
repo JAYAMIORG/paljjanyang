@@ -488,6 +488,9 @@ export default function SajuInputPage() {
         <h3 className="text-subheading font-semibold text-text mb-2">
           태어난 시간
         </h3>
+        <p className="text-small text-text-muted mb-1">
+          4자리로 입력하세요 (ex. 0930, 1700)
+        </p>
         <p className="text-small text-text-muted mb-3">
           시간을 모르면 비워두세요
         </p>
@@ -521,11 +524,6 @@ export default function SajuInputPage() {
             ) : null
           })()}
         </div>
-        {formData.birthTime === '' && (
-          <p className="text-center text-small text-text-muted mt-2">
-            시간 미입력 시 시주 없이 계산됩니다
-          </p>
-        )}
       </Card>
 
       {/* 성별 */}
