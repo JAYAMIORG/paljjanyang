@@ -8,6 +8,7 @@ import { Header } from '@/components/layout'
 import { Button, Card, LoadingScreen, ErrorScreen, InsufficientCoinsModal, WuXingRadarChart } from '@/components/ui'
 import { YearlyResultContent, CompatibilityResultContent, DailyResultContent } from '@/components/result'
 import { useAuth, useKakaoShare } from '@/hooks'
+import { getNaYinInfo } from '@/lib/saju/constants'
 import type { SajuResult } from '@/types/saju'
 
 const WUXING_COLORS: Record<string, string> = {
@@ -43,8 +44,9 @@ const getDayMasterEmoji = (dayMaster: string): string => {
 // LLM 해석에서 일주 정보 추출
 const extractDayPillarInfo = (interpretation: string): { characteristic: string | null; description: string | null } => {
   // [일주특징]과 [일주해석] 태그 찾기
-  const characteristicMatch = interpretation.match(/\[일주특징\]\s*(.+?)(?:\n|$)/i)
-  const descriptionMatch = interpretation.match(/\[일주해석\]\s*([\s\S]+?)(?=\n###|\n---|\n\n###|$)/i)
+  // 태그 바로 뒤 또는 다음 줄에서 내용 추출
+  const characteristicMatch = interpretation.match(/\[일주특징\]\s*\n?(.+?)(?:\n|$)/i)
+  const descriptionMatch = interpretation.match(/\[일주해석\]\s*\n?([\s\S]+?)(?=\n###|\n---|\n\n###|\n\*\*\[|$)/i)
 
   let characteristic = characteristicMatch ? characteristicMatch[1].trim() : null
   let description = descriptionMatch ? descriptionMatch[1].trim() : null
@@ -1025,14 +1027,20 @@ function ResultContent() {
               <p className="text-heading font-bold text-primary">
                 {result.dayPillarAnimal}
               </p>
-              {/* 일주 한줄 특징 (LLM 해석에서 추출) */}
-              {interpretation && (() => {
-                const dayPillarInfo = extractDayPillarInfo(interpretation)
-                return dayPillarInfo.characteristic ? (
+              {/* 납음 + 한줄 특징 */}
+              {(() => {
+                const naYinInfo = result.dayNaYin ? getNaYinInfo(result.dayNaYin) : null
+                const dayPillarInfo = interpretation ? extractDayPillarInfo(interpretation) : { characteristic: null, description: null }
+                // LLM 특징이 있으면 사용, 없으면 납음 설명의 첫 부분 사용
+                const characteristic = dayPillarInfo.characteristic || naYinInfo?.description?.split(',')[0] || ''
+
+                if (!naYinInfo?.korean) return null
+
+                return (
                   <p className="text-body text-accent font-medium mt-2">
-                    "{dayPillarInfo.characteristic}"
+                    {naYinInfo.korean}: {characteristic}
                   </p>
-                ) : null
+                )
               })()}
             </div>
             {/* 일주 상세 해석 (LLM 해석에서 추출) */}
