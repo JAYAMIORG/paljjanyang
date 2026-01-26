@@ -26,7 +26,7 @@ export default function LandingPage() {
         />
         <div className="relative max-w-[500px] mx-auto">
           {/* 로고 */}
-          <div className="mb-8 w-full flex justify-center">
+          <div className="mb-5 w-full flex justify-center">
             <Image
               src={isEyeOpen ? '/images/logo-opened.webp' : '/images/logo-closed.webp'}
               alt="팔자냥"
@@ -37,11 +37,12 @@ export default function LandingPage() {
               priority
             />
           </div>
-          <p className="mb-2 text-xl max-[400px]:text-base sm:text-2xl text-text" style={{ fontFamily: 'GanaChocolate, sans-serif' }}>
-            40년 경력 역술가의 노하우를 담았습니다.
+          <p className="mb-4 text-xl max-[400px]:text-xl sm:text-3xl" style={{ fontFamily: 'Paperozi, sans-serif', fontWeight: 700 }}>
+            880원으로 보는,<br />
+            지금 내 인생에 필요한 사주
           </p>
-          <p className="text-body text-text-muted mb-8" style={{ fontFamily: 'GanaChocolate, sans-serif' }}>
-            만세력 기반 정통 사주 분석
+          <p className="mb-6 text-medium max-[400px]:text-base sm:text-xl" style={{ fontFamily: 'Paperozi, sans-serif', fontWeight: 700 }}>
+            40년 경력 역술가의 노하우를 담았습니다.
           </p>
 
           {/* CTA 버튼 */}
