@@ -37,11 +37,11 @@ export default function LandingPage() {
               priority
             />
           </div>
-          <p className="mb-4 text-xl max-[400px]:text-xl sm:text-3xl" style={{ fontFamily: 'Paperozi, sans-serif', fontWeight: 600 }}>
+          <p className="mb-4 text-base max-[400px]:text-base sm:text-xl" style={{ fontFamily: 'GanaChocolate, sans-serif' }}>
             880원으로 보는,<br />
             지금 내 인생에 필요한 사주
           </p>
-          <p className="mb-8 text-medium max-[400px]:text-base sm:text-xl" style={{ fontFamily: 'Paperozi, sans-serif', fontWeight: 600 }}>
+          <p className="mb-8 text-sm max-[400px]:text-sm sm:text-base" style={{ fontFamily: 'GanaChocolate, sans-serif' }}>
             40년 경력 역술가의 노하우를 담았습니다.
           </p>
 
