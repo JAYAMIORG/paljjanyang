@@ -94,7 +94,7 @@
   --color-text-light: #9B9B9B;
 
   /* Font Family */
-  --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
+  --font-sans: "Paperozi", "Pretendard Variable", Pretendard, system-ui, sans-serif;
   --font-serif: var(--font-noto-serif), serif;
 
   /* Font Size */
@@ -140,7 +140,7 @@
 body {
   background-color: var(--color-background);
   color: var(--color-text);
-  font-family: var(--font-sans);
+  font-family: 'Paperozi', var(--font-sans);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

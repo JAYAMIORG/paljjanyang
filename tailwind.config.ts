@@ -33,7 +33,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-pretendard)', 'system-ui', 'sans-serif'],
+        sans: ['Paperozi', 'var(--font-pretendard)', 'system-ui', 'sans-serif'],
         serif: ['var(--font-noto-serif)', 'serif'],
       },
       fontSize: {
