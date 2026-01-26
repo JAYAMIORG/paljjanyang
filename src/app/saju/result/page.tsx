@@ -40,6 +40,54 @@ const getDayMasterEmoji = (dayMaster: string): string => {
   return DAY_MASTER_EMOJI[dayMaster] || '🐱'
 }
 
+// LLM 해석에서 일주 정보 추출
+const extractDayPillarInfo = (interpretation: string): { characteristic: string | null; description: string | null } => {
+  // [일주특징]과 [일주해석] 태그 찾기
+  const characteristicMatch = interpretation.match(/\[일주특징\]\s*(.+?)(?:\n|$)/i)
+  const descriptionMatch = interpretation.match(/\[일주해석\]\s*([\s\S]+?)(?=\n###|\n---|\n\n###|$)/i)
+
+  let characteristic = characteristicMatch ? characteristicMatch[1].trim() : null
+  let description = descriptionMatch ? descriptionMatch[1].trim() : null
+
+  // 태그가 없으면 섹션 1에서 추출 시도
+  if (!characteristic || !description) {
+    const section1Match = interpretation.match(/###\s*1\.\s*나의\s*일주[^\n]*\n([\s\S]*?)(?=\n###\s*2\.|\n---\s*\n###\s*2\.)/i)
+    if (section1Match) {
+      const section1Content = section1Match[1]
+
+      // 한줄 특징 추출 (첫 번째 줄이나 **로 감싸진 부분)
+      if (!characteristic) {
+        const boldMatch = section1Content.match(/\*\*([^*]+)\*\*/)?.[1]
+        const firstLineMatch = section1Content.match(/^[^\n]+/)?.[0]
+        characteristic = boldMatch || (firstLineMatch && firstLineMatch.length < 30 ? firstLineMatch : null)
+      }
+
+      // 상세 해석 추출 (나머지 내용)
+      if (!description) {
+        // 불릿 포인트나 특수 마커 제거 후 텍스트만 추출
+        const cleanContent = section1Content
+          .replace(/^\s*[-*]\s*/gm, '')
+          .replace(/\*\*[^*]+\*\*/g, '')
+          .replace(/\[일주특징\][^\n]*/gi, '')
+          .replace(/\[일주해석\]/gi, '')
+          .trim()
+        description = cleanContent.slice(0, 500) // 최대 500자
+      }
+    }
+  }
+
+  // 설명에서 불필요한 마크다운 정리
+  if (description) {
+    description = description
+      .replace(/^\s*[-*]\s*/gm, '')
+      .replace(/\*\*/g, '')
+      .replace(/\n+/g, ' ')
+      .trim()
+  }
+
+  return { characteristic, description }
+}
+
 // 천간 한글 변환
 const TIANGAN_KOREAN: Record<string, string> = {
   '甲': '갑', '乙': '을', '丙': '병', '丁': '정', '戊': '무',
@@ -977,10 +1025,31 @@ function ResultContent() {
               <p className="text-heading font-bold text-primary">
                 {result.dayPillarAnimal}
               </p>
-              <p className="text-small text-text-muted mt-2">
-                일주(日柱)는 타고난 본성과 성격을 나타내요
-              </p>
+              {/* 일주 한줄 특징 (LLM 해석에서 추출) */}
+              {interpretation && (() => {
+                const dayPillarInfo = extractDayPillarInfo(interpretation)
+                return dayPillarInfo.characteristic ? (
+                  <p className="text-body text-accent font-medium mt-2">
+                    "{dayPillarInfo.characteristic}"
+                  </p>
+                ) : null
+              })()}
             </div>
+            {/* 일주 상세 해석 (LLM 해석에서 추출) */}
+            {interpretation && (() => {
+              const dayPillarInfo = extractDayPillarInfo(interpretation)
+              return dayPillarInfo.description ? (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <p className="text-body text-text-muted leading-relaxed">
+                    {dayPillarInfo.description}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-small text-text-muted mt-2 text-center">
+                  일주(日柱)는 타고난 본성과 성격을 나타내요
+                </p>
+              )
+            })()}
           </Card>
         )}
 
@@ -1027,7 +1096,7 @@ function ResultContent() {
             interpretation={interpretation}
           />
         ) : interpretation ? (
-          <InterpretationCard content={interpretation} />
+          <InterpretationCard content={interpretation} excludeSection1={type === 'personal'} />
         ) : (
           <FallbackInterpretation result={result} />
         )}
@@ -1175,8 +1244,15 @@ function parseInlineMarkdown(text: string): ReactNode[] {
 }
 
 // LLM 해석 표시 컴포넌트
-function InterpretationCard({ content }: { content: string }) {
-  const sections = parseMarkdownSections(content)
+function InterpretationCard({ content, excludeSection1 = false }: { content: string; excludeSection1?: boolean }) {
+  let sections = parseMarkdownSections(content)
+
+  // 섹션 1 (나의 일주) 제외 옵션
+  if (excludeSection1) {
+    sections = sections.filter(section =>
+      !section.title?.match(/^1\.\s*나의\s*일주/i)
+    )
+  }
 
   return (
     <div className="space-y-4">
