@@ -1,15 +1,48 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback, ReactNode } from 'react'
+import { useEffect, useState, useRef, useCallback, ReactNode, useMemo } from 'react'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import html2canvas from 'html2canvas'
 import { Header } from '@/components/layout'
 import { Button, Card, LoadingScreen, WuXingRadarChart } from '@/components/ui'
-import { YearlyResultContent, CompatibilityResultContent, DailyResultContent } from '@/components/result'
+import { PersonalResultContent, YearlyResultContent, CompatibilityResultContent, DailyResultContent, LoveResultContent } from '@/components/result'
 import { useKakaoShare } from '@/hooks'
 import { WUXING_COLORS, WUXING_KOREAN } from '@/lib/saju/constants'
 import type { SharedReadingResponse } from '@/app/api/saju/shared/[id]/route'
+import type {
+  PersonalInterpretation,
+  YearlyInterpretation,
+  CompatibilityInterpretation,
+  LoveInterpretation,
+  DailyInterpretation,
+} from '@/types/interpretation'
+
+// JSON 해석 타입 유니온
+type InterpretationData =
+  | PersonalInterpretation
+  | YearlyInterpretation
+  | CompatibilityInterpretation
+  | LoveInterpretation
+  | DailyInterpretation
+
+/**
+ * 문자열이 JSON 형식인지 확인하고 파싱
+ */
+function tryParseJsonInterpretation(interpretation: string | null): InterpretationData | null {
+  if (!interpretation) return null
+
+  // JSON이 아닌 경우 (마크다운) null 반환
+  if (!interpretation.trim().startsWith('{')) {
+    return null
+  }
+
+  try {
+    return JSON.parse(interpretation) as InterpretationData
+  } catch {
+    return null
+  }
+}
 
 // 일간 오행 이모지 매핑
 const DAY_MASTER_EMOJI: Record<string, string> = {
@@ -560,36 +593,66 @@ export default function SharedResultPage() {
         )}
 
         {/* 전문가 해석 또는 폴백 - 타입별 분기 */}
-        {type === 'yearly' ? (
-          <YearlyResultContent
-            result={{
-              bazi: data.bazi,
-              wuXing: data.wuXing,
-              dayMaster: data.dayMaster,
-              dayMasterKorean: data.dayMasterKorean,
-              koreanGanji: data.koreanGanji,
-              zodiacEmoji: data.zodiacEmoji,
-              dominantElement: data.dominantElement,
-              weakElement: data.weakElement,
-              daYun: data.daYun.map((dy, index) => ({
-                ...dy,
-                index,
-                startYear: new Date().getFullYear() + dy.startAge,
-                endYear: new Date().getFullYear() + dy.endAge,
-              })),
-              shiShen: { yearGan: '', monthGan: '', hourGan: null },
-              zodiac: '',
-              naYin: '',
-              dayPillarAnimal: data.dayPillarAnimal,
-              dayNaYin: '',
-            }}
-            interpretation={data.interpretation}
-          />
-        ) : data.interpretation ? (
-          <InterpretationCard content={data.interpretation} />
-        ) : (
-          <FallbackInterpretation data={data} />
-        )}
+        {(() => {
+          // JSON 파싱 시도
+          const parsedInterpretation = tryParseJsonInterpretation(data.interpretation)
+          const sajuResult = {
+            bazi: data.bazi,
+            wuXing: data.wuXing,
+            dayMaster: data.dayMaster,
+            dayMasterKorean: data.dayMasterKorean,
+            koreanGanji: data.koreanGanji,
+            zodiacEmoji: data.zodiacEmoji,
+            dominantElement: data.dominantElement,
+            weakElement: data.weakElement,
+            daYun: data.daYun.map((dy, index) => ({
+              ...dy,
+              index,
+              startYear: new Date().getFullYear() + dy.startAge,
+              endYear: new Date().getFullYear() + dy.endAge,
+            })),
+            shiShen: { yearGan: '', monthGan: '', hourGan: null },
+            zodiac: '',
+            naYin: '',
+            dayPillarAnimal: data.dayPillarAnimal,
+            dayNaYin: '',
+          }
+
+          if (type === 'yearly') {
+            return (
+              <YearlyResultContent
+                result={sajuResult}
+                interpretation={parsedInterpretation as YearlyInterpretation | null}
+              />
+            )
+          } else if (type === 'daily') {
+            return (
+              <DailyResultContent
+                result={sajuResult}
+                interpretation={parsedInterpretation as DailyInterpretation | null}
+                isNew={false}
+              />
+            )
+          } else if (type === 'love') {
+            return (
+              <LoveResultContent
+                result={sajuResult}
+                interpretation={parsedInterpretation as LoveInterpretation | null}
+              />
+            )
+          } else if (type === 'personal' && parsedInterpretation) {
+            return (
+              <PersonalResultContent
+                interpretation={parsedInterpretation as PersonalInterpretation}
+              />
+            )
+          } else if (data.interpretation && !parsedInterpretation) {
+            // 구 형식 (마크다운) - 폴백으로 처리
+            return <InterpretationCard content={data.interpretation} />
+          } else {
+            return <FallbackInterpretation data={data} />
+          }
+        })()}
 
         {/* 대운 흐름 - 신년운세/궁합/오늘의운세 외 타입에서만 표시 */}
         {type !== 'yearly' && type !== 'compatibility' && type !== 'daily' && data.daYun && data.daYun.length > 0 && (

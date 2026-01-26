@@ -1,5 +1,7 @@
+export { PersonalResultContent } from './PersonalResultContent'
 export { YearlyResultContent } from './YearlyResultContent'
 export { CompatibilityResultContent } from './CompatibilityResultContent'
 export { DailyResultContent } from './DailyResultContent'
+export { LoveResultContent } from './LoveResultContent'
 export { InterpretationCard } from './InterpretationCard'
 export { FallbackInterpretation } from './FallbackInterpretation'

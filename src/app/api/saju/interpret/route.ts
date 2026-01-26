@@ -3,6 +3,13 @@ import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { SajuResult } from '@/types/saju'
+import type {
+  PersonalInterpretation,
+  YearlyInterpretation,
+  CompatibilityInterpretation,
+  LoveInterpretation,
+  DailyInterpretation,
+} from '@/types/interpretation'
 import {
   SYSTEM_PROMPT,
   buildPersonalSajuPrompt,
@@ -18,6 +25,14 @@ import {
   type SajuType,
 } from '@/lib/cache/interpretation-cache'
 import { openaiRateLimiter } from '@/lib/llm/rate-limiter'
+
+// JSON 응답 타입 유니온
+type InterpretationData =
+  | PersonalInterpretation
+  | YearlyInterpretation
+  | CompatibilityInterpretation
+  | LoveInterpretation
+  | DailyInterpretation
 
 // OpenAI 클라이언트를 싱글톤으로 생성 (연결 재사용)
 let openaiClient: OpenAI | null = null
@@ -48,11 +63,48 @@ export interface InterpretRequest {
 export interface InterpretResponse {
   success: boolean
   data?: {
-    interpretation: string
+    interpretation: InterpretationData
+    raw?: string // 디버깅용 원본 응답 (개발 모드에서만)
   }
   error?: {
     code: string
     message: string
+  }
+}
+
+/**
+ * LLM 응답에서 JSON을 추출하고 파싱
+ * - 마크다운 코드블록 제거
+ * - JSON 유효성 검사
+ */
+function parseJsonResponse(text: string): InterpretationData | null {
+  try {
+    // 마크다운 코드블록 제거 (```json ... ``` 또는 ``` ... ```)
+    let cleaned = text.trim()
+
+    // ```json 또는 ``` 로 시작하는 경우 제거
+    const codeBlockMatch = cleaned.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i)
+    if (codeBlockMatch) {
+      cleaned = codeBlockMatch[1].trim()
+    }
+
+    // JSON 객체 시작/끝 찾기 (앞뒤 텍스트 무시)
+    const jsonStart = cleaned.indexOf('{')
+    const jsonEnd = cleaned.lastIndexOf('}')
+
+    if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
+      console.error('JSON boundaries not found in response')
+      return null
+    }
+
+    const jsonStr = cleaned.slice(jsonStart, jsonEnd + 1)
+    const parsed = JSON.parse(jsonStr)
+
+    return parsed as InterpretationData
+  } catch (error) {
+    console.error('JSON parse error:', error)
+    console.error('Raw text:', text.slice(0, 500))
+    return null
   }
 }
 
@@ -134,13 +186,18 @@ export async function POST(request: NextRequest) {
     if (adminClient) {
       const cached = await getCachedInterpretation(adminClient, cacheKey)
       if (cached) {
-        // 캐시 히트 - LLM 호출 없이 바로 반환
-        return NextResponse.json<InterpretResponse>({
-          success: true,
-          data: {
-            interpretation: cached.interpretation,
-          },
-        })
+        // 캐시 히트 - JSON 파싱 시도
+        const parsedCache = parseJsonResponse(cached.interpretation)
+        if (parsedCache) {
+          return NextResponse.json<InterpretResponse>({
+            success: true,
+            data: {
+              interpretation: parsedCache,
+            },
+          })
+        }
+        // 구 버전 캐시 (Markdown) - 무시하고 새로 생성
+        console.log('Old cache format detected, regenerating...')
       }
     }
 
@@ -216,17 +273,35 @@ export async function POST(request: NextRequest) {
       throw new Error('No text response from OpenAI')
     }
 
+    // JSON 파싱
+    const parsedResponse = parseJsonResponse(responseText)
+    if (!parsedResponse) {
+      console.error('Failed to parse LLM JSON response')
+      console.error('Raw response:', responseText.slice(0, 1000))
+      return NextResponse.json<InterpretResponse>(
+        {
+          success: false,
+          error: {
+            code: 'PARSE_ERROR',
+            message: '응답 형식 오류가 발생했습니다. 다시 시도해주세요.',
+          },
+        },
+        { status: 500 }
+      )
+    }
+
     // ========================================
     // 캐시 저장 (LLM 호출 후, 백그라운드에서 실행)
     // ========================================
     if (adminClient) {
       // 비동기로 저장 (응답 지연 방지)
+      // JSON을 문자열로 저장 (기존 스키마 호환)
       saveCachedInterpretation(adminClient, {
         cacheKey,
         type: type as SajuType,
         bazi: sajuResult.bazi,
         gender,
-        interpretation: responseText,
+        interpretation: JSON.stringify(parsedResponse),
         bazi2: sajuResult2?.bazi,
         gender2,
       }).catch((err) => {
@@ -237,7 +312,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json<InterpretResponse>({
       success: true,
       data: {
-        interpretation: responseText,
+        interpretation: parsedResponse,
+        ...(process.env.NODE_ENV === 'development' && { raw: responseText }),
       },
     })
   } catch (error) {

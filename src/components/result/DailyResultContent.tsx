@@ -2,10 +2,11 @@
 
 import { Card } from '@/components/ui'
 import type { SajuResult } from '@/types/saju'
+import type { DailyInterpretation } from '@/types/interpretation'
 
 interface DailyResultContentProps {
   result: SajuResult
-  interpretation: string | null
+  interpretation: DailyInterpretation | null
   isNew: boolean
 }
 
@@ -15,6 +16,18 @@ const DAY_MASTER_EMOJI: Record<string, string> = {
   '戊': '⛰️', '己': '🏔️',
   '庚': '⚔️', '辛': '💎',
   '壬': '🌊', '癸': '💧',
+}
+
+// 방향 아이콘
+const DIRECTION_EMOJI: Record<string, string> = {
+  '동': '🌅',
+  '서': '🌇',
+  '남': '🌞',
+  '북': '❄️',
+  '동북': '🏔️',
+  '동남': '🌴',
+  '서북': '🌙',
+  '서남': '🏜️',
 }
 
 export function DailyResultContent({ result, interpretation, isNew }: DailyResultContentProps) {
@@ -44,12 +57,67 @@ export function DailyResultContent({ result, interpretation, isNew }: DailyResul
 
       {/* 운세 내용 */}
       {interpretation ? (
-        <Card>
-          <div className="text-body text-text leading-relaxed whitespace-pre-wrap">
-            {parseSimpleContent(interpretation)}
-          </div>
-        </Card>
+        <>
+          {/* 총운 */}
+          <Card>
+            <h3 className="text-subheading font-semibold text-text mb-3">
+              🔮 오늘의 총운
+            </h3>
+            <p className="text-body text-text leading-relaxed">
+              {interpretation.overview}
+            </p>
+          </Card>
+
+          {/* 행운 키워드 */}
+          {(interpretation.lucky.color || interpretation.lucky.number || interpretation.lucky.direction) && (
+            <Card>
+              <h3 className="text-subheading font-semibold text-text mb-3">
+                🍀 오늘의 행운
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {interpretation.lucky.color && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-lg">
+                    <span className="text-lg">🎨</span>
+                    <div>
+                      <p className="text-xs text-text-muted">행운의 색상</p>
+                      <p className="font-semibold text-primary">{interpretation.lucky.color}</p>
+                    </div>
+                  </div>
+                )}
+                {interpretation.lucky.number && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-lg">
+                    <span className="text-lg">🔢</span>
+                    <div>
+                      <p className="text-xs text-text-muted">행운의 숫자</p>
+                      <p className="font-semibold text-primary">{interpretation.lucky.number}</p>
+                    </div>
+                  </div>
+                )}
+                {interpretation.lucky.direction && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-lg">
+                    <span className="text-lg">{DIRECTION_EMOJI[interpretation.lucky.direction] || '🧭'}</span>
+                    <div>
+                      <p className="text-xs text-text-muted">행운의 방향</p>
+                      <p className="font-semibold text-primary">{interpretation.lucky.direction}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {/* 오늘의 조언 */}
+          <Card variant="highlighted">
+            <h3 className="text-subheading font-semibold text-text mb-3">
+              💡 오늘의 조언
+            </h3>
+            <p className="text-body text-text leading-relaxed">
+              {interpretation.advice}
+            </p>
+          </Card>
+        </>
       ) : (
+        /* 해석 없을 때 기본 콘텐츠 */
         <Card>
           <div className="text-body text-text leading-relaxed">
             <p>오늘은 {result.dominantElement}의 기운이 강한 하루예요.</p>
@@ -64,14 +132,4 @@ export function DailyResultContent({ result, interpretation, isNew }: DailyResul
       </div>
     </div>
   )
-}
-
-// 마크다운 헤더 제거하고 단순 텍스트로 변환
-function parseSimpleContent(markdown: string): string {
-  return markdown
-    .replace(/^#{1,3}\s+.+$/gm, '') // 헤더 제거
-    .replace(/\*\*([^*]+)\*\*/g, '$1') // 볼드 제거
-    .replace(/\*([^*]+)\*/g, '$1') // 이탤릭 제거
-    .replace(/^[-*]\s+/gm, '• ') // 리스트 마커 변환
-    .trim()
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
 import type { SajuResult } from '@/types/saju'
+import type { DailyInterpretation } from '@/types/interpretation'
 import { SYSTEM_PROMPT, buildDailySajuPrompt } from '@/lib/llm/prompts'
 
 function getOpenAIClient() {
@@ -22,12 +23,42 @@ export interface DailyRequest {
 export interface DailyResponse {
   success: boolean
   data?: {
-    interpretation: string
+    interpretation: DailyInterpretation
     isNew: boolean // 새로 생성된 결과인지
   }
   error?: {
     code: string
     message: string
+  }
+}
+
+/**
+ * LLM 응답에서 JSON을 추출하고 파싱
+ */
+function parseJsonResponse(text: string): DailyInterpretation | null {
+  try {
+    let cleaned = text.trim()
+
+    // 마크다운 코드블록 제거
+    const codeBlockMatch = cleaned.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i)
+    if (codeBlockMatch) {
+      cleaned = codeBlockMatch[1].trim()
+    }
+
+    // JSON 객체 시작/끝 찾기
+    const jsonStart = cleaned.indexOf('{')
+    const jsonEnd = cleaned.lastIndexOf('}')
+
+    if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
+      console.error('JSON boundaries not found in daily response')
+      return null
+    }
+
+    const jsonStr = cleaned.slice(jsonStart, jsonEnd + 1)
+    return JSON.parse(jsonStr) as DailyInterpretation
+  } catch (error) {
+    console.error('Daily JSON parse error:', error)
+    return null
   }
 }
 
@@ -99,13 +130,26 @@ export async function POST(request: NextRequest) {
 
     // 이미 오늘 조회한 기록이 있으면 저장된 결과 반환
     if (existingReading?.interpretation) {
-      return NextResponse.json<DailyResponse>({
-        success: true,
-        data: {
-          interpretation: existingReading.interpretation,
-          isNew: false,
-        },
-      })
+      // 저장된 해석을 JSON으로 파싱 시도
+      let parsedInterpretation: DailyInterpretation | null = null
+      try {
+        parsedInterpretation = typeof existingReading.interpretation === 'string'
+          ? JSON.parse(existingReading.interpretation)
+          : existingReading.interpretation
+      } catch {
+        // 구 형식 (마크다운) - 무시하고 새로 생성
+        parsedInterpretation = null
+      }
+
+      if (parsedInterpretation) {
+        return NextResponse.json<DailyResponse>({
+          success: true,
+          data: {
+            interpretation: parsedInterpretation,
+            isNew: false,
+          },
+        })
+      }
     }
 
     // OpenAI 클라이언트 확인
@@ -146,7 +190,23 @@ export async function POST(request: NextRequest) {
       throw new Error('No text response from OpenAI')
     }
 
-    // 결과 저장 (readings 테이블에 daily 타입으로)
+    // JSON 파싱
+    const parsedResponse = parseJsonResponse(responseText)
+    if (!parsedResponse) {
+      console.error('Failed to parse daily LLM JSON response')
+      return NextResponse.json<DailyResponse>(
+        {
+          success: false,
+          error: {
+            code: 'PARSE_ERROR',
+            message: '응답 형식 오류가 발생했습니다. 다시 시도해주세요.',
+          },
+        },
+        { status: 500 }
+      )
+    }
+
+    // 결과 저장 (readings 테이블에 daily 타입으로) - JSON을 문자열로 저장
     await supabase.from('readings').insert({
       user_id: user.id,
       reading_type: 'daily',
@@ -156,13 +216,13 @@ export async function POST(request: NextRequest) {
         wuXing: sajuResult.wuXing,
       },
       saju_result: sajuResult,
-      interpretation: responseText,
+      interpretation: JSON.stringify(parsedResponse),
     })
 
     return NextResponse.json<DailyResponse>({
       success: true,
       data: {
-        interpretation: responseText,
+        interpretation: parsedResponse,
         isNew: true,
       },
     })

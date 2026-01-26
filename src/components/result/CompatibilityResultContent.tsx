@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { Card } from '@/components/ui'
 import type { SajuResult } from '@/types/saju'
+import type { CompatibilityInterpretation } from '@/types/interpretation'
 
 const WUXING_COLORS: Record<string, string> = {
   wood: '#7FB069',
@@ -36,95 +37,18 @@ interface CompatibilityResultContentProps {
   name2: string
   gender1: string
   gender2: string
-  interpretation: string | null
-}
-
-interface ParsedCompatibilityInterpretation {
-  score: number | null
-  summary: string | null
-  chemistry: string | null
-  wuxingAnalysis: string | null
-  dayMasterAnalysis: string | null
-  cautions: string | null
-  yearlyFortune: string | null
-  advice: string | null
-}
-
-// 궁합 해석 파싱
-function parseCompatibilityInterpretation(markdown: string): ParsedCompatibilityInterpretation {
-  const result: ParsedCompatibilityInterpretation = {
-    score: null,
-    summary: null,
-    chemistry: null,
-    wuxingAnalysis: null,
-    dayMasterAnalysis: null,
-    cautions: null,
-    yearlyFortune: null,
-    advice: null,
-  }
-
-  // 점수 추출
-  const scoreMatch = markdown.match(/(\d{1,3})점/)
-  if (scoreMatch) {
-    result.score = parseInt(scoreMatch[1])
-  }
-
-  const sections = markdown.split(/(?=^#{1,3}\s)/m)
-
-  for (const section of sections) {
-    const lines = section.trim().split('\n')
-    const headerMatch = lines[0]?.match(/^#{1,3}\s+(.+)$/)
-    if (!headerMatch) continue
-
-    const title = headerMatch[1].toLowerCase()
-    const content = lines.slice(1).join('\n').trim()
-
-    if (title.includes('점수') || title.includes('핵심') || title.includes('요약')) {
-      result.summary = content
-      // 점수가 없으면 내용에서 추출
-      if (!result.score) {
-        const contentScoreMatch = content.match(/(\d{1,3})점/)
-        if (contentScoreMatch) {
-          result.score = parseInt(contentScoreMatch[1])
-        }
-      }
-    }
-    else if (title.includes('케미') || title.includes('시너지') || title.includes('끌리')) {
-      result.chemistry = content
-    }
-    else if (title.includes('오행')) {
-      result.wuxingAnalysis = content
-    }
-    else if (title.includes('일간')) {
-      result.dayMasterAnalysis = content
-    }
-    else if (title.includes('주의') || title.includes('갈등')) {
-      result.cautions = content
-    }
-    else if (title.includes('운') && (title.includes('올해') || title.includes('년'))) {
-      result.yearlyFortune = content
-    }
-    else if (title.includes('조언') || title.includes('발전')) {
-      result.advice = content
-    }
-  }
-
-  return result
+  interpretation: CompatibilityInterpretation | null
 }
 
 // 오행 조화 점수 계산 (간단한 버전)
 function calculateWuxingHarmony(wuxing1: SajuResult['wuXing'], wuxing2: SajuResult['wuXing']): number {
-  // 상생 관계 체크 (목->화->토->금->수->목)
-  // 두 사람의 오행 분포가 서로 보완적인지 확인
-  let harmony = 50 // 기본 점수
+  let harmony = 50
 
   const elements = ['wood', 'fire', 'earth', 'metal', 'water'] as const
 
   for (const elem of elements) {
     const diff = Math.abs(wuxing1[elem] - wuxing2[elem])
-    // 차이가 적으면 조화로움
     if (diff < 10) harmony += 5
-    // 한쪽이 부족한 것을 다른 쪽이 보완
     if ((wuxing1[elem] < 15 && wuxing2[elem] > 20) || (wuxing2[elem] < 15 && wuxing1[elem] > 20)) {
       harmony += 3
     }
@@ -224,7 +148,6 @@ function WuxingComparison({
       </div>
       {elements.map((element) => (
         <div key={element} className="flex items-center gap-2">
-          {/* 첫 번째 사람 */}
           <div className="flex-1 flex items-center justify-end gap-2">
             <span className="text-small text-text-muted">{wuxing1[element]}%</span>
             <div className="w-24 h-3 bg-gray-100 rounded-full overflow-hidden flex justify-end">
@@ -238,7 +161,6 @@ function WuxingComparison({
             </div>
           </div>
 
-          {/* 오행 이름 */}
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-white text-small font-bold flex-shrink-0"
             style={{ backgroundColor: WUXING_COLORS[element] }}
@@ -246,7 +168,6 @@ function WuxingComparison({
             {WUXING_KOREAN[element]}
           </div>
 
-          {/* 두 번째 사람 */}
           <div className="flex-1 flex items-center gap-2">
             <div className="w-24 h-3 bg-gray-100 rounded-full overflow-hidden">
               <div
@@ -274,15 +195,10 @@ export function CompatibilityResultContent({
   gender2,
   interpretation,
 }: CompatibilityResultContentProps) {
-  // 해석 파싱 (memoize하여 불필요한 재계산 방지)
-  const parsed = useMemo(() => {
-    return interpretation ? parseCompatibilityInterpretation(interpretation) : null
-  }, [interpretation])
-
-  // 점수 결정 (LLM 해석에서 추출하거나 오행 조화로 계산)
+  // 점수 결정 (LLM 해석에서 가져오거나 계산)
   const score = useMemo(() => {
-    return parsed?.score || calculateWuxingHarmony(result1.wuXing, result2.wuXing)
-  }, [parsed?.score, result1.wuXing, result2.wuXing])
+    return interpretation?.summary.score || calculateWuxingHarmony(result1.wuXing, result2.wuXing)
+  }, [interpretation?.summary.score, result1.wuXing, result2.wuXing])
 
   return (
     <div className="space-y-6">
@@ -307,140 +223,165 @@ export function CompatibilityResultContent({
         </div>
       </Card>
 
-      {/* 핵심 요약 */}
-      {parsed?.summary && (
-        <Card>
-          <h3 className="text-subheading font-semibold text-text mb-3">
-            💑 궁합 핵심 요약
-          </h3>
-          <p className="text-body text-text-muted leading-relaxed whitespace-pre-wrap">
-            {parsed.summary}
-          </p>
-        </Card>
-      )}
-
-      {/* 오행 비교 */}
-      <Card>
-        <h3 className="text-subheading font-semibold text-text mb-4">
-          🔮 오행 궁합
-        </h3>
-        <WuxingComparison
-          wuxing1={result1.wuXing}
-          wuxing2={result2.wuXing}
-          name1={name1}
-          name2={name2}
-        />
-        {parsed?.wuxingAnalysis && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-body text-text-muted leading-relaxed whitespace-pre-wrap">
-              {parsed.wuxingAnalysis}
+      {interpretation ? (
+        <>
+          {/* 핵심 요약 */}
+          <Card>
+            <h3 className="text-subheading font-semibold text-text mb-3">
+              💑 궁합 핵심 요약
+            </h3>
+            <p className="text-lg font-medium text-primary mb-2">
+              "{interpretation.summary.oneLine}"
             </p>
-          </div>
-        )}
-      </Card>
+            <p className="text-body text-text-muted leading-relaxed">
+              {interpretation.summary.description}
+            </p>
+          </Card>
 
-      {/* 케미 */}
-      {parsed?.chemistry && (
-        <Card>
-          <h3 className="text-subheading font-semibold text-text mb-3">
-            ✨ 두 사람의 케미
-          </h3>
-          <p className="text-body text-text-muted leading-relaxed whitespace-pre-wrap">
-            {parsed.chemistry}
-          </p>
-        </Card>
-      )}
+          {/* 두 사람의 케미 */}
+          <Card>
+            <h3 className="text-subheading font-semibold text-text mb-3">
+              ✨ 두 사람의 케미
+            </h3>
+            <div className="space-y-3 text-body text-text-muted leading-relaxed">
+              <p><strong className="text-primary">끌리는 포인트:</strong> {interpretation.chemistry.attraction}</p>
+              <p><strong className="text-primary">시너지:</strong> {interpretation.chemistry.synergy}</p>
+            </div>
+          </Card>
 
-      {/* 일주 동물 궁합 */}
-      {result1.dayPillarAnimal && result2.dayPillarAnimal && (
-        <Card>
-          <h3 className="text-subheading font-semibold text-text mb-4">
-            🐾 일주 동물 궁합
-          </h3>
-          <div className="text-center py-4">
-            <div className="flex items-center justify-center gap-4">
-              <div className="text-center">
-                <p className="text-2xl font-serif mb-1">{result1.bazi.day}</p>
-                <p className="text-lg font-bold text-primary">{result1.dayPillarAnimal}</p>
-                <p className="text-caption text-text-muted">{name1}</p>
+          {/* 오행 비교 */}
+          <Card>
+            <h3 className="text-subheading font-semibold text-text mb-4">
+              🔮 오행 궁합
+            </h3>
+            <WuxingComparison
+              wuxing1={result1.wuXing}
+              wuxing2={result2.wuXing}
+              name1={name1}
+              name2={name2}
+            />
+            <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
+              <p className="text-body text-text-muted leading-relaxed">
+                {interpretation.wuXingMatch.analysis}
+              </p>
+              <p className="text-body text-text-muted leading-relaxed">
+                {interpretation.wuXingMatch.meaning}
+              </p>
+            </div>
+          </Card>
+
+          {/* 일주 동물 궁합 */}
+          {result1.dayPillarAnimal && result2.dayPillarAnimal && (
+            <Card>
+              <h3 className="text-subheading font-semibold text-text mb-4">
+                🐾 일주 동물 궁합
+              </h3>
+              <div className="text-center py-4">
+                <div className="flex items-center justify-center gap-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-serif mb-1">{result1.bazi.day}</p>
+                    <p className="text-lg font-bold text-primary">{result1.dayPillarAnimal}</p>
+                    <p className="text-caption text-text-muted">{name1}</p>
+                  </div>
+                  <span className="text-3xl">❤️</span>
+                  <div className="text-center">
+                    <p className="text-2xl font-serif mb-1">{result2.bazi.day}</p>
+                    <p className="text-lg font-bold text-primary">{result2.dayPillarAnimal}</p>
+                    <p className="text-caption text-text-muted">{name2}</p>
+                  </div>
+                </div>
               </div>
-              <span className="text-3xl">❤️</span>
+            </Card>
+          )}
+
+          {/* 일간 궁합 */}
+          <Card>
+            <h3 className="text-subheading font-semibold text-text mb-3">
+              🌟 일간 궁합
+            </h3>
+            <div className="flex justify-center gap-4 mb-4">
               <div className="text-center">
-                <p className="text-2xl font-serif mb-1">{result2.bazi.day}</p>
-                <p className="text-lg font-bold text-primary">{result2.dayPillarAnimal}</p>
-                <p className="text-caption text-text-muted">{name2}</p>
+                <span className="text-2xl">{DAY_MASTER_EMOJI[result1.dayMaster] || '🐱'}</span>
+                <p className="text-small text-primary mt-1">{result1.dayMasterKorean}</p>
+              </div>
+              <span className="text-2xl">↔️</span>
+              <div className="text-center">
+                <span className="text-2xl">{DAY_MASTER_EMOJI[result2.dayMaster] || '🐱'}</span>
+                <p className="text-small text-primary mt-1">{result2.dayMasterKorean}</p>
               </div>
             </div>
-          </div>
-        </Card>
-      )}
-
-      {/* 일간 궁합 */}
-      {parsed?.dayMasterAnalysis && (
-        <Card>
-          <h3 className="text-subheading font-semibold text-text mb-3">
-            🌟 일간 궁합
-          </h3>
-          <div className="flex justify-center gap-4 mb-4">
-            <div className="text-center">
-              <span className="text-2xl">{DAY_MASTER_EMOJI[result1.dayMaster] || '🐱'}</span>
-              <p className="text-small text-primary mt-1">{result1.dayMasterKorean}</p>
+            <div className="space-y-2 text-body text-text-muted leading-relaxed">
+              <p>{interpretation.dayMasterMatch.relationship}</p>
+              <p>{interpretation.dayMasterMatch.influence}</p>
             </div>
-            <span className="text-2xl">↔️</span>
-            <div className="text-center">
-              <span className="text-2xl">{DAY_MASTER_EMOJI[result2.dayMaster] || '🐱'}</span>
-              <p className="text-small text-primary mt-1">{result2.dayMasterKorean}</p>
+          </Card>
+
+          {/* 주의할 점 */}
+          <Card>
+            <h3 className="text-subheading font-semibold text-orange-500 mb-3">
+              ⚠️ 주의할 점
+            </h3>
+            <div className="space-y-3">
+              <div className="p-3 bg-orange-50 rounded-lg">
+                <h4 className="font-semibold text-orange-600 mb-1">갈등 상황</h4>
+                <p className="text-body text-text-muted">{interpretation.cautions.conflicts}</p>
+              </div>
+              <div className="p-3 bg-primary/5 rounded-lg">
+                <h4 className="font-semibold text-primary mb-1">극복 방법</h4>
+                <p className="text-body text-text-muted">{interpretation.cautions.solutions}</p>
+              </div>
             </div>
-          </div>
-          <p className="text-body text-text-muted leading-relaxed whitespace-pre-wrap">
-            {parsed.dayMasterAnalysis}
-          </p>
-        </Card>
-      )}
+          </Card>
 
-      {/* 주의할 점 */}
-      {parsed?.cautions && (
-        <Card>
-          <h3 className="text-subheading font-semibold text-orange-500 mb-3">
-            ⚠️ 주의할 점
-          </h3>
-          <p className="text-body text-text-muted leading-relaxed whitespace-pre-wrap">
-            {parsed.cautions}
-          </p>
-        </Card>
-      )}
+          {/* 올해 관계운 */}
+          <Card>
+            <h3 className="text-subheading font-semibold text-text mb-3">
+              📅 올해 두 사람의 관계운
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3 bg-green-50 rounded-lg">
+                <h4 className="font-semibold text-green-600 mb-1">좋아지는 시기</h4>
+                <p className="text-small text-text-muted">{interpretation.yearlyOutlook.goodPeriod}</p>
+              </div>
+              <div className="p-3 bg-orange-50 rounded-lg">
+                <h4 className="font-semibold text-orange-600 mb-1">주의할 시기</h4>
+                <p className="text-small text-text-muted">{interpretation.yearlyOutlook.cautionPeriod}</p>
+              </div>
+            </div>
+          </Card>
 
-      {/* 올해 관계운 */}
-      {parsed?.yearlyFortune && (
-        <Card>
-          <h3 className="text-subheading font-semibold text-text mb-3">
-            📅 올해 두 사람의 관계운
-          </h3>
-          <p className="text-body text-text-muted leading-relaxed whitespace-pre-wrap">
-            {parsed.yearlyFortune}
-          </p>
-        </Card>
-      )}
-
-      {/* 조언 */}
-      {parsed?.advice && (
-        <Card variant="highlighted">
-          <h3 className="text-subheading font-semibold text-text mb-3">
-            💡 관계 발전을 위한 조언
-          </h3>
-          <p className="text-body text-text-muted leading-relaxed whitespace-pre-wrap">
-            {parsed.advice}
-          </p>
-        </Card>
-      )}
-
-      {/* 폴백: 파싱 실패 시 원본 표시 */}
-      {interpretation && !parsed?.summary && !parsed?.chemistry && (
-        <CompatibilityFallbackInterpretation content={interpretation} />
-      )}
-
-      {/* 해석 없을 때 */}
-      {!interpretation && (
+          {/* 조언 */}
+          <Card variant="highlighted">
+            <h3 className="text-subheading font-semibold text-text mb-3">
+              💡 관계 발전을 위한 조언
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold text-text mb-2">함께 하면 좋은 활동</h4>
+                <ul className="space-y-1">
+                  {interpretation.advice.activities.map((activity, i) => (
+                    <li key={i} className="flex items-start gap-2 text-body text-text-muted">
+                      <span className="text-primary">•</span>
+                      {activity}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-text mb-2">서로를 이해하기 위한 팁</h4>
+                <ul className="space-y-1">
+                  {interpretation.advice.tips.map((tip, i) => (
+                    <li key={i} className="flex items-start gap-2 text-body text-text-muted">
+                      <span className="text-primary">•</span>
+                      {tip}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </Card>
+        </>
+      ) : (
         <CompatibilityDefaultContent
           result1={result1}
           result2={result2}
@@ -449,35 +390,6 @@ export function CompatibilityResultContent({
           score={score}
         />
       )}
-    </div>
-  )
-}
-
-// 파싱 실패 시 원본 표시
-function CompatibilityFallbackInterpretation({ content }: { content: string }) {
-  const sections = content.split(/(?=^#{1,3}\s)/m).filter(s => s.trim())
-
-  return (
-    <div className="space-y-4">
-      {sections.map((section, index) => {
-        const lines = section.trim().split('\n')
-        const headerMatch = lines[0]?.match(/^#{1,3}\s+(.+)$/)
-        const title = headerMatch ? headerMatch[1] : null
-        const body = (headerMatch ? lines.slice(1) : lines).join('\n').trim()
-
-        return (
-          <Card key={index}>
-            {title && (
-              <h3 className="text-subheading font-semibold text-text mb-3">
-                {title}
-              </h3>
-            )}
-            <div className="text-body text-text-muted leading-relaxed whitespace-pre-wrap">
-              {body}
-            </div>
-          </Card>
-        )
-      })}
     </div>
   )
 }

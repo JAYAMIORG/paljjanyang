@@ -1,15 +1,29 @@
 'use client'
 
-import { useEffect, useState, Suspense, useRef, useCallback, ReactNode } from 'react'
+import { useEffect, useState, Suspense, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { useSearchParams, useRouter } from 'next/navigation'
 import html2canvas from 'html2canvas'
 import { Header } from '@/components/layout'
 import { Button, Card, LoadingScreen, ErrorScreen, InsufficientCoinsModal, WuXingRadarChart } from '@/components/ui'
-import { YearlyResultContent, CompatibilityResultContent, DailyResultContent } from '@/components/result'
+import { PersonalResultContent, YearlyResultContent, CompatibilityResultContent, DailyResultContent, LoveResultContent } from '@/components/result'
 import { useAuth, useKakaoShare } from '@/hooks'
 import { getNaYinInfo } from '@/lib/saju/constants'
 import type { SajuResult } from '@/types/saju'
+import type {
+  PersonalInterpretation,
+  YearlyInterpretation,
+  CompatibilityInterpretation,
+  LoveInterpretation,
+  DailyInterpretation,
+} from '@/types/interpretation'
+
+// JSON 해석 타입 유니온
+type InterpretationData =
+  | PersonalInterpretation
+  | YearlyInterpretation
+  | CompatibilityInterpretation
+  | DailyInterpretation
 
 const WUXING_COLORS: Record<string, string> = {
   wood: '#7FB069',
@@ -41,54 +55,6 @@ const getDayMasterEmoji = (dayMaster: string): string => {
   return DAY_MASTER_EMOJI[dayMaster] || '🐱'
 }
 
-// LLM 해석에서 일주 정보 추출
-const extractDayPillarInfo = (interpretation: string): { characteristic: string | null; description: string | null } => {
-  // [일주특징]과 [일주해석] 태그 찾기
-  // 태그 바로 뒤 또는 다음 줄에서 내용 추출
-  const characteristicMatch = interpretation.match(/\[일주특징\]\s*\n?(.+?)(?:\n|$)/i)
-  const descriptionMatch = interpretation.match(/\[일주해석\]\s*\n?([\s\S]+?)(?=\n###|\n---|\n\n###|\n\*\*\[|$)/i)
-
-  let characteristic = characteristicMatch ? characteristicMatch[1].trim() : null
-  let description = descriptionMatch ? descriptionMatch[1].trim() : null
-
-  // 태그가 없으면 섹션 1에서 추출 시도
-  if (!characteristic || !description) {
-    const section1Match = interpretation.match(/###\s*1\.\s*나의\s*일주[^\n]*\n([\s\S]*?)(?=\n###\s*2\.|\n---\s*\n###\s*2\.)/i)
-    if (section1Match) {
-      const section1Content = section1Match[1]
-
-      // 한줄 특징 추출 (첫 번째 줄이나 **로 감싸진 부분)
-      if (!characteristic) {
-        const boldMatch = section1Content.match(/\*\*([^*]+)\*\*/)?.[1]
-        const firstLineMatch = section1Content.match(/^[^\n]+/)?.[0]
-        characteristic = boldMatch || (firstLineMatch && firstLineMatch.length < 30 ? firstLineMatch : null)
-      }
-
-      // 상세 해석 추출 (나머지 내용)
-      if (!description) {
-        // 불릿 포인트나 특수 마커 제거 후 텍스트만 추출
-        const cleanContent = section1Content
-          .replace(/^\s*[-*]\s*/gm, '')
-          .replace(/\*\*[^*]+\*\*/g, '')
-          .replace(/\[일주특징\][^\n]*/gi, '')
-          .replace(/\[일주해석\]/gi, '')
-          .trim()
-        description = cleanContent.slice(0, 500) // 최대 500자
-      }
-    }
-  }
-
-  // 설명에서 불필요한 마크다운 정리
-  if (description) {
-    description = description
-      .replace(/^\s*[-*]\s*/gm, '')
-      .replace(/\*\*/g, '')
-      .replace(/\n+/g, ' ')
-      .trim()
-  }
-
-  return { characteristic, description }
-}
 
 // 천간 한글 변환
 const TIANGAN_KOREAN: Record<string, string> = {
@@ -118,7 +84,7 @@ function ResultContent() {
   const [result, setResult] = useState<SajuResult | null>(null)
   const [result2, setResult2] = useState<SajuResult | null>(null) // 궁합용
   const [isShareLoading, setIsShareLoading] = useState(false)
-  const [interpretation, setInterpretation] = useState<string | null>(null)
+  const [interpretation, setInterpretation] = useState<InterpretationData | null>(null)
   const shareCardRef = useRef<HTMLDivElement>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isInterpretLoading, setIsInterpretLoading] = useState(false)
@@ -157,7 +123,7 @@ function ResultContent() {
   const lunar2 = searchParams.get('lunar2')
 
   // 자동 저장 함수
-  const autoSave = async (sajuResult: SajuResult, interpretationText: string | null) => {
+  const autoSave = async (sajuResult: SajuResult, interpretationData: InterpretationData | null) => {
     if (!user || hasSavedRef.current) return
 
     hasSavedRef.current = true
@@ -169,7 +135,7 @@ function ResultContent() {
         body: JSON.stringify({
           type,
           sajuResult,
-          interpretation: interpretationText,
+          interpretation: interpretationData ? JSON.stringify(interpretationData) : null,
           gender,
           birthInfo: {
             year: parseInt(year!),
@@ -276,7 +242,18 @@ function ResultContent() {
           dayPillarAnimal: data.data.dayPillarAnimal || '',
           dayNaYin: data.data.dayNaYin || '',
         })
-        setInterpretation(data.data.interpretation)
+        // 저장된 해석을 JSON으로 파싱 시도
+        if (data.data.interpretation) {
+          try {
+            const parsedInterpretation = typeof data.data.interpretation === 'string'
+              ? JSON.parse(data.data.interpretation)
+              : data.data.interpretation
+            setInterpretation(parsedInterpretation)
+          } catch {
+            // 파싱 실패 시 (구 마크다운 형식) null로 설정
+            setInterpretation(null)
+          }
+        }
         setReadingId(id)
         hasSavedRef.current = true // 이미 저장된 결과
         hasDeductedCoinRef.current = true // 이미 코인 차감됨
@@ -914,40 +891,59 @@ function ResultContent() {
             </div>
           </div>
 
-          {/* 해석 내용 - 전체 표시 */}
-          {interpretation && (
+          {/* 해석 내용 - JSON 형식으로 간단히 표시 */}
+          {interpretation && type === 'personal' && (
             <div style={{ marginBottom: '16px' }}>
-              {parseMarkdownSections(interpretation).map((section, index) => (
-                <div
-                  key={index}
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    marginBottom: '12px',
-                    border: '1px solid #E5E7EB'
-                  }}
-                >
-                  {section.title && (
-                    <h3 style={{
-                      fontSize: '15px',
-                      fontWeight: 'bold',
-                      color: '#D4A574',
-                      marginBottom: '8px'
-                    }}>
-                      {section.title}
-                    </h3>
-                  )}
-                  <p style={{
-                    fontSize: '13px',
-                    color: '#4B5563',
-                    lineHeight: '1.6',
-                    whiteSpace: 'pre-wrap'
-                  }}>
-                    {section.content}
-                  </p>
-                </div>
-              ))}
+              <div
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  marginBottom: '12px',
+                  border: '1px solid #E5E7EB'
+                }}
+              >
+                <h3 style={{
+                  fontSize: '15px',
+                  fontWeight: 'bold',
+                  color: '#D4A574',
+                  marginBottom: '8px'
+                }}>
+                  나의 일주
+                </h3>
+                <p style={{
+                  fontSize: '13px',
+                  color: '#4B5563',
+                  lineHeight: '1.6',
+                }}>
+                  {(interpretation as PersonalInterpretation).dayPillar?.description || ''}
+                </p>
+              </div>
+              <div
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  marginBottom: '12px',
+                  border: '1px solid #E5E7EB'
+                }}
+              >
+                <h3 style={{
+                  fontSize: '15px',
+                  fontWeight: 'bold',
+                  color: '#D4A574',
+                  marginBottom: '8px'
+                }}>
+                  타고난 성격
+                </h3>
+                <p style={{
+                  fontSize: '13px',
+                  color: '#4B5563',
+                  lineHeight: '1.6',
+                }}>
+                  {(interpretation as PersonalInterpretation).personality?.core || ''}
+                </p>
+              </div>
             </div>
           )}
 
@@ -1030,9 +1026,9 @@ function ResultContent() {
               {/* 납음 + 한줄 특징 */}
               {(() => {
                 const naYinInfo = result.dayNaYin ? getNaYinInfo(result.dayNaYin) : null
-                const dayPillarInfo = interpretation ? extractDayPillarInfo(interpretation) : { characteristic: null, description: null }
+                const personalInterp = interpretation as PersonalInterpretation | null
                 // LLM 특징이 있으면 사용, 없으면 납음 설명의 첫 부분 사용
-                const characteristic = dayPillarInfo.characteristic || naYinInfo?.description?.split(',')[0] || ''
+                const characteristic = personalInterp?.dayPillar?.characteristic || naYinInfo?.description?.split(',')[0] || ''
 
                 if (!naYinInfo?.korean) return null
 
@@ -1043,13 +1039,13 @@ function ResultContent() {
                 )
               })()}
             </div>
-            {/* 일주 상세 해석 (LLM 해석에서 추출) */}
+            {/* 일주 상세 해석 (JSON에서 직접 사용) */}
             {interpretation && (() => {
-              const dayPillarInfo = extractDayPillarInfo(interpretation)
-              return dayPillarInfo.description ? (
+              const personalInterp = interpretation as PersonalInterpretation
+              return personalInterp.dayPillar?.description ? (
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <p className="text-body text-text-muted leading-relaxed">
-                    {dayPillarInfo.description}
+                    {personalInterp.dayPillar.description}
                   </p>
                 </div>
               ) : (
@@ -1088,11 +1084,14 @@ function ResultContent() {
         {type === 'daily' ? (
           <DailyResultContent
             result={result}
-            interpretation={interpretation}
+            interpretation={interpretation as DailyInterpretation | null}
             isNew={isDailyNew}
           />
         ) : type === 'yearly' ? (
-          <YearlyResultContent result={result} interpretation={interpretation} />
+          <YearlyResultContent
+            result={result}
+            interpretation={interpretation as YearlyInterpretation | null}
+          />
         ) : type === 'compatibility' && result2 ? (
           <CompatibilityResultContent
             result1={result}
@@ -1101,10 +1100,17 @@ function ResultContent() {
             name2={name2}
             gender1={gender}
             gender2={gender2}
-            interpretation={interpretation}
+            interpretation={interpretation as CompatibilityInterpretation | null}
           />
-        ) : interpretation ? (
-          <InterpretationCard content={interpretation} excludeSection1={type === 'personal'} />
+        ) : type === 'love' ? (
+          <LoveResultContent
+            result={result}
+            interpretation={interpretation as LoveInterpretation | null}
+          />
+        ) : type === 'personal' && interpretation ? (
+          <PersonalResultContent
+            interpretation={interpretation as PersonalInterpretation}
+          />
         ) : (
           <FallbackInterpretation result={result} />
         )}
@@ -1216,99 +1222,6 @@ function ResultContent() {
       )}
     </div>
   )
-}
-
-// 인라인 마크다운 파싱 (볼드, 이탤릭)
-function parseInlineMarkdown(text: string): ReactNode[] {
-  const parts: React.ReactNode[] = []
-  // **bold** 와 *italic* 패턴 매칭
-  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*)/g
-  let lastIndex = 0
-  let match
-
-  while ((match = regex.exec(text)) !== null) {
-    // 매치 전 텍스트
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index))
-    }
-
-    if (match[2]) {
-      // **bold**
-      parts.push(<strong key={match.index} className="font-semibold text-text">{match[2]}</strong>)
-    } else if (match[3]) {
-      // *italic*
-      parts.push(<em key={match.index}>{match[3]}</em>)
-    }
-
-    lastIndex = regex.lastIndex
-  }
-
-  // 마지막 남은 텍스트
-  if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex))
-  }
-
-  return parts.length > 0 ? parts : [text]
-}
-
-// LLM 해석 표시 컴포넌트
-function InterpretationCard({ content, excludeSection1 = false }: { content: string; excludeSection1?: boolean }) {
-  let sections = parseMarkdownSections(content)
-
-  // 섹션 1 (나의 일주) 제외 옵션
-  if (excludeSection1) {
-    sections = sections.filter(section =>
-      !section.title?.match(/^1\.\s*나의\s*일주/i)
-    )
-  }
-
-  return (
-    <div className="space-y-4">
-      {sections.map((section, index) => (
-        <Card key={index}>
-          {section.title && (
-            <h3 className="text-subheading font-semibold text-text mb-3">
-              {section.title}
-            </h3>
-          )}
-          <div className="text-body text-text-muted leading-relaxed whitespace-pre-wrap">
-            {parseInlineMarkdown(section.content)}
-          </div>
-        </Card>
-      ))}
-    </div>
-  )
-}
-
-// 마크다운 섹션 파싱
-function parseMarkdownSections(markdown: string): { title: string | null; content: string }[] {
-  const lines = markdown.split('\n')
-  const sections: { title: string | null; content: string }[] = []
-  let currentSection: { title: string | null; content: string[] } = { title: null, content: [] }
-
-  for (const line of lines) {
-    const headerMatch = line.match(/^#{1,3}\s+(.+)$/)
-    if (headerMatch) {
-      if (currentSection.content.length > 0 || currentSection.title) {
-        sections.push({
-          title: currentSection.title,
-          content: currentSection.content.join('\n').trim(),
-        })
-      }
-      currentSection = { title: headerMatch[1], content: [] }
-    } else {
-      currentSection.content.push(line)
-    }
-  }
-
-  if (currentSection.content.length > 0 || currentSection.title) {
-    sections.push({
-      title: currentSection.title,
-      content: currentSection.content.join('\n').trim(),
-    })
-  }
-
-  return sections.filter(s => s.content.trim() || s.title)
 }
 
 // LLM 실패 시 폴백 해석
