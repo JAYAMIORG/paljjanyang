@@ -110,7 +110,7 @@ export function YearlyResultContent({ result, interpretation }: YearlyResultCont
             <p className="text-body text-text-muted leading-relaxed mb-4">
               {interpretation.overview.general}
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
               <div className="p-3 bg-blue-50 rounded-lg">
                 <h4 className="font-semibold text-blue-600 mb-1">상반기</h4>
                 <p className="text-small text-text-muted">{interpretation.overview.firstHalf}</p>
@@ -128,7 +128,7 @@ export function YearlyResultContent({ result, interpretation }: YearlyResultCont
               <h3 className="text-subheading font-semibold text-text mb-4">
                 📆 월별 운세
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="space-y-3">
                 {interpretation.monthly.map((fortune) => (
                   <div
                     key={fortune.month}
