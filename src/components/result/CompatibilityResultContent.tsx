@@ -155,7 +155,14 @@ export function CompatibilityResultContent({
   gender2,
   interpretation,
 }: CompatibilityResultContentProps) {
-  const score = interpretation?.summary.score || 50
+  const score = interpretation?.summary?.score || 50
+
+  // 새 형식인지 확인 (physical 섹션이 있어야 함)
+  const isNewFormat = interpretation &&
+    interpretation.physical &&
+    interpretation.conflict &&
+    interpretation.future &&
+    interpretation.emotional
 
   return (
     <div className="space-y-6">
@@ -168,7 +175,7 @@ export function CompatibilityResultContent({
         </div>
       </Card>
 
-      {interpretation ? (
+      {isNewFormat ? (
         <>
           {/* 총 요약 섹션 */}
           <Card>
@@ -352,7 +359,7 @@ export function CompatibilityResultContent({
   )
 }
 
-// 해석 없을 때 기본 콘텐츠
+// 해석 없거나 구 버전 형식일 때 기본 콘텐츠
 function CompatibilityDefaultContent({
   result1,
   result2,
@@ -371,8 +378,27 @@ function CompatibilityDefaultContent({
           💑 궁합 분석
         </h3>
         <p className="text-body text-text-muted leading-relaxed">
-          {name1}님의 <span className="font-semibold text-primary">{result1.dayMasterKorean}</span>와
-          {name2}님의 <span className="font-semibold text-primary">{result2.dayMasterKorean}</span>의 궁합을 분석 중입니다.
+          {name1}님의 <span className="font-semibold text-primary">{result1.dayMasterKorean}</span>와{' '}
+          {name2}님의 <span className="font-semibold text-primary">{result2.dayMasterKorean}</span>의 궁합입니다.
+        </p>
+      </Card>
+
+      {/* 오행 비교 */}
+      <Card>
+        <h3 className="text-subheading font-semibold text-text mb-4">
+          🔮 오행 궁합
+        </h3>
+        <WuxingComparison
+          wuxing1={result1.wuXing}
+          wuxing2={result2.wuXing}
+          name1={name1}
+          name2={name2}
+        />
+      </Card>
+
+      <Card>
+        <p className="text-small text-text-muted text-center">
+          더 자세한 궁합 분석을 보시려면 다시 분석해주세요.
         </p>
       </Card>
     </div>

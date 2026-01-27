@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { SajuResult } from '@/types/saju'
 
 export interface SaveReadingRequest {
-  type: 'personal' | 'yearly' | 'compatibility' | 'love'
+  type: 'personal' | 'yearly' | 'compatibility' | 'love' | 'daily'
   sajuResult: SajuResult
   interpretation?: string
   gender: 'male' | 'female'

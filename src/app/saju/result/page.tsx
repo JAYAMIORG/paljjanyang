@@ -124,7 +124,8 @@ function ResultContent() {
 
   // 자동 저장 함수
   const autoSave = async (sajuResult: SajuResult, interpretationData: InterpretationData | null) => {
-    if (!user || hasSavedRef.current) return
+    // 궁합은 두 명의 데이터가 필요하므로 현재는 스킵
+    if (!user || hasSavedRef.current || type === 'compatibility') return
 
     hasSavedRef.current = true
 
