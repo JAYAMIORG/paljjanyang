@@ -495,17 +495,18 @@ function ResultContent() {
           return
         }
 
-        // 상태 업데이트
+        // 상태 업데이트 - isInterpretLoading을 먼저 true로 설정하여 플래시 방지
+        setIsInterpretLoading(true)
         setResult(sajuResult1)
         if (sajuResult2) {
           setResult2(sajuResult2)
         }
         hasSavedRef.current = true // reading은 use-coin에서 이미 생성됨
+        setIsLoading(false)
       } catch {
         // 선저장 후해석 패턴: 코인 차감 전 오류는 환불 불필요
         // 코인 차감 후 오류는 reading이 이미 저장됨 (status='processing')
         setError('서버 연결에 실패했습니다.')
-      } finally {
         setIsLoading(false)
       }
     }

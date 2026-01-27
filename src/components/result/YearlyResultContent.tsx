@@ -157,40 +157,42 @@ export function YearlyResultContent({ result, interpretation }: YearlyResultCont
             </Card>
           )}
 
-          {/* 행운의 달 & 주의할 달 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {interpretation.highlights.luckyMonths.length > 0 && (
-              <Card>
-                <h3 className="text-subheading font-semibold text-green-600 mb-3">
-                  🍀 행운의 달
-                </h3>
-                <div className="space-y-2">
-                  {interpretation.highlights.luckyMonths.map((m, i) => (
-                    <div key={i} className="flex flex-col gap-1">
-                      <span className="font-bold text-green-600 text-center">{m.month}월</span>
-                      <span className="text-body text-text-muted">{m.reason}</span>
+          {/* 행운의 달 */}
+          {interpretation.highlights.luckyMonths.length > 0 && (
+            <Card>
+              <h3 className="text-subheading font-semibold text-green-600 mb-3">
+                🍀 행운의 달
+              </h3>
+              <div className="space-y-3">
+                {interpretation.highlights.luckyMonths.map((m, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                    <span className="font-bold text-green-600 whitespace-nowrap">{m.month}월</span>
+                    <span className="text-body text-text-muted">{m.reason}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* 주의할 달 */}
+          {interpretation.highlights.cautionMonths.length > 0 && (
+            <Card>
+              <h3 className="text-subheading font-semibold text-orange-500 mb-3">
+                ⚠️ 주의할 달
+              </h3>
+              <div className="space-y-3">
+                {interpretation.highlights.cautionMonths.map((m, i) => (
+                  <div key={i} className="p-3 bg-orange-50 rounded-lg">
+                    <div className="flex items-start gap-3 mb-2">
+                      <span className="font-bold text-orange-600 whitespace-nowrap">{m.month}월</span>
+                      <span className="text-body text-text-muted">{m.caution}</span>
                     </div>
-                  ))}
-                </div>
-              </Card>
-            )}
-            {interpretation.highlights.cautionMonths.length > 0 && (
-              <Card>
-                <h3 className="text-subheading font-semibold text-orange-500 mb-3">
-                  ⚠️ 주의할 달
-                </h3>
-                <div className="space-y-2">
-                  {interpretation.highlights.cautionMonths.map((m, i) => (
-                    <div key={i} className="flex flex-col gap-1">
-                      <span className="font-bold text-orange-600 text-center">{m.month}월</span>
-                      <span className="text-small text-text-muted">{m.caution}</span>
-                      <p className="text-small text-primary">💡 {m.solution}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
-          </div>
+                    <p className="text-small text-primary ml-10">💡 {m.solution}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
 
           {/* 카테고리별 운세 */}
           <Card>
