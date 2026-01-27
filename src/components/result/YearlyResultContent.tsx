@@ -148,7 +148,7 @@ export function YearlyResultContent({ result, interpretation }: YearlyResultCont
                       </span>
                       <ScoreStars score={fortune.score} />
                     </div>
-                    <p className="text-small text-text-muted line-clamp-2">
+                    <p className="text-small text-text-muted">
                       {fortune.description}
                     </p>
                   </div>
