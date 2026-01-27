@@ -176,11 +176,31 @@ ${PERSONAL_JSON_SCHEMA}
 export function buildYearlySajuPrompt(result: SajuResult, gender: string): string {
   const currentYear = new Date().getFullYear()
 
+  // 오행 분포에서 상위 2개 추출
+  const wuXingArray = [
+    { name: '목(木)', value: result.wuXing.wood },
+    { name: '화(火)', value: result.wuXing.fire },
+    { name: '토(土)', value: result.wuXing.earth },
+    { name: '금(金)', value: result.wuXing.metal },
+    { name: '수(水)', value: result.wuXing.water },
+  ].sort((a, b) => b.value - a.value)
+
+  const topTwoWuXing = wuXingArray.slice(0, 2).map(w => w.name).join(', ')
+  const weakWuXing = wuXingArray.slice(-2).map(w => w.name).join(', ')
+
   return `## 사주 정보
 
 성별: ${gender === 'male' ? '남성' : '여성'}
 사주: ${result.koreanGanji}
 일간: ${result.dayMaster} (${result.dayMasterKorean})
+일주: ${result.bazi.day}
+띠: ${result.zodiac}
+
+### 사주팔자
+- 년주: ${result.bazi.year}
+- 월주: ${result.bazi.month}
+- 일주: ${result.bazi.day}
+- 시주: ${result.bazi.hour || '미상'}
 
 ### 오행 분포
 - 목(木): ${result.wuXing.wood}%
@@ -188,6 +208,9 @@ export function buildYearlySajuPrompt(result: SajuResult, gender: string): strin
 - 토(土): ${result.wuXing.earth}%
 - 금(金): ${result.wuXing.metal}%
 - 수(水): ${result.wuXing.water}%
+
+강한 오행: ${topTwoWuXing}
+약한 오행: ${weakWuXing}
 
 ---
 
@@ -200,35 +223,67 @@ ${currentYear}년 신년운세를 아래 JSON 형식으로 응답해주세요.
 2. JSON 외의 텍스트는 절대 포함하지 마세요
 3. monthly 배열은 반드시 1월부터 12월까지 12개 항목을 포함하세요
 4. score는 1-5 사이의 정수입니다
+5. **모든 문자열은 상세하고 구체적으로 작성하세요**
+6. **추상적인 표현 대신 구체적인 상황, 예시, 행동을 포함하세요**
 
 ## JSON 스키마
 
 ${YEARLY_JSON_SCHEMA}
 
-## 각 필드 설명
+## 각 필드 상세 가이드
 
 1. **summary**: 올해의 핵심 요약
-   - oneLine: 올해를 한 문장으로 표현
-   - keywords: 올해의 키워드 2-3개
+   - oneLine: **20자 이상** 올해를 한 문장으로 표현 (단순히 "좋은 해"가 아닌 구체적 특징)
+   - keywords: 올해의 키워드 **3개** (구체적이고 의미있는 단어)
 
 2. **overview**: ${currentYear}년 총운
-   - general: 전체적인 기조와 흐름
-   - firstHalf: 상반기 분위기
-   - secondHalf: 하반기 분위기
+   - general: **200자 이상** 작성. 다음을 포함:
+     - ${result.dayMasterKorean} 일간이 ${currentYear}년에 받는 영향
+     - 올해 전체적인 에너지 흐름과 기조
+     - 이 사주에게 올해가 어떤 의미인지
+   - firstHalf: **100자 이상** 작성. 1~6월 구체적 분위기와 주요 이벤트
+   - secondHalf: **100자 이상** 작성. 7~12월 구체적 분위기와 주요 이벤트
 
-3. **monthly**: 1월~12월 월별 운세
+3. **monthly**: 1월~12월 월별 운세 (총 **12개** 필수)
    - month: 1-12
    - score: 1-5점 (1: 매우 나쁨, 5: 매우 좋음)
-   - description: 해당 월의 주요 흐름 (1-2문장)
+   - description: **50자 이상** 해당 월의 주요 흐름과 키포인트 (단순 "좋다/나쁘다"가 아닌 구체적 내용)
 
 4. **highlights**: 행운의 달과 주의할 달
-   - luckyMonths: 좋은 달 2-3개와 이유
-   - cautionMonths: 주의할 달 2-3개와 대처법
+   - luckyMonths: **3개** 좋은 달
+     - month: 월
+     - reason: **60자 이상** 왜 좋은지 구체적 이유와 활용법
+   - cautionMonths: **3개** 주의할 달
+     - month: 월
+     - caution: **60자 이상** 무엇을 주의해야 하는지 구체적 상황
+     - solution: **60자 이상** 어떻게 대처하면 좋은지 실천 가능한 조언
 
 5. **categories**: 카테고리별 운세
-   - wealth, love, career, health 각각 2-3문장
+   - wealth: **150자 이상** 작성. 다음을 포함:
+     - 올해 재물운의 전체적 흐름
+     - 돈이 들어오는/나가는 시기
+     - 재테크나 투자 관련 조언
+     - 주의해야 할 지출 패턴
+   - love: **150자 이상** 작성. 다음을 포함:
+     - 올해 연애운의 전체적 흐름
+     - 좋은 인연이 올 수 있는 시기
+     - 관계에서 주의할 점
+     - 솔로/커플 각각에게 맞는 조언
+   - career: **150자 이상** 작성. 다음을 포함:
+     - 올해 직장/사업운의 전체적 흐름
+     - 승진, 이직, 프로젝트 관련 시기
+     - 대인관계/협업 관련 조언
+     - 커리어 발전을 위한 구체적 행동
+   - health: **150자 이상** 작성. 다음을 포함:
+     - 올해 건강운의 전체적 흐름
+     - ${weakWuXing} 부족으로 주의할 신체 부위
+     - 계절별 건강 관리 포인트
+     - 스트레스 관리 및 운동 추천
 
-6. **actionItems**: 올해 꼭 해야 할 것 2-3가지`
+6. **actionItems**: 올해 꼭 해야 할 것 **4개**
+   - 각 항목 **40자 이상** 작성
+   - 추상적 조언이 아닌 구체적이고 실천 가능한 행동
+   - 예: "건강관리하기" (X) → "주 3회 이상 30분 걷기 운동으로 부족한 목(木) 기운 보충하기" (O)`
 }
 
 export function buildCompatibilitySajuPrompt(
