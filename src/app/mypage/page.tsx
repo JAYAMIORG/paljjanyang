@@ -14,13 +14,15 @@ const TYPE_LABELS: Record<string, string> = {
   yearly: '신년운세',
   compatibility: '궁합',
   love: '연애운',
+  daily: '오늘의 운세',
 }
 
 const TYPE_ICONS: Record<string, string> = {
   personal: '🔮',
-  yearly: '🎊',
-  compatibility: '💑',
-  love: '💕',
+  yearly: '🌅',
+  compatibility: '💕',
+  love: '💝',
+  daily: '☀️',
 }
 
 export default function MyPage() {
