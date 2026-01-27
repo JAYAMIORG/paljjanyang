@@ -189,6 +189,19 @@ export interface YearlyInterpretation {
     health: string
   }
 
+  /** 대인관계 */
+  relationships: {
+    /** 올해 대인관계에서 주의할 점 */
+    caution: string
+    /** 올해 나의 귀인 유형 */
+    helper: {
+      /** 귀인의 특징/유형 */
+      type: string
+      /** 어디서 만날 수 있는지 */
+      where: string
+    }
+  }
+
   /** 올해의 실천 조언 (2-3가지) */
   actionItems: string[]
 }
@@ -447,6 +460,13 @@ export const YEARLY_JSON_SCHEMA = `{
     "love": "string",
     "career": "string",
     "health": "string"
+  },
+  "relationships": {
+    "caution": "string (대인관계 주의점)",
+    "helper": {
+      "type": "string (귀인 유형)",
+      "where": "string (만날 장소)"
+    }
   },
   "actionItems": ["string", "string"]
 }`

@@ -217,6 +217,49 @@ export function YearlyResultContent({ result, interpretation }: YearlyResultCont
             </div>
           </Card>
 
+          {/* 대인관계 */}
+          {interpretation.relationships && (
+            <Card>
+              <h3 className="text-subheading font-semibold text-text mb-4">
+                🤝 올해의 대인관계
+              </h3>
+              <div className="space-y-4">
+                {/* 주의할 점 */}
+                <div className="p-4 bg-orange-50 rounded-xl border border-orange-100">
+                  <h4 className="font-semibold text-orange-600 mb-2 flex items-center gap-2">
+                    <span>⚠️</span>
+                    대인관계 주의점
+                  </h4>
+                  <p className="text-body text-text-muted leading-relaxed">
+                    {interpretation.relationships.caution}
+                  </p>
+                </div>
+
+                {/* 귀인 */}
+                <div className="p-4 bg-green-50 rounded-xl border border-green-100">
+                  <h4 className="font-semibold text-green-600 mb-3 flex items-center gap-2">
+                    <span>😇</span>
+                    올해 나의 귀인
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-small font-medium text-green-700 mb-1">귀인의 특징</p>
+                      <p className="text-body text-text-muted leading-relaxed">
+                        {interpretation.relationships.helper.type}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-small font-medium text-green-700 mb-1">어디서 만날까?</p>
+                      <p className="text-body text-text-muted leading-relaxed">
+                        {interpretation.relationships.helper.where}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
+
           {/* 실천 조언 */}
           {interpretation.actionItems.length > 0 && (
             <Card variant="highlighted">
