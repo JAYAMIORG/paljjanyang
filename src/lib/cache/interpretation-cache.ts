@@ -104,14 +104,12 @@ export async function getCachedInterpretation(
     }
 
     if (data && data.length > 0) {
-      console.log(`[CACHE HIT] key=${cacheKey.substring(0, 8)}... hitCount=${data[0].hit_count}`)
       return {
         interpretation: data[0].interpretation,
         hitCount: data[0].hit_count,
       }
     }
 
-    console.log(`[CACHE MISS] key=${cacheKey.substring(0, 8)}...`)
     return null
   } catch (error) {
     console.error('Cache lookup exception:', error)
@@ -156,14 +154,12 @@ export async function saveCachedInterpretation(
     if (error) {
       // 중복 키 에러는 무시 (동시 요청 시 발생 가능)
       if (error.code === '23505') {
-        console.log(`[CACHE] Duplicate key ignored: ${cacheKey.substring(0, 8)}...`)
         return true
       }
       console.error('Cache save error:', error)
       return false
     }
 
-    console.log(`[CACHE SAVE] key=${cacheKey.substring(0, 8)}... type=${type}`)
     return true
   } catch (error) {
     console.error('Cache save exception:', error)

@@ -151,7 +151,6 @@ export async function POST() {
         .eq('user_id', user.id)
         .single()
 
-      console.log('Share reward already claimed for user:', user.id)
       return NextResponse.json<ShareRewardResponse>({
         success: true,
         data: {
@@ -227,7 +226,6 @@ export async function POST() {
       console.error('Profile upsert error:', profileError)
     }
 
-    console.log('Share reward claimed successfully for user:', user.id, 'newBalance:', newBalance)
     return NextResponse.json<ShareRewardResponse>({
       success: true,
       data: {

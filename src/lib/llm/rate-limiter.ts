@@ -63,7 +63,6 @@ class OpenAIRateLimiter {
       if (isRateLimitError && request.retries < this.maxRetries) {
         // 레이트 리밋 에러: 지수 백오프 후 재시도
         const delay = this.baseDelay * Math.pow(2, request.retries)
-        console.log(`[RATE_LIMIT] Retry ${request.retries + 1}/${this.maxRetries} after ${delay}ms`)
 
         await this.sleep(delay)
         request.retries++

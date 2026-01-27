@@ -173,9 +173,8 @@ export async function POST(request: NextRequest) {
         // 캐시 히트 - JSON 파싱
         try {
           parsedResponse = JSON.parse(cached.interpretation) as DailyInterpretation
-          console.log('[DAILY CACHE HIT]')
         } catch {
-          console.log('[DAILY] Old cache format, regenerating...')
+          // Old cache format - regenerating
         }
       }
     }

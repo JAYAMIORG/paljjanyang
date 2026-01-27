@@ -194,7 +194,6 @@ export async function POST(request: Request) {
 
       if (existingPerson1) {
         person1Id = existingPerson1.id
-        console.log('[use-coin] Reusing existing person1:', person1Id)
       } else {
         // 새로 생성
         const { data: newPerson1, error: person1Error } = await adminClient
@@ -213,9 +212,8 @@ export async function POST(request: Request) {
 
         if (person1Error) {
           console.error('[use-coin] Person1 creation error:', person1Error)
-        } else {
+        } else if (newPerson1) {
           person1Id = newPerson1.id
-          console.log('[use-coin] Created new person1:', person1Id)
         }
       }
     }
@@ -241,7 +239,6 @@ export async function POST(request: Request) {
 
       if (existingPerson2) {
         person2Id = existingPerson2.id
-        console.log('[use-coin] Reusing existing person2:', person2Id)
       } else {
         // 새로 생성
         const { data: newPerson2, error: person2Error } = await adminClient
@@ -260,9 +257,8 @@ export async function POST(request: Request) {
 
         if (person2Error) {
           console.error('[use-coin] Person2 creation error:', person2Error)
-        } else {
+        } else if (newPerson2) {
           person2Id = newPerson2.id
-          console.log('[use-coin] Created new person2:', person2Id)
         }
       }
     }
@@ -315,7 +311,6 @@ export async function POST(request: Request) {
     }
 
     const readingId = readingResult.id
-    console.log('[use-coin] Reading created:', { readingId, userId: user.id, type, status: 'processing' })
 
     // 3. 코인 차감 (Atomic RPC 함수 사용)
     const { data: rpcResult, error: rpcError } = await adminClient

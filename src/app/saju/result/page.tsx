@@ -519,16 +519,6 @@ function ResultContent() {
 
   // LLM 해석 요청 (선저장 후해석 패턴: readingId가 있는 경우만 실행)
   useEffect(() => {
-    console.log('[result] useEffect check:', {
-      hasResult: !!result,
-      hasUser: !!user,
-      isCompatibility,
-      hasResult2: !!result2,
-      hasInterpretation: !!interpretation,
-      readingId,
-      hasSavedRef: hasSavedRef.current
-    })
-
     if (!result || !user) return
 
     // 궁합인 경우 두 번째 결과도 있어야 함
@@ -539,16 +529,10 @@ function ResultContent() {
 
     // readingId가 있고 hasSavedRef가 true인 경우에만 해석 요청
     // (새로 계산된 결과에서 use-coin을 통해 reading이 생성된 경우)
-    if (!readingId || !hasSavedRef.current) {
-      console.log('[result] Skipping interpretation - readingId or hasSavedRef not ready')
-      return
-    }
-
-    console.log('[result] All conditions met, calling fetchInterpretation')
+    if (!readingId || !hasSavedRef.current) return
 
     const fetchInterpretation = async () => {
       setIsInterpretLoading(true)
-      console.log('[result] Starting interpretation with readingId:', readingId)
       try {
         // 저장된 reading에서 불러온 값 우선 사용, 없으면 URL 파라미터 사용
         const effectiveGender = savedGender || gender
@@ -588,7 +572,7 @@ function ResultContent() {
         }
         // LLM 실패해도 reading은 이미 저장되어 있음 (status='processing')
       } catch {
-        console.log('LLM interpretation failed, reading exists with processing status')
+        // LLM 실패해도 reading은 이미 저장되어 있음 (status='processing')
       } finally {
         setIsInterpretLoading(false)
       }
@@ -619,35 +603,23 @@ function ResultContent() {
 
   // 공유 보상 요청
   const claimShareReward = async () => {
-    if (shareRewardClaimed) {
-      console.log('Share reward already claimed, skipping')
-      return
-    }
+    if (shareRewardClaimed) return
 
     try {
-      console.log('Claiming share reward...')
       const response = await fetch('/api/share/reward', {
         method: 'POST',
       })
       const data = await response.json()
-      console.log('Share reward response:', data)
 
       if (data.success) {
         if (data.data.rewarded) {
-          // 보상 지급됨
-          console.log('Share reward granted!')
           setShowRewardToast(true)
           setTimeout(() => setShowRewardToast(false), 3000)
-        } else {
-          console.log('Share reward already claimed previously')
         }
         setShareRewardClaimed(true)
-      } else {
-        console.error('Share reward API error:', data.error)
       }
-    } catch (err) {
+    } catch {
       // 보상 실패해도 공유는 진행
-      console.error('Share reward failed:', err)
     }
   }
 

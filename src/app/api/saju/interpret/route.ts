@@ -144,8 +144,6 @@ export async function POST(request: NextRequest) {
     const body: InterpretRequest = await request.json()
     const { type, sajuResult, gender, sajuResult2, gender2, name1, name2, readingId } = body
 
-    console.log('[interpret] Request received:', { type, readingId: readingId || 'NOT PROVIDED', hasAdminClient: !!createAdminClient() })
-
     // 입력 검증
     if (!sajuResult || !type || !gender) {
       return NextResponse.json<InterpretResponse>(
@@ -195,8 +193,7 @@ export async function POST(request: NextRequest) {
         if (parsedCache) {
           // Reading 레코드 업데이트 (캐시 히트 시에도 처리)
           if (readingId) {
-            console.log('[interpret] Cache hit - updating reading:', { readingId, userId: user.id })
-            const { data: updateData, error: updateError } = await adminClient
+            const { error: updateError } = await adminClient
               .from('readings')
               .update({
                 interpretation: parsedCache,
@@ -204,15 +201,10 @@ export async function POST(request: NextRequest) {
               })
               .eq('id', readingId)
               .eq('user_id', user.id)
-              .select('id, status')
 
             if (updateError) {
               console.error('[interpret] Reading update error (cache hit):', updateError)
-            } else {
-              console.log('[interpret] Reading updated (cache hit):', updateData)
             }
-          } else {
-            console.log('[interpret] Cache hit but no readingId to update')
           }
 
           return NextResponse.json<InterpretResponse>({
@@ -223,7 +215,6 @@ export async function POST(request: NextRequest) {
           })
         }
         // 구 버전 캐시 (Markdown) - 무시하고 새로 생성
-        console.log('Old cache format detected, regenerating...')
       }
     }
 
@@ -348,9 +339,7 @@ export async function POST(request: NextRequest) {
     // ========================================
     if (readingId && adminClient) {
       try {
-        console.log('[interpret] Updating reading:', { readingId, userId: user.id })
-
-        const { data: updateData, error: updateError } = await adminClient
+        const { error: updateError } = await adminClient
           .from('readings')
           .update({
             interpretation: parsedResponse,
@@ -358,18 +347,13 @@ export async function POST(request: NextRequest) {
           })
           .eq('id', readingId)
           .eq('user_id', user.id) // 보안: 본인 reading만 업데이트
-          .select('id, status')
 
         if (updateError) {
           console.error('[interpret] Reading update error:', updateError)
-        } else {
-          console.log('[interpret] Reading updated successfully:', updateData)
         }
       } catch (err) {
         console.error('[interpret] Reading update failed:', err)
       }
-    } else {
-      console.log('[interpret] Skipping reading update:', { readingId, hasAdminClient: !!adminClient })
     }
 
     return NextResponse.json<InterpretResponse>({
