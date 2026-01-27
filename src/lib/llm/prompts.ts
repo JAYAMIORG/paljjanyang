@@ -513,11 +513,11 @@ export function buildDailySajuPrompt(result: SajuResult, gender: string): string
 
   // 오행 분포에서 상위/하위 추출
   const wuXingArray = [
-    { name: '목(木)', value: result.wuXing.wood },
-    { name: '화(火)', value: result.wuXing.fire },
-    { name: '토(土)', value: result.wuXing.earth },
-    { name: '금(金)', value: result.wuXing.metal },
-    { name: '수(水)', value: result.wuXing.water },
+    { name: '목(木)', element: 'wood', value: result.wuXing.wood },
+    { name: '화(火)', element: 'fire', value: result.wuXing.fire },
+    { name: '토(土)', element: 'earth', value: result.wuXing.earth },
+    { name: '금(金)', element: 'metal', value: result.wuXing.metal },
+    { name: '수(水)', element: 'water', value: result.wuXing.water },
   ].sort((a, b) => b.value - a.value)
 
   const strongElement = wuXingArray[0].name
@@ -528,6 +528,7 @@ export function buildDailySajuPrompt(result: SajuResult, gender: string): string
 성별: ${gender === 'male' ? '남성' : '여성'}
 일간: ${result.dayMaster} (${result.dayMasterKorean})
 일주: ${result.bazi.day}
+띠: ${result.zodiac}
 
 ### 오행 분포
 - 목(木): ${result.wuXing.wood}%
@@ -545,13 +546,14 @@ export function buildDailySajuPrompt(result: SajuResult, gender: string): string
 
 ## 요청
 
-오늘의 운세를 아래 JSON 형식으로 응답해주세요.
+MZ세대를 위한 재미있고 실용적인 오늘의 운세를 아래 JSON 형식으로 응답해주세요.
 
 **중요 규칙:**
 1. 반드시 유효한 JSON 형식으로만 응답하세요
 2. JSON 외의 텍스트는 절대 포함하지 마세요
-3. ${result.dayMasterKorean} 일간과 오늘 날짜의 기운을 고려하여 작성하세요
-4. 구체적이고 실용적인 내용을 담아주세요
+3. ${result.dayMasterKorean} 일간과 오늘의 기운을 고려하여 작성하세요
+4. **명언 같은 모호한 말보다 확실하고 구체적인 지침**을 제공하세요
+5. 재미있고 공유하고 싶은 내용으로 작성하세요
 
 ## JSON 스키마
 
@@ -559,20 +561,43 @@ ${DAILY_JSON_SCHEMA}
 
 ## 각 필드 상세 가이드
 
-1. **overview**: **100자 이상** 작성. 다음을 포함:
-   - 오늘 하루의 전체적인 기운과 분위기
-   - ${result.dayMasterKorean} 일간에게 오늘이 어떤 의미인지
-   - 오늘 특별히 신경 써야 할 부분이나 기대할 수 있는 일
-   - 추상적인 표현 대신 구체적인 상황 예시 포함
+### 1. hook (3초 요약) - 앱 켜자마자 보는 오늘의 결론
 
-2. **lucky**: 행운 키워드 (모두 필수)
-   - color: 오늘의 행운 색상 (예: 파란색, 연두색)
-   - number: 행운의 숫자 (1-99)
-   - direction: 행운의 방향 (동/서/남/북/동북/동남/서북/서남 중 하나)
+- **oneLiner**: 확실한 한 줄 지침 (모호한 명언 금지!)
+  - 좋은 예: "오늘은 입조심이 생명입니다", "뜻밖의 꽁돈이 들어오는 날!", "가만히 있어도 중간은 갑니다"
+  - 나쁜 예: "좋은 일이 생길 것입니다", "마음을 열면 행운이 옵니다"
 
-3. **advice**: **100자 이상** 작성. 다음을 포함:
-   - 오늘 하면 좋은 구체적인 행동 1-2가지
-   - 오늘 피하면 좋은 상황이나 행동
-   - ${strongElement}의 기운을 활용하는 방법
-   - 실생활에서 바로 적용할 수 있는 실용적인 팁`
+- **score**: 0-100점 (오늘의 총점)
+  - ${result.dayMasterKorean} 일간과 오늘 일진의 합충 관계 고려
+  - 합(合): +점수, 충(沖): -점수, 천을귀인: 대폭+
+
+- **hashtags**: 3-4개의 핵심 키워드 (반드시 # 포함)
+  - 예: ["#말조심", "#충동구매금지", "#소개팅대박", "#야근각"]
+
+### 2. luckyItems (액션 & 개운 아이템) - "그래서 오늘 뭐 해야 해?"
+
+- **color**: ${weakElement} 기운을 보충하는 색상
+  - name: 색상명 (예: "네이비", "코랄핑크")
+  - tip: 코디 팁 (**30자 이상**, 구체적으로!)
+    - 예: "오늘의 행운 컬러는 네이비. 청바지나 네이비 니트를 입어보세요!"
+
+- **food**: 부족한 기운을 채워주는 음식 추천
+  - name: 구체적인 음식명 (예: "마라탕", "삼겹살", "냉면")
+  - reason: 추천 이유 (**30자 이상**)
+    - 예: "화(火) 기운이 필요해요. 매콤한 음식으로 활력을 충전하세요!"
+
+- **direction**: 행운의 방향
+  - name: 동/서/남/북/동북/동남/서북/서남 중 하나
+  - tip: 활용 팁 (**30자 이상**)
+    - 예: "집 기준 동쪽에 귀인이 있어요. 동쪽으로 점심 먹으러 가보세요!"
+
+- **number**: 행운의 숫자 (1-99)
+
+### 3. people (재미 & 경고) - SNS 공유 욕구 자극!
+
+- **villain**: 오늘 나를 힘들게 할 사람 특징 (**구체적이고 재미있게!**)
+  - 좋은 예: "오늘 '김씨' 성을 가진 사람을 조심하세요", "안경 쓴 남자가 스트레스를 줍니다", "목소리 큰 상사가 잔소리할 수 있어요"
+
+- **helper**: 오늘 나를 도와줄 귀인 특징 (**구체적이고 재미있게!**)
+  - 좋은 예: "쥐띠 동료가 커피를 사줄지도 몰라요", "머리 긴 여자가 좋은 정보를 줍니다", "후배가 의외의 도움을 줄 수 있어요"`
 }

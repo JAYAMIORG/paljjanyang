@@ -301,21 +301,44 @@ export interface LoveInterpretation {
 
 // ===== 오늘의 운세 (Daily) =====
 export interface DailyInterpretation {
-  /** 오늘의 총운 */
-  overview: string
-
-  /** 행운 키워드 */
-  lucky: {
-    /** 행운의 색상 */
-    color?: string
-    /** 행운의 숫자 */
-    number?: number
-    /** 행운의 방향 */
-    direction?: string
+  /** 3초 요약 (The Hook) */
+  hook: {
+    /** 한 줄 코멘트 - 확실한 지침 */
+    oneLiner: string
+    /** 오늘의 총점 (0-100) */
+    score: number
+    /** 핵심 키워드 해시태그 (3-4개) */
+    hashtags: string[]
   }
 
-  /** 오늘의 조언 */
-  advice: string
+  /** 액션 & 개운 아이템 */
+  luckyItems: {
+    /** 행운의 컬러 & 코디 */
+    color: {
+      name: string
+      tip: string
+    }
+    /** 행운의 푸드 */
+    food: {
+      name: string
+      reason: string
+    }
+    /** 행운의 방향 */
+    direction: {
+      name: string
+      tip: string
+    }
+    /** 행운의 숫자 */
+    number: number
+  }
+
+  /** 재미 & 경고 */
+  people: {
+    /** 오늘의 빌런 - 조심할 사람 */
+    villain: string
+    /** 오늘의 귀인 - 도움될 사람 */
+    helper: string
+  }
 }
 
 // ===== 통합 타입 =====
@@ -485,11 +508,28 @@ export const LOVE_JSON_SCHEMA = `{
 }`
 
 export const DAILY_JSON_SCHEMA = `{
-  "overview": "string (오늘의 총운)",
-  "lucky": {
-    "color": "string",
-    "number": number,
-    "direction": "string"
+  "hook": {
+    "oneLiner": "string (한 줄 코멘트)",
+    "score": number (0-100),
+    "hashtags": ["#키워드1", "#키워드2", "#키워드3"]
   },
-  "advice": "string (오늘의 조언)"
+  "luckyItems": {
+    "color": {
+      "name": "string (색상명)",
+      "tip": "string (코디 팁)"
+    },
+    "food": {
+      "name": "string (음식명)",
+      "reason": "string (추천 이유)"
+    },
+    "direction": {
+      "name": "string (방향)",
+      "tip": "string (활용 팁)"
+    },
+    "number": number (1-99)
+  },
+  "people": {
+    "villain": "string (조심할 사람 특징)",
+    "helper": "string (도움될 사람 특징)"
+  }
 }`

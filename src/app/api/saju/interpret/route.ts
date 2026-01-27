@@ -254,7 +254,7 @@ export async function POST(request: NextRequest) {
       type === 'personal' ? 8000 :
       type === 'yearly' ? 6000 :
       type === 'love' ? 5000 :
-      type === 'daily' ? 1500 : 4096
+      type === 'daily' ? 2000 : 4096
 
     // OpenAI GPT-4o-mini API 호출 (레이트 리미터 적용)
     const completion = await openaiRateLimiter.execute(() =>
