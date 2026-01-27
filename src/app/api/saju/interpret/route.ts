@@ -201,7 +201,6 @@ export async function POST(request: NextRequest) {
               .update({
                 interpretation: parsedCache,
                 status: 'completed',
-                updated_at: new Date().toISOString(),
               })
               .eq('id', readingId)
               .eq('user_id', user.id)
@@ -356,7 +355,6 @@ export async function POST(request: NextRequest) {
           .update({
             interpretation: parsedResponse,
             status: 'completed',
-            updated_at: new Date().toISOString(),
           })
           .eq('id', readingId)
           .eq('user_id', user.id) // 보안: 본인 reading만 업데이트
