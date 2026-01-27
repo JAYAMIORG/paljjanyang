@@ -162,12 +162,75 @@ export async function POST(request: Request) {
       )
     }
 
-    // 2. Reading 레코드 생성 (status = 'processing')
+    // 2. Person 레코드 생성 또는 조회
+    // birthDate 파싱 (예: "2024-1-15")
+    const parseBirthDate = (birthDate: string) => {
+      const parts = birthDate.split('-')
+      return {
+        year: parseInt(parts[0]),
+        month: parseInt(parts[1]),
+        day: parseInt(parts[2]),
+      }
+    }
+
+    let person1Id = person1.id || null
+
+    // person1.id가 없으면 새로 생성
+    if (!person1Id) {
+      const birth1 = parseBirthDate(person1.birthDate)
+      const { data: newPerson1, error: person1Error } = await adminClient
+        .from('persons')
+        .insert({
+          user_id: user.id,
+          name: person1.name || '나',
+          relationship: 'self',
+          birth_year: birth1.year,
+          birth_month: birth1.month,
+          birth_day: birth1.day,
+          gender: person1.gender,
+        })
+        .select('id')
+        .single()
+
+      if (person1Error) {
+        console.error('[use-coin] Person1 creation error:', person1Error)
+      } else {
+        person1Id = newPerson1.id
+      }
+    }
+
+    let person2Id = person2?.id || null
+
+    // 궁합인 경우 person2도 생성
+    if (type === 'compatibility' && person2 && !person2Id) {
+      const birth2 = parseBirthDate(person2.birthDate)
+      const { data: newPerson2, error: person2Error } = await adminClient
+        .from('persons')
+        .insert({
+          user_id: user.id,
+          name: person2.name || '상대방',
+          relationship: 'partner',
+          birth_year: birth2.year,
+          birth_month: birth2.month,
+          birth_day: birth2.day,
+          gender: person2.gender,
+        })
+        .select('id')
+        .single()
+
+      if (person2Error) {
+        console.error('[use-coin] Person2 creation error:', person2Error)
+      } else {
+        person2Id = newPerson2.id
+      }
+    }
+
+    // 3. Reading 레코드 생성 (status = 'processing')
     const readingData: Record<string, unknown> = {
       user_id: user.id,
       type,
       status: 'processing',
-      person1_id: person1.id || null,
+      person1_id: person1Id,
       person1_bazi: person1.sajuResult.bazi,
       person1_wuxing: person1.sajuResult.wuXing,
       person1_day_master: person1.sajuResult.dayMaster,
@@ -183,7 +246,7 @@ export async function POST(request: Request) {
 
     // 궁합인 경우 person2 정보 추가
     if (type === 'compatibility' && person2) {
-      readingData.person2_id = person2.id || null
+      readingData.person2_id = person2Id
       readingData.person2_bazi = person2.sajuResult.bazi
       readingData.person2_wuxing = person2.sajuResult.wuXing
       readingData.person2_day_master = person2.sajuResult.dayMaster
