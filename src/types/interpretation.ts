@@ -218,9 +218,9 @@ export interface CompatibilityInterpretation {
     score: number
     /** 랭킹 표현 (예: "상위 1% 천생연분") */
     ranking: string
-    /** 장점 요약 */
+    /** 장점 요약 (100자 이상) */
     good: string
-    /** 단점 요약 */
+    /** 단점 요약 (100자 이상) */
     bad: string
   }
 
@@ -228,41 +228,88 @@ export interface CompatibilityInterpretation {
   physical: {
     /** 본능적 끌림 지수 (0-100) */
     attractionScore: number
-    /** 끌림 표현 */
+    /** 끌림 표현 (150자 이상) */
     attractionDescription: string
-    /** 낮져밤이 스타일 */
+    /** 낮져밤이 스타일 (150자 이상) */
     intimacyStyle: string
   }
 
-  /** 갈등 & 해결 솔루션 */
-  conflict: {
-    /** 주요 싸움 원인들 */
-    triggers: string[]
-    /** 화해 매뉴얼 */
-    reconciliation: string
-    /** 서로에게 되어주는 역할 */
-    roles: {
-      /** 내가 상대에게 */
-      myRole: string
-      /** 상대가 나에게 */
-      partnerRole: string
-    }
+  /** 감정 표현 방식 & 교류 궁합 */
+  emotionalExpression: {
+    /** 감정 표현 방식의 차이 (150자 이상) */
+    expressionDiff: string
+    /** 공감/위로 스타일 궁합 (150자 이상) */
+    empathyStyle: string
+    /** 사랑의 언어 (말/행동/헌신) 궁합 (150자 이상) */
+    loveLanguage: string
   }
 
-  /** 결혼 & 미래 가능성 */
-  future: {
-    /** 결혼 성사 확률 표현 */
-    marriageProspect: string
-    /** 자녀운/재물운 시너지 */
-    synergy: string
+  /** 주도권 & 힘의 균형 */
+  powerBalance: {
+    /** 주도권 비율과 패턴 (150자 이상) */
+    balanceRatio: string
+    /** 결정권 분배 (150자 이상) */
+    decisionMaking: string
+    /** 시간이 지날수록 변화 예측 (100자 이상) */
+    futureShift: string
   }
 
   /** 속마음 & 성향 분석 */
   emotional: {
-    /** 애정도 밸런스 (누가 더 사랑하는지) */
+    /** 애정도 밸런스 - 누가 더 사랑하는지 (150자 이상) */
     loveBalance: string
-    /** 티키타카 (소통 스타일) */
+    /** 티키타카 - 소통 스타일 (150자 이상) */
     communication: string
+  }
+
+  /** 갈등 & 해결 솔루션 */
+  conflict: {
+    /** 주요 싸움 원인들 (3-5개) */
+    triggers: string[]
+    /** 화해 매뉴얼 (200자 이상) */
+    reconciliation: string
+    /** 서로에게 되어주는 역할 */
+    roles: {
+      /** 첫번째가 두번째에게 (100자 이상) */
+      myRole: string
+      /** 두번째가 첫번째에게 (100자 이상) */
+      partnerRole: string
+    }
+  }
+
+  /** 위험 신호 & 주의 구간 */
+  warning: {
+    /** 반복될 가능성 높은 문제 패턴 (150자 이상) */
+    recurringIssues: string
+    /** 특히 위험한 시기/구간 (150자 이상) */
+    dangerousPeriods: string
+    /** 외부 변수(일, 가족, 돈)의 영향 (150자 이상) */
+    externalFactors: string
+  }
+
+  /** 궁합 개선 전략 */
+  improvement: {
+    /** 서로 바꿔야 할 포인트 */
+    changePoints: {
+      /** 첫번째가 바꿔야 할 점 (100자 이상) */
+      person1: string
+      /** 두번째가 바꿔야 할 점 (100자 이상) */
+      person2: string
+    }
+    /** 역할 분담 제안 (150자 이상) */
+    roleDivision: string
+    /** 의사소통 규칙 제안 (150자 이상) */
+    communicationRules: string
+    /** 이 관계를 살리는 핵심 한마디 */
+    keyAdvice: string
+  }
+
+  /** 결혼 & 미래 가능성 */
+  future: {
+    /** 결혼 전망 (150자 이상) */
+    marriageProspect: string
+    /** 재물운/자녀운 시너지 (150자 이상) */
+    synergy: string
   }
 }
 
@@ -476,29 +523,53 @@ export const COMPATIBILITY_JSON_SCHEMA = `{
     "tagDescription": "string (부제, 예: 티격태격)",
     "score": 0-100,
     "ranking": "string (예: 상위 1% 천생연분)",
-    "good": "string (장점 요약)",
-    "bad": "string (단점 요약)"
+    "good": "string (장점 요약 100자 이상)",
+    "bad": "string (단점 요약 100자 이상)"
   },
   "physical": {
     "attractionScore": 0-100,
-    "attractionDescription": "string (끌림 표현)",
-    "intimacyStyle": "string (낮져밤이 스타일)"
+    "attractionDescription": "string (본능적 끌림 150자 이상)",
+    "intimacyStyle": "string (낮져밤이 스타일 150자 이상)"
   },
-  "conflict": {
-    "triggers": ["string", "string", "string"],
-    "reconciliation": "string (화해 매뉴얼)",
-    "roles": {
-      "myRole": "string (내가 상대에게)",
-      "partnerRole": "string (상대가 나에게)"
-    }
+  "emotionalExpression": {
+    "expressionDiff": "string (감정 표현 방식의 차이 150자 이상)",
+    "empathyStyle": "string (공감/위로 스타일 궁합 150자 이상)",
+    "loveLanguage": "string (사랑의 언어 궁합 150자 이상)"
   },
-  "future": {
-    "marriageProspect": "string (결혼 전망)",
-    "synergy": "string (재물운/자녀운 시너지)"
+  "powerBalance": {
+    "balanceRatio": "string (주도권 비율과 패턴 150자 이상)",
+    "decisionMaking": "string (결정권 분배 150자 이상)",
+    "futureShift": "string (시간 지날수록 변화 예측 100자 이상)"
   },
   "emotional": {
-    "loveBalance": "string (누가 더 사랑하는지)",
-    "communication": "string (티키타카 스타일)"
+    "loveBalance": "string (누가 더 사랑하는지 150자 이상)",
+    "communication": "string (티키타카 스타일 150자 이상)"
+  },
+  "conflict": {
+    "triggers": ["string", "string", "string", "string", "string"],
+    "reconciliation": "string (화해 매뉴얼 200자 이상)",
+    "roles": {
+      "myRole": "string (첫번째가 두번째에게 되어주는 역할 100자 이상)",
+      "partnerRole": "string (두번째가 첫번째에게 되어주는 역할 100자 이상)"
+    }
+  },
+  "warning": {
+    "recurringIssues": "string (반복될 가능성 높은 문제 패턴 150자 이상)",
+    "dangerousPeriods": "string (특히 위험한 시기/구간 150자 이상)",
+    "externalFactors": "string (외부 변수의 영향 150자 이상)"
+  },
+  "improvement": {
+    "changePoints": {
+      "person1": "string (첫번째가 바꿔야 할 점 100자 이상)",
+      "person2": "string (두번째가 바꿔야 할 점 100자 이상)"
+    },
+    "roleDivision": "string (역할 분담 제안 150자 이상)",
+    "communicationRules": "string (의사소통 규칙 제안 150자 이상)",
+    "keyAdvice": "string (이 관계를 살리는 핵심 한마디)"
+  },
+  "future": {
+    "marriageProspect": "string (결혼 전망 150자 이상)",
+    "synergy": "string (재물운/자녀운 시너지 150자 이상)"
   }
 }`
 

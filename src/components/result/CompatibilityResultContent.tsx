@@ -157,12 +157,16 @@ export function CompatibilityResultContent({
 }: CompatibilityResultContentProps) {
   const score = interpretation?.summary?.score || 50
 
-  // 새 형식인지 확인 (physical 섹션이 있어야 함)
+  // 새 형식인지 확인 (확장된 섹션들이 있어야 함)
   const isNewFormat = interpretation &&
     interpretation.physical &&
     interpretation.conflict &&
     interpretation.future &&
-    interpretation.emotional
+    interpretation.emotional &&
+    interpretation.emotionalExpression &&
+    interpretation.powerBalance &&
+    interpretation.warning &&
+    interpretation.improvement
 
   return (
     <div className="space-y-6">
@@ -219,21 +223,86 @@ export function CompatibilityResultContent({
               🔥 스킨십 & 본능적 끌림
             </h3>
 
-            {/* 끌림 지수 */}
             <div className="mb-4">
               <ScoreBar score={interpretation.physical.attractionScore} label="본능적 끌림 지수" />
             </div>
 
             <div className="space-y-3">
-              <div className="p-3 bg-pink-50 rounded-lg">
+              <div className="p-4 bg-pink-50 rounded-xl">
                 <p className="text-body text-text-muted leading-relaxed">
                   {interpretation.physical.attractionDescription}
                 </p>
               </div>
-              <div className="p-3 bg-purple-50 rounded-lg">
-                <h4 className="font-semibold text-purple-600 mb-1">🌙 낮져밤이 스타일</h4>
+              <div className="p-4 bg-purple-50 rounded-xl">
+                <h4 className="font-semibold text-purple-600 mb-2">🌙 낮져밤이 스타일</h4>
                 <p className="text-body text-text-muted leading-relaxed">
                   {interpretation.physical.intimacyStyle}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* 감정 표현 방식 & 교류 궁합 - 핵심 섹션 */}
+          <Card variant="highlighted">
+            <h3 className="text-subheading font-semibold text-text mb-2">
+              💗 감정 표현 & 교류 궁합
+            </h3>
+            <p className="text-small text-pink-500 mb-4">
+              ⭐ 이게 맞으면 웬만한 문제는 넘기고, 안 맞으면 사소한 일로 무너져요
+            </p>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-white rounded-xl">
+                <h4 className="font-semibold text-rose-500 mb-2">🎭 감정 표현 방식의 차이</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.emotionalExpression.expressionDiff}
+                </p>
+              </div>
+
+              <div className="p-4 bg-white rounded-xl">
+                <h4 className="font-semibold text-violet-500 mb-2">🤗 공감/위로 스타일</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.emotionalExpression.empathyStyle}
+                </p>
+              </div>
+
+              <div className="p-4 bg-white rounded-xl">
+                <h4 className="font-semibold text-pink-500 mb-2">💌 사랑의 언어 궁합</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.emotionalExpression.loveLanguage}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* 주도권 & 힘의 균형 */}
+          <Card>
+            <h3 className="text-subheading font-semibold text-text mb-2">
+              ⚖️ 주도권 & 힘의 균형
+            </h3>
+            <p className="text-small text-orange-500 mb-4">
+              ⭐ 힘의 균형이 무너지면 아무리 좋아도 오래 못 가요
+            </p>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-amber-50 rounded-xl">
+                <h4 className="font-semibold text-amber-600 mb-2">📊 주도권 비율</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.powerBalance.balanceRatio}
+                </p>
+              </div>
+
+              <div className="p-4 bg-orange-50 rounded-xl">
+                <h4 className="font-semibold text-orange-600 mb-2">🎯 결정권 분배</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.powerBalance.decisionMaking}
+                </p>
+              </div>
+
+              <div className="p-4 bg-yellow-50 rounded-xl">
+                <h4 className="font-semibold text-yellow-600 mb-2">🔮 시간이 지나면?</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.powerBalance.futureShift}
                 </p>
               </div>
             </div>
@@ -252,13 +321,34 @@ export function CompatibilityResultContent({
             />
           </Card>
 
+          {/* 속마음 & 성향 분석 */}
+          <Card>
+            <h3 className="text-subheading font-semibold text-text mb-4">
+              💭 속마음 & 성향 분석
+            </h3>
+            <div className="space-y-4">
+              <div className="p-4 bg-red-50 rounded-xl">
+                <h4 className="font-semibold text-red-500 mb-2">❤️ 누가 더 사랑할까?</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.emotional.loveBalance}
+                </p>
+              </div>
+
+              <div className="p-4 bg-blue-50 rounded-xl">
+                <h4 className="font-semibold text-blue-500 mb-2">💬 티키타카 (소통 스타일)</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.emotional.communication}
+                </p>
+              </div>
+            </div>
+          </Card>
+
           {/* 갈등 & 해결 솔루션 */}
           <Card>
             <h3 className="text-subheading font-semibold text-text mb-4">
               ⚡ 갈등 & 해결 솔루션
             </h3>
 
-            {/* 주요 싸움 원인 */}
             <div className="mb-4">
               <h4 className="font-semibold text-orange-600 mb-2">🎯 주요 싸움 원인</h4>
               <div className="flex flex-wrap gap-2">
@@ -273,7 +363,6 @@ export function CompatibilityResultContent({
               </div>
             </div>
 
-            {/* 화해 매뉴얼 */}
             <div className="p-4 bg-green-50 rounded-xl mb-4">
               <h4 className="font-semibold text-green-600 mb-2">🕊️ 화해 매뉴얼</h4>
               <p className="text-body text-text-muted leading-relaxed">
@@ -281,11 +370,10 @@ export function CompatibilityResultContent({
               </p>
             </div>
 
-            {/* 서로의 역할 */}
             <div className="grid grid-cols-1 gap-3">
               <div className="p-3 bg-blue-50 rounded-lg">
                 <h4 className="font-semibold text-blue-600 mb-1">
-                  {name1}님의 역할
+                  {name1}이(가) {name2}에게 되어주는 역할
                 </h4>
                 <p className="text-small text-text-muted">
                   {interpretation.conflict.roles.myRole}
@@ -293,10 +381,96 @@ export function CompatibilityResultContent({
               </div>
               <div className="p-3 bg-pink-50 rounded-lg">
                 <h4 className="font-semibold text-pink-600 mb-1">
-                  {name2}님의 역할
+                  {name2}이(가) {name1}에게 되어주는 역할
                 </h4>
                 <p className="text-small text-text-muted">
                   {interpretation.conflict.roles.partnerRole}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* 위험 신호 & 주의 구간 */}
+          <Card>
+            <h3 className="text-subheading font-semibold text-text mb-2">
+              ⚠️ 위험 신호 & 주의 구간
+            </h3>
+            <p className="text-small text-gray-500 mb-4">
+              공포 조장이 아닌 현실적인 위험 관리 포인트
+            </p>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-red-50 rounded-xl">
+                <h4 className="font-semibold text-red-600 mb-2">🔄 반복될 수 있는 문제</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.warning.recurringIssues}
+                </p>
+              </div>
+
+              <div className="p-4 bg-amber-50 rounded-xl">
+                <h4 className="font-semibold text-amber-600 mb-2">📅 특히 주의할 시기</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.warning.dangerousPeriods}
+                </p>
+              </div>
+
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <h4 className="font-semibold text-gray-600 mb-2">🌍 외부 변수의 영향</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.warning.externalFactors}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* 궁합 개선 전략 - 가장 중요 */}
+          <Card variant="highlighted">
+            <h3 className="text-subheading font-semibold text-text mb-2">
+              💡 궁합 개선 전략
+            </h3>
+            <p className="text-small text-primary mb-4">
+              ⭐ 이 관계를 살리는 구체적인 방법
+            </p>
+
+            {/* 핵심 한마디 */}
+            <div className="p-4 bg-gradient-to-r from-primary/10 to-pink-100 rounded-xl mb-4 text-center">
+              <p className="text-lg font-bold text-primary">
+                &ldquo;{interpretation.improvement.keyAdvice}&rdquo;
+              </p>
+            </div>
+
+            {/* 서로 바꿔야 할 점 */}
+            <div className="grid grid-cols-1 gap-3 mb-4">
+              <div className="p-4 bg-white rounded-xl border-l-4 border-blue-400">
+                <h4 className="font-semibold text-blue-600 mb-2">
+                  🔧 {name1}님이 바꾸면 좋은 점
+                </h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.improvement.changePoints.person1}
+                </p>
+              </div>
+              <div className="p-4 bg-white rounded-xl border-l-4 border-pink-400">
+                <h4 className="font-semibold text-pink-600 mb-2">
+                  🔧 {name2}님이 바꾸면 좋은 점
+                </h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.improvement.changePoints.person2}
+                </p>
+              </div>
+            </div>
+
+            {/* 역할 분담 & 소통 규칙 */}
+            <div className="space-y-3">
+              <div className="p-4 bg-white rounded-xl">
+                <h4 className="font-semibold text-violet-600 mb-2">📋 역할 분담 제안</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.improvement.roleDivision}
+                </p>
+              </div>
+              <div className="p-4 bg-white rounded-xl">
+                <h4 className="font-semibold text-teal-600 mb-2">💬 의사소통 규칙</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.improvement.communicationRules}
                 </p>
               </div>
             </div>
@@ -307,41 +481,17 @@ export function CompatibilityResultContent({
             <h3 className="text-subheading font-semibold text-text mb-4">
               💍 결혼 & 미래 가능성
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl">
-                <h4 className="font-semibold text-pink-600 mb-2">결혼 전망</h4>
+                <h4 className="font-semibold text-pink-600 mb-2">💒 결혼 전망</h4>
                 <p className="text-body text-text-muted leading-relaxed">
                   {interpretation.future.marriageProspect}
                 </p>
               </div>
               <div className="p-4 bg-gradient-to-r from-yellow-50 to-green-50 rounded-xl">
-                <h4 className="font-semibold text-green-600 mb-2">재물운/자녀운 시너지</h4>
+                <h4 className="font-semibold text-green-600 mb-2">✨ 재물운/자녀운 시너지</h4>
                 <p className="text-body text-text-muted leading-relaxed">
                   {interpretation.future.synergy}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* 속마음 & 성향 분석 */}
-          <Card variant="highlighted">
-            <h3 className="text-subheading font-semibold text-text mb-4">
-              💭 속마음 & 성향 분석
-            </h3>
-            <div className="space-y-4">
-              {/* 애정도 밸런스 */}
-              <div className="p-4 bg-white rounded-xl">
-                <h4 className="font-semibold text-red-500 mb-2">❤️ 누가 더 사랑할까?</h4>
-                <p className="text-body text-text-muted leading-relaxed">
-                  {interpretation.emotional.loveBalance}
-                </p>
-              </div>
-
-              {/* 티키타카 */}
-              <div className="p-4 bg-white rounded-xl">
-                <h4 className="font-semibold text-blue-500 mb-2">💬 티키타카 (소통 스타일)</h4>
-                <p className="text-body text-text-muted leading-relaxed">
-                  {interpretation.emotional.communication}
                 </p>
               </div>
             </div>
