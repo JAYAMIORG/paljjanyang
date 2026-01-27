@@ -304,53 +304,18 @@ export interface DailyInterpretation {
   /** 오늘의 총운 */
   overview: string
 
-  /** 오늘의 에너지/분위기 */
-  energy: {
-    /** 오늘의 키워드 (2-3개) */
-    keywords: string[]
-    /** 오늘의 점수 (1-5) */
-    score: number
-  }
-
-  /** 분야별 운세 */
-  categories: {
-    /** 재물운 */
-    wealth: string
-    /** 연애운 */
-    love: string
-    /** 건강운 */
-    health: string
-    /** 업무/학업운 */
-    work: string
-  }
-
   /** 행운 키워드 */
   lucky: {
     /** 행운의 색상 */
-    color: string
+    color?: string
     /** 행운의 숫자 */
-    number: number
+    number?: number
     /** 행운의 방향 */
-    direction: string
-    /** 행운의 음식 */
-    food: string
-  }
-
-  /** 시간대별 운세 */
-  timing: {
-    /** 좋은 시간대 */
-    goodTime: string
-    /** 주의할 시간대 */
-    cautionTime: string
+    direction?: string
   }
 
   /** 오늘의 조언 */
-  advice: {
-    /** 하면 좋은 것 */
-    dos: string[]
-    /** 피하면 좋은 것 */
-    donts: string[]
-  }
+  advice: string
 }
 
 // ===== 통합 타입 =====
@@ -521,28 +486,10 @@ export const LOVE_JSON_SCHEMA = `{
 
 export const DAILY_JSON_SCHEMA = `{
   "overview": "string (오늘의 총운)",
-  "energy": {
-    "keywords": ["string", "string"],
-    "score": 1-5
-  },
-  "categories": {
-    "wealth": "string",
-    "love": "string",
-    "health": "string",
-    "work": "string"
-  },
   "lucky": {
     "color": "string",
     "number": number,
-    "direction": "string",
-    "food": "string"
+    "direction": "string"
   },
-  "timing": {
-    "goodTime": "string",
-    "cautionTime": "string"
-  },
-  "advice": {
-    "dos": ["string", "string"],
-    "donts": ["string", "string"]
-  }
+  "advice": "string (오늘의 조언)"
 }`
