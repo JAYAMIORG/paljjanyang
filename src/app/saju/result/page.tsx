@@ -1324,22 +1324,7 @@ function getPersonalityByElement(element: string): string {
 
 export default function ResultPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center">
-            <Image
-              src="/images/brand-character.webp"
-              alt=""
-              width={72}
-              height={72}
-              className="h-[72px] w-auto mx-auto mb-4 animate-bounce"
-            />
-            <p className="text-body text-text-muted">로딩 중...</p>
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingScreen message="로딩 중..." />}>
       <ResultContent />
     </Suspense>
   )
