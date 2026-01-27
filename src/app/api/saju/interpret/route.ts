@@ -58,6 +58,8 @@ export interface InterpretRequest {
   gender2?: 'male' | 'female'
   name1?: string
   name2?: string
+  // 선저장된 reading ID (use-coin에서 생성됨)
+  readingId?: string
 }
 
 export interface InterpretResponse {
@@ -140,7 +142,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: InterpretRequest = await request.json()
-    const { type, sajuResult, gender, sajuResult2, gender2, name1, name2 } = body
+    const { type, sajuResult, gender, sajuResult2, gender2, name1, name2, readingId } = body
 
     // 입력 검증
     if (!sajuResult || !type || !gender) {
@@ -189,6 +191,22 @@ export async function POST(request: NextRequest) {
         // 캐시 히트 - JSON 파싱 시도
         const parsedCache = parseJsonResponse(cached.interpretation)
         if (parsedCache) {
+          // Reading 레코드 업데이트 (캐시 히트 시에도 처리)
+          if (readingId) {
+            adminClient
+              .from('readings')
+              .update({
+                interpretation: parsedCache,
+                status: 'completed',
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', readingId)
+              .eq('user_id', user.id)
+              .then(({ error }) => {
+                if (error) console.error('Reading update error (cache hit):', error)
+              })
+          }
+
           return NextResponse.json<InterpretResponse>({
             success: true,
             data: {
@@ -315,6 +333,30 @@ export async function POST(request: NextRequest) {
       }).catch((err) => {
         console.error('Cache save failed:', err)
       })
+    }
+
+    // ========================================
+    // Reading 레코드 업데이트 (선저장 후해석 패턴)
+    // ========================================
+    if (readingId && adminClient) {
+      try {
+        const { error: updateError } = await adminClient
+          .from('readings')
+          .update({
+            interpretation: parsedResponse,
+            status: 'completed',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', readingId)
+          .eq('user_id', user.id) // 보안: 본인 reading만 업데이트
+
+        if (updateError) {
+          console.error('Reading update error:', updateError)
+          // 업데이트 실패해도 해석 결과는 반환 (사용자 경험 우선)
+        }
+      } catch (err) {
+        console.error('Reading update failed:', err)
+      }
     }
 
     return NextResponse.json<InterpretResponse>({

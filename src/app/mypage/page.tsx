@@ -25,6 +25,12 @@ const TYPE_ICONS: Record<string, string> = {
   daily: '☀️',
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  processing: '분석 중',
+  completed: '완료',
+  failed: '실패',
+}
+
 export default function MyPage() {
   const router = useRouter()
   const { user, loading: authLoading, isConfigured } = useAuth()
@@ -194,50 +200,73 @@ export default function MyPage() {
             />
           ) : (
             <div className="space-y-3">
-              {readings.map((reading) => (
-                <Card key={reading.id} className="hover:shadow-card-hover transition-shadow">
-                  <div className="flex items-start gap-3">
-                    <Link
-                      href={`/saju/result?id=${reading.id}&type=${reading.type}`}
-                      className="flex items-start gap-3 flex-1 min-w-0"
-                    >
-                      <span className="text-2xl" aria-hidden="true">{TYPE_ICONS[reading.type]}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-caption bg-primary/10 text-primary px-2 py-0.5 rounded">
-                            {TYPE_LABELS[reading.type]}
-                          </span>
-                          <span className="text-caption text-text-light">
-                            {new Date(reading.createdAt).toLocaleDateString('ko-KR')}
-                          </span>
+              {readings.map((reading) => {
+                const isProcessing = reading.status === 'processing'
+                const isFailed = reading.status === 'failed'
+
+                return (
+                  <Card
+                    key={reading.id}
+                    className={`hover:shadow-card-hover transition-shadow ${
+                      isProcessing ? 'border-l-4 border-l-amber-400 bg-amber-50/30' :
+                      isFailed ? 'border-l-4 border-l-red-400 bg-red-50/30' : ''
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Link
+                        href={`/saju/result?id=${reading.id}&type=${reading.type}`}
+                        className="flex items-start gap-3 flex-1 min-w-0"
+                      >
+                        <span className="text-2xl" aria-hidden="true">{TYPE_ICONS[reading.type]}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="text-caption bg-primary/10 text-primary px-2 py-0.5 rounded">
+                              {TYPE_LABELS[reading.type]}
+                            </span>
+                            {isProcessing && (
+                              <span className="text-caption bg-amber-100 text-amber-700 px-2 py-0.5 rounded flex items-center gap-1">
+                                <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+                                {STATUS_LABELS.processing}
+                              </span>
+                            )}
+                            {isFailed && (
+                              <span className="text-caption bg-red-100 text-red-700 px-2 py-0.5 rounded">
+                                {STATUS_LABELS.failed}
+                              </span>
+                            )}
+                            <span className="text-caption text-text-light">
+                              {new Date(reading.createdAt).toLocaleDateString('ko-KR')}
+                            </span>
+                          </div>
+                          <p className="text-body font-medium text-text">
+                            {reading.personName} - {reading.birthDate}
+                          </p>
+                          <p className="text-caption text-text-muted mt-1">
+                            {isProcessing ? '탭하여 분석 계속하기' :
+                             isFailed ? '탭하여 다시 시도' : '탭하여 상세 보기'}
+                          </p>
                         </div>
-                        <p className="text-body font-medium text-text">
-                          {reading.personName} - {reading.birthDate}
-                        </p>
-                        <p className="text-caption text-text-muted mt-1">
-                          탭하여 상세 보기
-                        </p>
-                      </div>
-                    </Link>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault()
-                        openDeleteConfirm(reading.id)
-                      }}
-                      disabled={deletingId === reading.id}
-                      aria-label={`${reading.personName} 기록 삭제`}
-                      aria-busy={deletingId === reading.id}
-                      className="p-2 text-text-light hover:text-red-500 transition-colors disabled:opacity-50"
-                    >
-                      {deletingId === reading.id ? (
-                        <span className="text-sm" role="status">삭제 중...</span>
-                      ) : (
-                        <TrashIcon />
-                      )}
-                    </button>
-                  </div>
-                </Card>
-              ))}
+                      </Link>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault()
+                          openDeleteConfirm(reading.id)
+                        }}
+                        disabled={deletingId === reading.id}
+                        aria-label={`${reading.personName} 기록 삭제`}
+                        aria-busy={deletingId === reading.id}
+                        className="p-2 text-text-light hover:text-red-500 transition-colors disabled:opacity-50"
+                      >
+                        {deletingId === reading.id ? (
+                          <span className="text-sm" role="status">삭제 중...</span>
+                        ) : (
+                          <TrashIcon />
+                        )}
+                      </button>
+                    </div>
+                  </Card>
+                )
+              })}
             </div>
           )}
         </div>

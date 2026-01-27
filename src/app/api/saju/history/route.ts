@@ -9,6 +9,7 @@ export interface ReadingHistoryItem {
   birthDate: string // YYYY.M.D 형식
   createdAt: string
   interpretation?: string
+  status: 'processing' | 'completed' | 'failed'
 }
 
 export interface HistoryResponse {
@@ -61,12 +62,13 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = (page - 1) * limit
 
-    // 사주 기록 조회 (person 정보 포함)
+    // 사주 기록 조회 (person 정보 포함, status 포함)
     const { data, error: readingsError } = await supabase
       .from('readings')
       .select(`
         id,
         type,
+        status,
         korean_ganji,
         interpretation,
         created_at,
@@ -113,6 +115,7 @@ export async function GET(request: NextRequest) {
         interpretation: typeof r.interpretation === 'object' && r.interpretation !== null
           ? r.interpretation.text
           : undefined,
+        status: r.status || 'completed', // 기존 데이터는 completed로 처리
       }
     })
 

@@ -30,6 +30,7 @@ export interface ReadingDetailResponse {
   data?: {
     id: string
     type: string
+    status: 'processing' | 'completed' | 'failed'
     koreanGanji: string
     interpretation: string | null
     bazi: {
@@ -62,6 +63,8 @@ export interface ReadingDetailResponse {
     person2?: PersonData
     name1?: string
     name2?: string
+    gender?: 'male' | 'female'
+    gender2?: 'male' | 'female'
   }
   error?: {
     code: string
@@ -177,12 +180,13 @@ export async function GET(
       )
     }
 
-    // 해당 기록 조회 (사용자 본인 것만, person 정보 포함)
+    // 해당 기록 조회 (사용자 본인 것만, person 정보 포함, status 포함)
     const { data: reading, error } = await supabase
       .from('readings')
       .select(`
         id,
         type,
+        status,
         korean_ganji,
         interpretation,
         person1_bazi,
@@ -326,6 +330,7 @@ export async function GET(
       data: {
         id: reading.id,
         type: reading.type,
+        status: reading.status || 'completed', // 기존 데이터는 completed로 처리
         koreanGanji: reading.korean_ganji || '',
         interpretation: reading.interpretation?.text || null,
         bazi,
@@ -339,10 +344,13 @@ export async function GET(
         dayPillarAnimal,
         dayNaYin: '', // DB에 저장되지 않음
         createdAt: reading.created_at,
+        // 성별 정보 (해석 재시도용)
+        ...(person?.gender && { gender: person.gender }),
         // 궁합용 데이터
         ...(person2Data && { person2: person2Data }),
         ...(person?.name && { name1: person.name }),
         ...(person2Info?.name && { name2: person2Info.name }),
+        ...(person2Info?.gender && { gender2: person2Info.gender }),
       },
     })
   } catch (error) {

@@ -96,6 +96,11 @@ function ResultContent() {
   const [shareRewardClaimed, setShareRewardClaimed] = useState(false)
   const [showRewardToast, setShowRewardToast] = useState(false)
   const [isDailyNew, setIsDailyNew] = useState(true) // 오늘의 운세가 새로 생성된 것인지
+  // 저장된 reading에서 불러온 정보 (URL 파라미터 대신 사용)
+  const [savedGender, setSavedGender] = useState<string | null>(null)
+  const [savedGender2, setSavedGender2] = useState<string | null>(null)
+  const [savedName1, setSavedName1] = useState<string | null>(null)
+  const [savedName2, setSavedName2] = useState<string | null>(null)
   const hasSavedRef = useRef(false)
   const hasDeductedCoinRef = useRef(false)
   const hasStartedRef = useRef(false)
@@ -122,156 +127,93 @@ function ResultContent() {
   const hour2 = searchParams.get('hour2')
   const lunar2 = searchParams.get('lunar2')
 
-  // 자동 저장 함수
-  const autoSave = async (
-    sajuResult: SajuResult,
-    interpretationData: InterpretationData | null,
+  // 코인 차감 함수 (선저장 후해석 패턴: reading 생성 + 코인 차감)
+  const deductCoin = async (
+    sajuResult1: SajuResult,
     sajuResult2ForCompatibility?: SajuResult | null
-  ) => {
-    if (!user || hasSavedRef.current) return
-
-    // 궁합 타입인데 result2가 없으면 스킵
-    if (type === 'compatibility' && !sajuResult2ForCompatibility) return
-
-    hasSavedRef.current = true
+  ): Promise<{ success: boolean; readingId?: string }> => {
+    if (hasDeductedCoinRef.current) return { success: true, readingId: readingId || undefined }
+    if (!user) {
+      setCoinError('로그인이 필요합니다.')
+      return { success: false }
+    }
 
     try {
+      // use-coin API에 사주 데이터 전달
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const saveData: any = {
+      const requestBody: any = {
         type,
-        sajuResult,
-        interpretation: interpretationData ? JSON.stringify(interpretationData) : null,
-        gender,
-        birthInfo: {
-          year: parseInt(year!),
-          month: parseInt(month!),
-          day: parseInt(day!),
-          hour: hour ? parseInt(hour) : undefined,
-          isLunar: lunar === '1',
+        person1: {
           name: name1 !== '첫 번째 사람' ? name1 : undefined,
+          gender,
+          birthDate: `${year}-${month}-${day}`,
+          sajuResult: sajuResult1,
         },
       }
 
-      // 궁합인 경우 두 번째 사람 데이터 추가
+      // 궁합인 경우 두 번째 사람 정보 추가
       if (type === 'compatibility' && sajuResult2ForCompatibility) {
-        saveData.sajuResult2 = sajuResult2ForCompatibility
-        saveData.gender2 = gender2
-        saveData.birthInfo2 = {
-          year: parseInt(year2!),
-          month: parseInt(month2!),
-          day: parseInt(day2!),
-          hour: hour2 ? parseInt(hour2) : undefined,
-          isLunar: lunar2 === '1',
+        requestBody.person2 = {
           name: name2 !== '두 번째 사람' ? name2 : undefined,
+          gender: gender2,
+          birthDate: `${year2}-${month2}-${day2}`,
+          sajuResult: sajuResult2ForCompatibility,
         }
       }
 
-      const response = await fetch('/api/saju/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(saveData),
-      })
-
-      const data = await response.json()
-      if (data.success && data.data?.readingId) {
-        setReadingId(data.data.readingId)
-      }
-    } catch {
-      // 저장 실패해도 결과는 보여줌
-      console.error('Auto-save failed')
-    }
-  }
-
-  // 코인 차감 함수
-  const deductCoin = async (): Promise<boolean> => {
-    if (hasDeductedCoinRef.current) return true
-    if (!user) {
-      setCoinError('로그인이 필요합니다.')
-      return false
-    }
-
-    try {
       const response = await fetch('/api/saju/use-coin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type }),
+        body: JSON.stringify(requestBody),
       })
 
       const data = await response.json()
 
       if (data.success) {
         hasDeductedCoinRef.current = true
-        return true
+        setReadingId(data.data.readingId)
+        return { success: true, readingId: data.data.readingId }
       } else {
         if (data.error?.code === 'INSUFFICIENT_COINS') {
           setCoinBalance(data.error.currentBalance ?? 0)
           setShowInsufficientModal(true)
         }
         setCoinError(data.error?.message || '코인 차감에 실패했습니다.')
-        return false
+        return { success: false }
       }
     } catch {
       setCoinError('서버 연결에 실패했습니다.')
-      return false
-    }
-  }
-
-  // 코인 환불 함수 (사주 계산 실패 시 롤백용)
-  const refundCoin = async (reason: string): Promise<boolean> => {
-    if (!hasDeductedCoinRef.current || !user) return false
-
-    try {
-      const response = await fetch('/api/saju/refund-coin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, reason }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        hasDeductedCoinRef.current = false
-        console.log('Coin refunded successfully:', data.data?.newBalance)
-        return true
-      } else {
-        console.error('Coin refund failed:', data.error?.message)
-        return false
-      }
-    } catch (err) {
-      console.error('Coin refund error:', err)
-      return false
+      return { success: false }
     }
   }
 
   // 저장된 결과 불러오기
-  const fetchSavedReading = async (id: string): Promise<boolean> => {
+  const fetchSavedReading = async (id: string): Promise<{
+    loaded: boolean;
+    needsInterpretation: boolean;
+    savedData?: {
+      result: SajuResult;
+      result2: SajuResult | null;
+      gender: string;
+      gender2: string;
+      name1: string;
+      name2: string;
+      type: string;
+    };
+  }> => {
     try {
       const response = await fetch(`/api/saju/history/${id}`)
       const data = await response.json()
 
       if (data.success && data.data) {
-        setResult({
-          bazi: data.data.bazi,
-          wuXing: data.data.wuXing,
-          dayMaster: data.data.dayMaster,
-          dayMasterKorean: data.data.dayMasterKorean,
-          koreanGanji: data.data.koreanGanji,
-          zodiacEmoji: data.data.zodiacEmoji,
-          dominantElement: data.data.dominantElement,
-          weakElement: data.data.weakElement,
-          daYun: data.data.daYun || [],
-          // 저장되지 않은 필드는 기본값 사용
-          shiShen: { yearGan: '', monthGan: '', hourGan: null },
-          zodiac: '',
-          naYin: '',
-          dayPillarAnimal: data.data.dayPillarAnimal || '',
-          dayNaYin: data.data.dayNaYin || '',
-        })
+        const result1 = buildResultFromData(data.data)
+        setResult(result1)
 
         // 궁합인 경우 두 번째 사람 데이터도 설정
+        let result2Value = null
         if (data.data.type === 'compatibility' && data.data.person2) {
           const p2 = data.data.person2
-          setResult2({
+          result2Value = {
             bazi: p2.bazi,
             wuXing: p2.wuXing,
             dayMaster: p2.dayMaster,
@@ -286,11 +228,15 @@ function ResultContent() {
             naYin: '',
             dayPillarAnimal: '',
             dayNaYin: '',
-          })
+          }
+          setResult2(result2Value)
         }
 
         // 저장된 해석을 JSON으로 파싱 시도
-        if (data.data.interpretation) {
+        const status = data.data.status || 'completed'
+        const needsInterpretation = status === 'processing' || status === 'failed'
+
+        if (data.data.interpretation && !needsInterpretation) {
           try {
             const parsedInterpretation = typeof data.data.interpretation === 'string'
               ? JSON.parse(data.data.interpretation)
@@ -304,13 +250,52 @@ function ResultContent() {
         setReadingId(id)
         hasSavedRef.current = true // 이미 저장된 결과
         hasDeductedCoinRef.current = true // 이미 코인 차감됨
-        return true
+
+        // 저장된 reading에서 불러온 정보 설정 (해석 재시도용)
+        if (data.data.gender) setSavedGender(data.data.gender)
+        if (data.data.gender2) setSavedGender2(data.data.gender2)
+        if (data.data.name1) setSavedName1(data.data.name1)
+        if (data.data.name2) setSavedName2(data.data.name2)
+
+        return {
+          loaded: true,
+          needsInterpretation,
+          savedData: {
+            result: result1,
+            result2: result2Value,
+            gender: data.data.gender,
+            gender2: data.data.gender2,
+            name1: data.data.name1,
+            name2: data.data.name2,
+            type: data.data.type,
+          },
+        }
       }
-      return false
+      return { loaded: false, needsInterpretation: false }
     } catch {
-      return false
+      return { loaded: false, needsInterpretation: false }
     }
   }
+
+  // API 응답 데이터를 SajuResult로 변환
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const buildResultFromData = (data: any): SajuResult => ({
+    bazi: data.bazi,
+    wuXing: data.wuXing,
+    dayMaster: data.dayMaster,
+    dayMasterKorean: data.dayMasterKorean,
+    koreanGanji: data.koreanGanji,
+    zodiacEmoji: data.zodiacEmoji,
+    dominantElement: data.dominantElement,
+    weakElement: data.weakElement,
+    daYun: data.daYun || [],
+    // 저장되지 않은 필드는 기본값 사용
+    shiShen: { yearGan: '', monthGan: '', hourGan: null },
+    zodiac: '',
+    naYin: '',
+    dayPillarAnimal: data.dayPillarAnimal || '',
+    dayNaYin: data.dayNaYin || '',
+  })
 
   // 컴포넌트 마운트/언마운트 관리
   // 사주 계산 및 코인 차감
@@ -337,9 +322,16 @@ function ResultContent() {
 
         // 저장된 결과가 있으면 불러오기
         if (savedId) {
-          const loaded = await fetchSavedReading(savedId)
+          const { loaded, needsInterpretation, savedData } = await fetchSavedReading(savedId)
           if (loaded) {
-            setIsLoading(false)
+            // processing 또는 failed 상태인 경우 해석 재시도
+            if (needsInterpretation && savedData) {
+              setIsLoading(false)
+              // hasSavedRef.current가 true이고 readingId가 설정되어 있으므로
+              // useEffect에서 자동으로 해석을 시도함
+            } else {
+              setIsLoading(false)
+            }
             return
           }
         }
@@ -445,14 +437,9 @@ function ResultContent() {
           }
         }
 
-        // 코인 차감 (기존 기록이 없는 경우만)
-        const coinDeducted = await deductCoin()
-        if (!coinDeducted) {
-          setIsLoading(false)
-          return
-        }
+        // 선저장 후해석 패턴: 사주 계산 먼저, 코인 차감 + reading 생성은 한번에
 
-        // 첫 번째 사람 사주 계산
+        // 첫 번째 사람 사주 계산 (코인 차감 전)
         const response = await fetch('/api/saju/calculate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -469,14 +456,14 @@ function ResultContent() {
 
         const data = await response.json()
         if (!data.success) {
-          await refundCoin('사주 계산 실패')
           setError(data.error?.message || '사주 계산 중 오류가 발생했습니다.')
           return
         }
 
-        setResult(data.data)
+        const sajuResult1 = data.data
+        let sajuResult2 = null
 
-        // 궁합인 경우 두 번째 사람도 계산
+        // 궁합인 경우 두 번째 사람도 계산 (코인 차감 전)
         if (isCompatibility) {
           const response2 = await fetch('/api/saju/calculate', {
             method: 'POST',
@@ -494,16 +481,29 @@ function ResultContent() {
 
           const data2 = await response2.json()
           if (!data2.success) {
-            await refundCoin('두 번째 사람 사주 계산 실패')
             setError(data2.error?.message || '두 번째 사람 사주 계산 중 오류가 발생했습니다.')
             return
           }
 
-          setResult2(data2.data)
+          sajuResult2 = data2.data
         }
+
+        // 코인 차감 + reading 레코드 생성 (선저장)
+        const coinResult = await deductCoin(sajuResult1, sajuResult2)
+        if (!coinResult.success) {
+          setIsLoading(false)
+          return
+        }
+
+        // 상태 업데이트
+        setResult(sajuResult1)
+        if (sajuResult2) {
+          setResult2(sajuResult2)
+        }
+        hasSavedRef.current = true // reading은 use-coin에서 이미 생성됨
       } catch {
-        // 네트워크 오류 시에도 코인 환불
-        await refundCoin('서버 연결 실패')
+        // 선저장 후해석 패턴: 코인 차감 전 오류는 환불 불필요
+        // 코인 차감 후 오류는 reading이 이미 저장됨 (status='processing')
         setError('서버 연결에 실패했습니다.')
       } finally {
         setIsLoading(false)
@@ -517,34 +517,46 @@ function ResultContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, user])
 
-  // LLM 해석 요청 및 자동 저장 (저장된 결과가 아닌 경우만)
+  // LLM 해석 요청 (선저장 후해석 패턴: readingId가 있는 경우만 실행)
   useEffect(() => {
     if (!result || !user) return
 
     // 궁합인 경우 두 번째 결과도 있어야 함
     if (isCompatibility && !result2) return
 
-    // 이미 저장된 결과를 불러온 경우 스킵
-    if (hasSavedRef.current) return
+    // 이미 해석이 있는 경우 (저장된 결과 불러온 경우) 스킵
+    if (interpretation) return
+
+    // readingId가 있고 hasSavedRef가 true인 경우에만 해석 요청
+    // (새로 계산된 결과에서 use-coin을 통해 reading이 생성된 경우)
+    if (!readingId || !hasSavedRef.current) return
 
     const fetchInterpretation = async () => {
       setIsInterpretLoading(true)
       try {
-        // 궁합인 경우 두 사람 정보 모두 전달
+        // 저장된 reading에서 불러온 값 우선 사용, 없으면 URL 파라미터 사용
+        const effectiveGender = savedGender || gender
+        const effectiveGender2 = savedGender2 || gender2
+        const effectiveName1 = savedName1 || name1
+        const effectiveName2 = savedName2 || name2
+
+        // 궁합인 경우 두 사람 정보 모두 전달 + readingId 추가
         const requestBody = isCompatibility
           ? {
               type,
               sajuResult: result,
-              gender,
+              gender: effectiveGender,
               sajuResult2: result2,
-              gender2,
-              name1,
-              name2,
+              gender2: effectiveGender2,
+              name1: effectiveName1,
+              name2: effectiveName2,
+              readingId, // 선저장된 reading ID
             }
           : {
               type,
               sajuResult: result,
-              gender,
+              gender: effectiveGender,
+              readingId, // 선저장된 reading ID
             }
 
         const response = await fetch('/api/saju/interpret', {
@@ -556,16 +568,11 @@ function ResultContent() {
         const data = await response.json()
         if (data.success) {
           setInterpretation(data.data.interpretation)
-          // 해석 완료 후 자동 저장 (궁합이면 result2도 전달)
-          await autoSave(result, data.data.interpretation, result2)
-        } else {
-          // LLM 실패해도 자동 저장 (기본 해석으로)
-          await autoSave(result, null, result2)
+          // 해석 완료 - reading 업데이트는 interpret API에서 처리됨
         }
+        // LLM 실패해도 reading은 이미 저장되어 있음 (status='processing')
       } catch {
-        console.log('LLM interpretation failed, using fallback')
-        // LLM 실패해도 자동 저장
-        await autoSave(result, null, result2)
+        console.log('LLM interpretation failed, reading exists with processing status')
       } finally {
         setIsInterpretLoading(false)
       }
@@ -573,7 +580,7 @@ function ResultContent() {
 
     fetchInterpretation()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result, result2])
+  }, [result, result2, readingId, savedGender, savedGender2])
 
   // 공유 보상 수령 여부 확인
   useEffect(() => {
