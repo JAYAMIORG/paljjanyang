@@ -261,27 +261,42 @@ function CoinContent() {
             결제 수단 선택
           </h3>
           <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-labelledby="payment-method-label">
-            {[
-              { id: '카드', label: '신용카드', icon: '💳' },
-              { id: '카카오페이', label: '카카오페이', icon: '🟡' },
-            ].map((method) => (
-              <button
-                key={method.id}
-                role="radio"
-                aria-checked={paymentMethod === method.id}
-                onClick={() => setPaymentMethod(method.id as typeof paymentMethod)}
-                className={`
-                  p-4 rounded-xl border-2 transition-all text-center bg-white
-                  ${paymentMethod === method.id
-                    ? 'border-primary'
-                    : 'border-gray-200 hover:border-gray-300'
-                  }
-                `}
-              >
-                <span className="text-2xl block mb-1" aria-hidden="true">{method.icon}</span>
-                <span className="text-small font-medium text-text">{method.label}</span>
-              </button>
-            ))}
+            <button
+              role="radio"
+              aria-checked={paymentMethod === '카드'}
+              onClick={() => setPaymentMethod('카드')}
+              className={`
+                p-4 rounded-xl border-2 transition-all text-center bg-white
+                ${paymentMethod === '카드'
+                  ? 'border-primary'
+                  : 'border-gray-200 hover:border-gray-300'
+                }
+              `}
+            >
+              <span className="text-2xl block mb-1" aria-hidden="true">💳</span>
+              <span className="text-small font-medium text-text">신용카드</span>
+            </button>
+            <button
+              role="radio"
+              aria-checked={paymentMethod === '카카오페이'}
+              onClick={() => setPaymentMethod('카카오페이')}
+              className={`
+                p-4 rounded-xl border-2 transition-all text-center bg-white
+                ${paymentMethod === '카카오페이'
+                  ? 'border-primary'
+                  : 'border-gray-200 hover:border-gray-300'
+                }
+              `}
+            >
+              <Image
+                src="/images/kakaopay.png"
+                alt="카카오페이"
+                width={32}
+                height={32}
+                className="mx-auto mb-1"
+              />
+              <span className="text-small font-medium text-text">카카오페이</span>
+            </button>
           </div>
         </div>
 
