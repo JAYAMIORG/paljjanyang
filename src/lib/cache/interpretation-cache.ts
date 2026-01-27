@@ -62,21 +62,22 @@ export function generateCacheKey(params: CacheKeyParams): string {
 
   // 궁합인 경우 두 번째 사람 정보 추가
   if (type === 'compatibility' && bazi2 && gender2) {
-    // 두 사람의 순서를 일관되게 정렬 (키 중복 방지)
+    // 두 사람의 순서를 일관되게 정렬 (A-B와 B-A가 같은 키가 되도록)
     const person1Key = `${bazi.year}:${bazi.month}:${bazi.day}:${bazi.hour || 'null'}:${gender}`
     const person2Key = `${bazi2.year}:${bazi2.month}:${bazi2.day}:${bazi2.hour || 'null'}:${gender2}`
 
-    // 알파벳 순으로 정렬하여 A-B와 B-A가 같은 키가 되도록
-    if (person1Key > person2Key) {
-      keyParts.push(bazi2.year, bazi2.month, bazi2.day, bazi2.hour || 'null', gender2)
-    } else {
-      // 순서 바꿔서 추가
-      keyParts.length = 1 // type만 남기고
-      keyParts.push(
-        bazi2.year, bazi2.month, bazi2.day, bazi2.hour || 'null', gender2,
-        bazi.year, bazi.month, bazi.day, bazi.hour || 'null', gender
-      )
-    }
+    // 알파벳 순으로 정렬하여 순서 무관하게 동일한 키 생성
+    const [firstBazi, firstGender, secondBazi, secondGender] =
+      person1Key <= person2Key
+        ? [bazi, gender, bazi2, gender2]
+        : [bazi2, gender2, bazi, gender]
+
+    // type만 남기고 정렬된 순서로 추가
+    keyParts.length = 1
+    keyParts.push(
+      firstBazi.year, firstBazi.month, firstBazi.day, firstBazi.hour || 'null', firstGender,
+      secondBazi.year, secondBazi.month, secondBazi.day, secondBazi.hour || 'null', secondGender
+    )
   }
 
   // SHA-256 해시 생성
