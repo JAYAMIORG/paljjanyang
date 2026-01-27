@@ -291,8 +291,8 @@ function CoinContent() {
               <Image
                 src="/images/kakaopay.png"
                 alt="카카오페이"
-                width={32}
-                height={32}
+                width={48}
+                height={48}
                 className="mx-auto mb-1"
               />
               <span className="text-small font-medium text-text">카카오페이</span>
