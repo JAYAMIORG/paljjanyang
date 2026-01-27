@@ -1,24 +1,8 @@
 'use client'
 
-import { Card } from '@/components/ui'
+import { Card, WuXingRadarChart } from '@/components/ui'
 import type { SajuResult } from '@/types/saju'
 import type { YearlyInterpretation } from '@/types/interpretation'
-
-const WUXING_COLORS: Record<string, string> = {
-  wood: '#7FB069',
-  fire: '#FF6B6B',
-  earth: '#FFB366',
-  metal: '#A8A8A8',
-  water: '#4ECDC4',
-}
-
-const WUXING_KOREAN: Record<string, string> = {
-  wood: '목(木)',
-  fire: '화(火)',
-  earth: '토(土)',
-  metal: '금(金)',
-  water: '수(水)',
-}
 
 // 일간 오행 이모지 매핑
 const DAY_MASTER_EMOJI: Record<string, string> = {
@@ -90,27 +74,12 @@ export function YearlyResultContent({ result, interpretation }: YearlyResultCont
           </p>
         </div>
 
-        {/* 오행 미니 차트 */}
-        <div className="mt-6 flex justify-center gap-2">
-          {(Object.entries(result.wuXing) as [keyof typeof result.wuXing, number][]).map(
-            ([element, value]) => (
-              <div
-                key={element}
-                className="flex flex-col items-center"
-                style={{ opacity: value > 10 ? 1 : 0.4 }}
-              >
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-white text-small font-bold"
-                  style={{ backgroundColor: WUXING_COLORS[element] }}
-                >
-                  {value}
-                </div>
-                <span className="text-caption text-text-light mt-1">
-                  {WUXING_KOREAN[element].charAt(0)}
-                </span>
-              </div>
-            )
-          )}
+        {/* 오행 레이더 차트 */}
+        <div className="mt-6 flex flex-col items-center">
+          <WuXingRadarChart wuXing={result.wuXing} size={180} />
+          <p className="text-center text-caption text-text-muted mt-2">
+            <span className="text-primary font-medium">강:</span> {result.dominantElement} · <span className="text-accent-rose font-medium">약:</span> {result.weakElement}
+          </p>
         </div>
       </Card>
 
