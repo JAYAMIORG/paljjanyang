@@ -249,11 +249,14 @@ export async function POST(request: NextRequest) {
         userPrompt = buildPersonalSajuPrompt(sajuResult, gender)
     }
 
+    // 타입별 max_tokens 설정 (개인 사주는 더 상세한 내용 필요)
+    const maxTokens = type === 'personal' ? 8000 : type === 'daily' ? 1000 : 4096
+
     // OpenAI GPT-4o-mini API 호출 (레이트 리미터 적용)
     const completion = await openaiRateLimiter.execute(() =>
       openai.chat.completions.create({
         model: 'gpt-4o-mini',
-        max_tokens: 4096,
+        max_tokens: maxTokens,
         messages: [
           {
             role: 'system',
