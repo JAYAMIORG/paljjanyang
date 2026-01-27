@@ -144,6 +144,8 @@ export async function POST(request: NextRequest) {
     const body: InterpretRequest = await request.json()
     const { type, sajuResult, gender, sajuResult2, gender2, name1, name2, readingId } = body
 
+    console.log('[interpret] Request received:', { type, readingId: readingId || 'NOT PROVIDED', hasAdminClient: !!createAdminClient() })
+
     // 입력 검증
     if (!sajuResult || !type || !gender) {
       return NextResponse.json<InterpretResponse>(

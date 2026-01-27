@@ -519,6 +519,16 @@ function ResultContent() {
 
   // LLM 해석 요청 (선저장 후해석 패턴: readingId가 있는 경우만 실행)
   useEffect(() => {
+    console.log('[result] useEffect check:', {
+      hasResult: !!result,
+      hasUser: !!user,
+      isCompatibility,
+      hasResult2: !!result2,
+      hasInterpretation: !!interpretation,
+      readingId,
+      hasSavedRef: hasSavedRef.current
+    })
+
     if (!result || !user) return
 
     // 궁합인 경우 두 번째 결과도 있어야 함
@@ -529,7 +539,12 @@ function ResultContent() {
 
     // readingId가 있고 hasSavedRef가 true인 경우에만 해석 요청
     // (새로 계산된 결과에서 use-coin을 통해 reading이 생성된 경우)
-    if (!readingId || !hasSavedRef.current) return
+    if (!readingId || !hasSavedRef.current) {
+      console.log('[result] Skipping interpretation - readingId or hasSavedRef not ready')
+      return
+    }
+
+    console.log('[result] All conditions met, calling fetchInterpretation')
 
     const fetchInterpretation = async () => {
       setIsInterpretLoading(true)
