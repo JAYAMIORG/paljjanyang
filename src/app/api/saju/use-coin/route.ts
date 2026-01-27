@@ -175,53 +175,95 @@ export async function POST(request: Request) {
 
     let person1Id = person1.id || null
 
-    // person1.id가 없으면 새로 생성
+    // person1.id가 없으면 기존 person 조회 또는 새로 생성
     if (!person1Id) {
       const birth1 = parseBirthDate(person1.birthDate)
-      const { data: newPerson1, error: person1Error } = await adminClient
+      const person1Name = person1.name || '나'
+
+      // 먼저 동일한 person이 있는지 확인
+      const { data: existingPerson1 } = await adminClient
         .from('persons')
-        .insert({
-          user_id: user.id,
-          name: person1.name || '나',
-          relationship: 'self',
-          birth_year: birth1.year,
-          birth_month: birth1.month,
-          birth_day: birth1.day,
-          gender: person1.gender,
-        })
         .select('id')
+        .eq('user_id', user.id)
+        .eq('birth_year', birth1.year)
+        .eq('birth_month', birth1.month)
+        .eq('birth_day', birth1.day)
+        .eq('gender', person1.gender)
+        .eq('name', person1Name)
         .single()
 
-      if (person1Error) {
-        console.error('[use-coin] Person1 creation error:', person1Error)
+      if (existingPerson1) {
+        person1Id = existingPerson1.id
+        console.log('[use-coin] Reusing existing person1:', person1Id)
       } else {
-        person1Id = newPerson1.id
+        // 새로 생성
+        const { data: newPerson1, error: person1Error } = await adminClient
+          .from('persons')
+          .insert({
+            user_id: user.id,
+            name: person1Name,
+            relationship: 'self',
+            birth_year: birth1.year,
+            birth_month: birth1.month,
+            birth_day: birth1.day,
+            gender: person1.gender,
+          })
+          .select('id')
+          .single()
+
+        if (person1Error) {
+          console.error('[use-coin] Person1 creation error:', person1Error)
+        } else {
+          person1Id = newPerson1.id
+          console.log('[use-coin] Created new person1:', person1Id)
+        }
       }
     }
 
     let person2Id = person2?.id || null
 
-    // 궁합인 경우 person2도 생성
+    // 궁합인 경우 person2도 조회 또는 생성
     if (type === 'compatibility' && person2 && !person2Id) {
       const birth2 = parseBirthDate(person2.birthDate)
-      const { data: newPerson2, error: person2Error } = await adminClient
+      const person2Name = person2.name || '상대방'
+
+      // 먼저 동일한 person이 있는지 확인
+      const { data: existingPerson2 } = await adminClient
         .from('persons')
-        .insert({
-          user_id: user.id,
-          name: person2.name || '상대방',
-          relationship: 'partner',
-          birth_year: birth2.year,
-          birth_month: birth2.month,
-          birth_day: birth2.day,
-          gender: person2.gender,
-        })
         .select('id')
+        .eq('user_id', user.id)
+        .eq('birth_year', birth2.year)
+        .eq('birth_month', birth2.month)
+        .eq('birth_day', birth2.day)
+        .eq('gender', person2.gender)
+        .eq('name', person2Name)
         .single()
 
-      if (person2Error) {
-        console.error('[use-coin] Person2 creation error:', person2Error)
+      if (existingPerson2) {
+        person2Id = existingPerson2.id
+        console.log('[use-coin] Reusing existing person2:', person2Id)
       } else {
-        person2Id = newPerson2.id
+        // 새로 생성
+        const { data: newPerson2, error: person2Error } = await adminClient
+          .from('persons')
+          .insert({
+            user_id: user.id,
+            name: person2Name,
+            relationship: 'partner',
+            birth_year: birth2.year,
+            birth_month: birth2.month,
+            birth_day: birth2.day,
+            gender: person2.gender,
+          })
+          .select('id')
+          .single()
+
+        if (person2Error) {
+          console.error('[use-coin] Person2 creation error:', person2Error)
+        } else {
+          person2Id = newPerson2.id
+          console.log('[use-coin] Created new person2:', person2Id)
+        }
       }
     }
 

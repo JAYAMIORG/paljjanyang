@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
         // 캐시 히트 - JSON 파싱 시도
         const parsedCache = parseJsonResponse(cached.interpretation)
         if (parsedCache) {
-          // Reading 레코드 업데이트 (캐시 히트 시에도 처리) - await으로 변경
+          // Reading 레코드 업데이트 (캐시 히트 시에도 처리)
           if (readingId) {
             console.log('[interpret] Cache hit - updating reading:', { readingId, userId: user.id })
             const { data: updateData, error: updateError } = await adminClient
