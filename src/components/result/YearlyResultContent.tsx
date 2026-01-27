@@ -157,57 +157,38 @@ export function YearlyResultContent({ result, interpretation }: YearlyResultCont
             </Card>
           )}
 
-          {/* 행운의 달 & 주의할 달 */}
-          {(interpretation.highlights.luckyMonths.length > 0 || interpretation.highlights.cautionMonths.length > 0) && (
+          {/* 행운의 달 */}
+          {interpretation.highlights.luckyMonths.length > 0 && (
             <Card>
-              {/* 행운의 달 */}
-              {interpretation.highlights.luckyMonths.length > 0 && (
-                <div className={interpretation.highlights.cautionMonths.length > 0 ? 'mb-6' : ''}>
-                  <h3 className="text-subheading font-semibold text-green-600 mb-3">
-                    🍀 행운의 달
-                  </h3>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {interpretation.highlights.luckyMonths.map((m, i) => (
-                      <span key={i} className="px-3 py-1.5 bg-green-100 text-green-700 font-bold rounded-full">
-                        {m.month}월
-                      </span>
-                    ))}
+              <h3 className="text-subheading font-semibold text-green-600 mb-3">
+                🍀 행운의 달
+              </h3>
+              <div className="space-y-3">
+                {interpretation.highlights.luckyMonths.map((m, i) => (
+                  <div key={i} className="p-3 bg-green-50 rounded-lg">
+                    <span className="font-bold text-green-600">{m.month}월</span>
+                    <p className="text-body text-text-muted mt-1">{m.reason}</p>
                   </div>
-                  <div className="space-y-2">
-                    {interpretation.highlights.luckyMonths.map((m, i) => (
-                      <p key={i} className="text-body text-text-muted">
-                        <span className="font-medium text-green-600">{m.month}월:</span> {m.reason}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              )}
+                ))}
+              </div>
+            </Card>
+          )}
 
-              {/* 주의할 달 */}
-              {interpretation.highlights.cautionMonths.length > 0 && (
-                <div>
-                  <h3 className="text-subheading font-semibold text-orange-500 mb-3">
-                    ⚠️ 주의할 달
-                  </h3>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {interpretation.highlights.cautionMonths.map((m, i) => (
-                      <span key={i} className="px-3 py-1.5 bg-orange-100 text-orange-700 font-bold rounded-full">
-                        {m.month}월
-                      </span>
-                    ))}
+          {/* 주의할 달 */}
+          {interpretation.highlights.cautionMonths.length > 0 && (
+            <Card>
+              <h3 className="text-subheading font-semibold text-orange-500 mb-3">
+                ⚠️ 주의할 달
+              </h3>
+              <div className="space-y-3">
+                {interpretation.highlights.cautionMonths.map((m, i) => (
+                  <div key={i} className="p-3 bg-orange-50 rounded-lg">
+                    <span className="font-bold text-orange-600">{m.month}월</span>
+                    <p className="text-body text-text-muted mt-1">{m.caution}</p>
+                    <p className="text-small text-primary mt-2">💡 {m.solution}</p>
                   </div>
-                  <div className="space-y-3">
-                    {interpretation.highlights.cautionMonths.map((m, i) => (
-                      <div key={i}>
-                        <p className="text-body text-text-muted">
-                          <span className="font-medium text-orange-600">{m.month}월:</span> {m.caution}
-                        </p>
-                        <p className="text-small text-primary mt-1">💡 {m.solution}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                ))}
+              </div>
             </Card>
           )}
 
