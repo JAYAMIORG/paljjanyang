@@ -18,6 +18,8 @@ export interface CacheKeyParams {
   // 궁합용
   bazi2?: Bazi
   gender2?: string
+  // 오늘의 운세용 (YYYY-MM-DD)
+  date?: string
 }
 
 export interface CacheEntry {
@@ -41,7 +43,7 @@ export interface CacheSaveParams {
  * 동일한 사주 정보는 항상 동일한 키를 생성
  */
 export function generateCacheKey(params: CacheKeyParams): string {
-  const { type, bazi, gender, bazi2, gender2 } = params
+  const { type, bazi, gender, bazi2, gender2, date } = params
 
   // 기본 키 구성요소
   const keyParts = [
@@ -52,6 +54,11 @@ export function generateCacheKey(params: CacheKeyParams): string {
     bazi.hour || 'null',
     gender,
   ]
+
+  // 오늘의 운세인 경우 날짜 추가 (매일 다른 결과)
+  if (type === 'daily' && date) {
+    keyParts.push(date)
+  }
 
   // 궁합인 경우 두 번째 사람 정보 추가
   if (type === 'compatibility' && bazi2 && gender2) {

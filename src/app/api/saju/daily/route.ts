@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { SajuResult } from '@/types/saju'
 import type { DailyInterpretation } from '@/types/interpretation'
 import { SYSTEM_PROMPT, buildDailySajuPrompt } from '@/lib/llm/prompts'
+import {
+  generateCacheKey,
+  getCachedInterpretation,
+  saveCachedInterpretation,
+} from '@/lib/cache/interpretation-cache'
 
 function getOpenAIClient() {
   if (!process.env.OPENAI_API_KEY) {
@@ -116,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     const todayString = getTodayString()
 
-    // 오늘 이미 조회한 기록이 있는지 확인
+    // 1. 먼저 이 유저가 오늘 이미 조회했는지 확인
     const { data: existingReading } = await supabase
       .from('readings')
       .select('interpretation')
@@ -130,14 +136,12 @@ export async function POST(request: NextRequest) {
 
     // 이미 오늘 조회한 기록이 있으면 저장된 결과 반환
     if (existingReading?.interpretation) {
-      // 저장된 해석을 JSON으로 파싱 시도
       let parsedInterpretation: DailyInterpretation | null = null
       try {
         parsedInterpretation = typeof existingReading.interpretation === 'string'
           ? JSON.parse(existingReading.interpretation)
           : existingReading.interpretation
       } catch {
-        // 구 형식 (마크다운) - 무시하고 새로 생성
         parsedInterpretation = null
       }
 
@@ -152,61 +156,98 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // OpenAI 클라이언트 확인
-    const openai = getOpenAIClient()
-    if (!openai) {
-      return NextResponse.json<DailyResponse>(
-        {
-          success: false,
-          error: {
-            code: 'CONFIG_ERROR',
-            message: 'API 설정이 필요합니다.',
-          },
-        },
-        { status: 500 }
-      )
-    }
-
-    // 프롬프트 생성 및 LLM 호출
-    const userPrompt = buildDailySajuPrompt(sajuResult, gender)
-
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      max_tokens: 500, // 짧은 응답이므로 토큰 제한
-      messages: [
-        {
-          role: 'system',
-          content: SYSTEM_PROMPT,
-        },
-        {
-          role: 'user',
-          content: userPrompt,
-        },
-      ],
+    // 2. 공유 캐시 확인 (같은 사주 + 오늘 날짜)
+    const cacheKey = generateCacheKey({
+      type: 'daily',
+      bazi: sajuResult.bazi,
+      gender,
+      date: todayString,
     })
 
-    const responseText = completion.choices[0]?.message?.content
-    if (!responseText) {
-      throw new Error('No text response from OpenAI')
+    const adminClient = createAdminClient()
+    let parsedResponse: DailyInterpretation | null = null
+
+    if (adminClient) {
+      const cached = await getCachedInterpretation(adminClient, cacheKey)
+      if (cached) {
+        // 캐시 히트 - JSON 파싱
+        try {
+          parsedResponse = JSON.parse(cached.interpretation) as DailyInterpretation
+          console.log('[DAILY CACHE HIT]')
+        } catch {
+          console.log('[DAILY] Old cache format, regenerating...')
+        }
+      }
     }
 
-    // JSON 파싱
-    const parsedResponse = parseJsonResponse(responseText)
+    // 3. 캐시 미스 - LLM 호출
     if (!parsedResponse) {
-      console.error('Failed to parse daily LLM JSON response')
-      return NextResponse.json<DailyResponse>(
-        {
-          success: false,
-          error: {
-            code: 'PARSE_ERROR',
-            message: '응답 형식 오류가 발생했습니다. 다시 시도해주세요.',
+      const openai = getOpenAIClient()
+      if (!openai) {
+        return NextResponse.json<DailyResponse>(
+          {
+            success: false,
+            error: {
+              code: 'CONFIG_ERROR',
+              message: 'API 설정이 필요합니다.',
+            },
           },
-        },
-        { status: 500 }
-      )
+          { status: 500 }
+        )
+      }
+
+      const userPrompt = buildDailySajuPrompt(sajuResult, gender)
+
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        max_tokens: 2000,
+        messages: [
+          {
+            role: 'system',
+            content: SYSTEM_PROMPT,
+          },
+          {
+            role: 'user',
+            content: userPrompt,
+          },
+        ],
+      })
+
+      const responseText = completion.choices[0]?.message?.content
+      if (!responseText) {
+        throw new Error('No text response from OpenAI')
+      }
+
+      parsedResponse = parseJsonResponse(responseText)
+      if (!parsedResponse) {
+        console.error('Failed to parse daily LLM JSON response')
+        return NextResponse.json<DailyResponse>(
+          {
+            success: false,
+            error: {
+              code: 'PARSE_ERROR',
+              message: '응답 형식 오류가 발생했습니다. 다시 시도해주세요.',
+            },
+          },
+          { status: 500 }
+        )
+      }
+
+      // 4. 공유 캐시에 저장 (백그라운드)
+      if (adminClient) {
+        saveCachedInterpretation(adminClient, {
+          cacheKey,
+          type: 'daily',
+          bazi: sajuResult.bazi,
+          gender,
+          interpretation: JSON.stringify(parsedResponse),
+        }).catch((err) => {
+          console.error('Daily cache save failed:', err)
+        })
+      }
     }
 
-    // 결과 저장 (readings 테이블에 daily 타입으로) - JSON을 문자열로 저장
+    // 5. 유저별 기록 저장 (readings 테이블)
     await supabase.from('readings').insert({
       user_id: user.id,
       reading_type: 'daily',
