@@ -166,8 +166,8 @@ export function YearlyResultContent({ result, interpretation }: YearlyResultCont
                 </h3>
                 <div className="space-y-2">
                   {interpretation.highlights.luckyMonths.map((m, i) => (
-                    <div key={i} className="flex items-start gap-2">
-                      <span className="font-bold text-green-600">{m.month}월</span>
+                    <div key={i} className="flex flex-col gap-1">
+                      <span className="font-bold text-green-600 text-center">{m.month}월</span>
                       <span className="text-body text-text-muted">{m.reason}</span>
                     </div>
                   ))}
@@ -181,11 +181,9 @@ export function YearlyResultContent({ result, interpretation }: YearlyResultCont
                 </h3>
                 <div className="space-y-2">
                   {interpretation.highlights.cautionMonths.map((m, i) => (
-                    <div key={i} className="p-2 bg-orange-50 rounded-lg">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-orange-600">{m.month}월</span>
-                        <span className="text-small text-text-muted">{m.caution}</span>
-                      </div>
+                    <div key={i} className="flex flex-col gap-1">
+                      <span className="font-bold text-orange-600 text-center">{m.month}월</span>
+                      <span className="text-small text-text-muted">{m.caution}</span>
                       <p className="text-small text-primary">💡 {m.solution}</p>
                     </div>
                   ))}
