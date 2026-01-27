@@ -654,33 +654,6 @@ export default function SharedResultPage() {
           }
         })()}
 
-        {/* 대운 흐름 - 신년운세/궁합/오늘의운세 외 타입에서만 표시 */}
-        {type !== 'yearly' && type !== 'compatibility' && type !== 'daily' && data.daYun && data.daYun.length > 0 && (
-          <Card>
-            <h3 className="text-subheading font-semibold text-text mb-4">
-              대운 흐름
-            </h3>
-            <div className="overflow-x-auto -mx-2 px-2">
-              <div className="flex gap-2" style={{ minWidth: 'max-content' }}>
-                {data.daYun.slice(0, 8).map((dy, index) => (
-                  <div
-                    key={index}
-                    className={`
-                      flex-shrink-0 w-16 p-2 rounded-lg text-center
-                      ${index === 0 ? 'bg-primary/10 border border-primary/30' : 'bg-gray-50'}
-                    `}
-                  >
-                    <p className="text-caption text-text-muted">
-                      {dy.startAge}-{dy.endAge}세
-                    </p>
-                    <p className="text-body font-serif text-primary">{dy.ganZhi}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
-        )}
-
         {/* 공유 - 오늘의 운세 제외 */}
         {type !== 'daily' && (
           <Card>

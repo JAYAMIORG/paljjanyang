@@ -284,26 +284,6 @@ export default function ReadingDetailPage() {
               </div>
             </Card>
 
-            {/* 대운 */}
-            {reading.daYun && reading.daYun.length > 0 && (
-              <Card>
-                <h3 className="text-body font-semibold text-text mb-3">대운 흐름</h3>
-                <div className="flex overflow-x-auto gap-2 pb-2">
-                  {reading.daYun.slice(0, 8).map((dy, index) => (
-                    <div
-                      key={index}
-                      className="flex-shrink-0 bg-gray-50 rounded-lg p-2 text-center min-w-[60px]"
-                    >
-                      <p className="text-caption text-text-muted">
-                        {dy.startAge}-{dy.endAge}세
-                      </p>
-                      <p className="text-small font-medium">{dy.ganZhi}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
-
             {/* 해석 */}
             {reading.interpretation && (
               <Card>
