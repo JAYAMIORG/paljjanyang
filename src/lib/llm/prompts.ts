@@ -387,11 +387,31 @@ ${COMPATIBILITY_JSON_SCHEMA}
 export function buildLoveSajuPrompt(result: SajuResult, gender: string): string {
   const currentYear = new Date().getFullYear()
 
+  // 오행 분포에서 상위 2개 추출
+  const wuXingArray = [
+    { name: '목(木)', value: result.wuXing.wood },
+    { name: '화(火)', value: result.wuXing.fire },
+    { name: '토(土)', value: result.wuXing.earth },
+    { name: '금(金)', value: result.wuXing.metal },
+    { name: '수(水)', value: result.wuXing.water },
+  ].sort((a, b) => b.value - a.value)
+
+  const topTwoWuXing = wuXingArray.slice(0, 2).map(w => w.name).join(', ')
+  const weakWuXing = wuXingArray.slice(-2).map(w => w.name).join(', ')
+
   return `## 사주 정보
 
 성별: ${gender === 'male' ? '남성' : '여성'}
 사주: ${result.koreanGanji}
 일간: ${result.dayMaster} (${result.dayMasterKorean})
+일주: ${result.bazi.day}
+띠: ${result.zodiac}
+
+### 사주팔자
+- 년주: ${result.bazi.year}
+- 월주: ${result.bazi.month}
+- 일주: ${result.bazi.day}
+- 시주: ${result.bazi.hour || '미상'}
 
 ### 오행 분포
 - 목(木): ${result.wuXing.wood}%
@@ -399,6 +419,14 @@ export function buildLoveSajuPrompt(result: SajuResult, gender: string): string 
 - 토(土): ${result.wuXing.earth}%
 - 금(金): ${result.wuXing.metal}%
 - 수(水): ${result.wuXing.water}%
+
+강한 오행: ${topTwoWuXing}
+약한 오행: ${weakWuXing}
+
+### 십신
+- 년간: ${result.shiShen.yearGan}
+- 월간: ${result.shiShen.monthGan}
+- 시간: ${result.shiShen.hourGan || '미상'}
 
 ---
 
@@ -409,34 +437,72 @@ export function buildLoveSajuPrompt(result: SajuResult, gender: string): string 
 **중요 규칙:**
 1. 반드시 유효한 JSON 형식으로만 응답하세요
 2. JSON 외의 텍스트는 절대 포함하지 마세요
-3. 모든 문자열 필드는 충분히 상세하게 작성하세요
+3. **모든 문자열은 상세하고 구체적으로 작성하세요**
+4. **각 필드는 서로 다른 관점의 내용을 담아주세요 (중복 금지)**
+5. **"일간의 연애운" 같은 일반론이 아닌, 이 사람만의 구체적 특징을 작성하세요**
 
 ## JSON 스키마
 
 ${LOVE_JSON_SCHEMA}
 
-## 각 필드 설명
+## 각 필드 상세 가이드
 
-1. **style**: 연애 스타일
-   - pattern: 사랑에 빠지는 패턴
-   - behavior: 연애할 때의 모습
+**주의: 각 필드는 서로 다른 내용을 담아야 합니다. 같은 말을 반복하지 마세요.**
 
-2. **idealPartner**: 잘 맞는 상대
-   - traits: 사주적으로 좋은 상대의 특성
-   - comfortable: 함께 있을 때 편한 유형
+1. **style**: 연애 스타일 (서로 다른 관점!)
+   - pattern: **150자 이상** 작성. 다음을 포함:
+     - 어떤 상황에서 호감을 느끼는지
+     - 첫눈에 반하는 타입인지, 천천히 정이 드는 타입인지
+     - 마음을 주기까지의 과정과 특징
+     - 구체적인 상황 예시 포함
+   - behavior: **150자 이상** 작성. 다음을 포함 (pattern과 중복 금지!):
+     - 연인에게 애정 표현하는 방식
+     - 데이트할 때의 모습과 선호하는 스타일
+     - 갈등 상황에서의 대처 방식
+     - 장거리/단거리 연애 성향
 
-3. **cautions**: 연애에서 주의할 점
-   - patterns: 반복되는 연애 패턴
-   - awareness: 의식하면 좋은 부분
+2. **idealPartner**: 잘 맞는 상대 (서로 다른 관점!)
+   - traits: **150자 이상** 작성. 다음을 포함:
+     - ${weakWuXing}을 보완해줄 수 있는 상대의 오행적 특성
+     - 그런 상대의 구체적인 성격과 행동 패턴
+     - 왜 이런 상대와 잘 맞는지 사주적 근거
+   - comfortable: **150자 이상** 작성 (traits와 중복 금지!):
+     - 일상에서 편하게 느끼는 상대 유형
+     - 대화 스타일, 생활 패턴 관점에서의 궁합
+     - 함께 있을 때 편안함을 느끼는 구체적 상황
 
-4. **yearlyOutlook**: ${currentYear}년 연애운
-   - meetingPeriod: 인연이 올 수 있는 시기
-   - developmentTips: 관계 발전 포인트
-   - cautionPeriod: 주의할 시기
+3. **cautions**: 연애에서 주의할 점 (서로 다른 관점!)
+   - patterns: **150자 이상** 작성. 다음을 포함:
+     - ${topTwoWuXing}이 강해서 나타나는 연애 패턴
+     - 과거에 반복했을 수 있는 실수나 문제
+     - 이 패턴이 관계에 미치는 구체적 영향
+   - awareness: **150자 이상** 작성 (patterns와 중복 금지!):
+     - 연애할 때 의식적으로 노력할 부분
+     - 상대방 입장에서 느낄 수 있는 불편함
+     - 관계를 오래 유지하기 위한 구체적 조언
+
+4. **yearlyOutlook**: ${currentYear}년 연애운 (각 필드 다른 내용!)
+   - meetingPeriod: **100자 이상** 작성. 다음을 포함:
+     - 새로운 인연이 올 수 있는 구체적 시기 (월 단위)
+     - 어떤 상황/장소에서 만날 가능성이 높은지
+     - 이 시기에 적극적으로 해야 할 행동
+   - developmentTips: **100자 이상** 작성 (meetingPeriod와 중복 금지!):
+     - 이미 만난 인연과 관계를 발전시키는 방법
+     - 커플이라면 관계 깊어지는 시기와 방법
+     - 고백이나 프로포즈 적합한 타이밍
+   - cautionPeriod: **100자 이상** 작성:
+     - 연애에서 주의해야 할 시기 (월 단위)
+     - 무엇을 조심해야 하는지 구체적으로
+     - 이 시기를 잘 넘기기 위한 조언
 
 5. **meetingTips**: 좋은 인연 만나는 팁
-   - places: 구체적인 장소/상황 2-3개
-   - timing: 좋은 타이밍`
+   - places: **4개** 구체적인 장소/상황
+     - 단순히 "카페", "헬스장"이 아닌 구체적 상황 포함
+     - 예: "주말 오전 브런치 카페에서 책 읽을 때", "동호회나 취미 클래스에서"
+   - timing: **100자 이상** 작성. 다음을 포함:
+     - 연애하기 좋은 계절이나 시기
+     - 마음의 준비가 되는 시점
+     - 적극적으로 움직여야 할 때`
 }
 
 export function buildDailySajuPrompt(result: SajuResult, gender: string): string {
