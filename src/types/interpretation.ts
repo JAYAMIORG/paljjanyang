@@ -208,62 +208,61 @@ export interface YearlyInterpretation {
 
 // ===== 궁합 (Compatibility) =====
 export interface CompatibilityInterpretation {
-  /** 궁합 점수와 핵심 요약 */
+  /** 총 요약 섹션 */
   summary: {
-    /** 전체 점수 (100점 만점) */
+    /** 관계를 한마디로 정의 (예: "톰과 제리", "환상의 짝꿍") */
+    relationshipTag: string
+    /** 부제 설명 (예: "티격태격", "상호보완") */
+    tagDescription: string
+    /** 종합 점수 (0-100) */
     score: number
-    /** 관계를 한마디로 */
-    oneLine: string
-    /** 핵심 요약 (2-3문장) */
-    description: string
+    /** 랭킹 표현 (예: "상위 1% 천생연분") */
+    ranking: string
+    /** 장점 요약 */
+    good: string
+    /** 단점 요약 */
+    bad: string
   }
 
-  /** 두 사람의 케미 */
-  chemistry: {
-    /** 서로 끌리는 포인트 */
-    attraction: string
-    /** 시너지 */
+  /** 스킨십 & 본능적 끌림 */
+  physical: {
+    /** 본능적 끌림 지수 (0-100) */
+    attractionScore: number
+    /** 끌림 표현 */
+    attractionDescription: string
+    /** 낮져밤이 스타일 */
+    intimacyStyle: string
+  }
+
+  /** 갈등 & 해결 솔루션 */
+  conflict: {
+    /** 주요 싸움 원인들 */
+    triggers: string[]
+    /** 화해 매뉴얼 */
+    reconciliation: string
+    /** 서로에게 되어주는 역할 */
+    roles: {
+      /** 내가 상대에게 */
+      myRole: string
+      /** 상대가 나에게 */
+      partnerRole: string
+    }
+  }
+
+  /** 결혼 & 미래 가능성 */
+  future: {
+    /** 결혼 성사 확률 표현 */
+    marriageProspect: string
+    /** 자녀운/재물운 시너지 */
     synergy: string
   }
 
-  /** 오행 궁합 */
-  wuXingMatch: {
-    /** 보완/충돌 분석 */
-    analysis: string
-    /** 조합의 의미 */
-    meaning: string
-  }
-
-  /** 일간 궁합 */
-  dayMasterMatch: {
-    /** 관계 분석 */
-    relationship: string
-    /** 서로에게 미치는 영향 */
-    influence: string
-  }
-
-  /** 주의할 점 */
-  cautions: {
-    /** 갈등 상황 */
-    conflicts: string
-    /** 극복 방법 */
-    solutions: string
-  }
-
-  /** 올해 관계운 */
-  yearlyOutlook: {
-    /** 좋아지는 시기 */
-    goodPeriod: string
-    /** 주의할 시기 */
-    cautionPeriod: string
-  }
-
-  /** 관계 발전 조언 */
-  advice: {
-    /** 함께 하면 좋은 활동 */
-    activities: string[]
-    /** 서로 이해하기 위한 팁 */
-    tips: string[]
+  /** 속마음 & 성향 분석 */
+  emotional: {
+    /** 애정도 밸런스 (누가 더 사랑하는지) */
+    loveBalance: string
+    /** 티키타카 (소통 스타일) */
+    communication: string
   }
 }
 
@@ -473,33 +472,33 @@ export const YEARLY_JSON_SCHEMA = `{
 
 export const COMPATIBILITY_JSON_SCHEMA = `{
   "summary": {
-    "score": 85,
-    "oneLine": "string",
-    "description": "string"
+    "relationshipTag": "string (관계 정의, 예: 톰과 제리)",
+    "tagDescription": "string (부제, 예: 티격태격)",
+    "score": 0-100,
+    "ranking": "string (예: 상위 1% 천생연분)",
+    "good": "string (장점 요약)",
+    "bad": "string (단점 요약)"
   },
-  "chemistry": {
-    "attraction": "string",
-    "synergy": "string"
+  "physical": {
+    "attractionScore": 0-100,
+    "attractionDescription": "string (끌림 표현)",
+    "intimacyStyle": "string (낮져밤이 스타일)"
   },
-  "wuXingMatch": {
-    "analysis": "string",
-    "meaning": "string"
+  "conflict": {
+    "triggers": ["string", "string", "string"],
+    "reconciliation": "string (화해 매뉴얼)",
+    "roles": {
+      "myRole": "string (내가 상대에게)",
+      "partnerRole": "string (상대가 나에게)"
+    }
   },
-  "dayMasterMatch": {
-    "relationship": "string",
-    "influence": "string"
+  "future": {
+    "marriageProspect": "string (결혼 전망)",
+    "synergy": "string (재물운/자녀운 시너지)"
   },
-  "cautions": {
-    "conflicts": "string",
-    "solutions": "string"
-  },
-  "yearlyOutlook": {
-    "goodPeriod": "string",
-    "cautionPeriod": "string"
-  },
-  "advice": {
-    "activities": ["string", "string"],
-    "tips": ["string", "string"]
+  "emotional": {
+    "loveBalance": "string (누가 더 사랑하는지)",
+    "communication": "string (티키타카 스타일)"
   }
 }`
 

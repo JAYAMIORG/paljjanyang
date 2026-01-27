@@ -253,6 +253,7 @@ export async function POST(request: NextRequest) {
     const maxTokens =
       type === 'personal' ? 8000 :
       type === 'yearly' ? 6000 :
+      type === 'compatibility' ? 5000 :
       type === 'love' ? 5000 :
       type === 'daily' ? 2000 : 4096
 

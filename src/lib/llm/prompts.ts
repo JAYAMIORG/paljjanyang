@@ -309,13 +309,12 @@ export function buildCompatibilitySajuPrompt(
   gender2: string,
   name2: string
 ): string {
-  const currentYear = new Date().getFullYear()
-
   return `## 첫 번째 사람 (${name1}) 사주 정보
 
 성별: ${gender1 === 'male' ? '남성' : '여성'}
 사주: ${result1.koreanGanji}
 일간: ${result1.dayMaster} (${result1.dayMasterKorean})
+일주: ${result1.bazi.day}
 
 ### 사주팔자
 - 년주: ${result1.bazi.year}
@@ -337,6 +336,7 @@ export function buildCompatibilitySajuPrompt(
 성별: ${gender2 === 'male' ? '남성' : '여성'}
 사주: ${result2.koreanGanji}
 일간: ${result2.dayMaster} (${result2.dayMasterKorean})
+일주: ${result2.bazi.day}
 
 ### 사주팔자
 - 년주: ${result2.bazi.year}
@@ -355,48 +355,83 @@ export function buildCompatibilitySajuPrompt(
 
 ## 요청
 
-위 두 사람의 궁합을 분석하여 아래 JSON 형식으로 응답해주세요.
+MZ세대를 위한 재미있고 솔직한 궁합 분석을 아래 JSON 형식으로 응답해주세요.
 
 **중요 규칙:**
 1. 반드시 유효한 JSON 형식으로만 응답하세요
 2. JSON 외의 텍스트는 절대 포함하지 마세요
-3. score는 0-100 사이의 정수입니다
-4. 모든 문자열 필드는 충분히 상세하게 작성하세요
+3. **재미있고 공유하고 싶은 표현**을 사용하세요
+4. **솔직하지만 저속하지 않게** 표현하세요
+5. 일지(배우자 궁)의 합충, 천간의 합충을 고려하여 분석하세요
 
 ## JSON 스키마
 
 ${COMPATIBILITY_JSON_SCHEMA}
 
-## 각 필드 설명
+## 각 필드 상세 가이드
 
-1. **summary**: 궁합 점수와 핵심 요약
-   - score: 0-100점
-   - oneLine: 두 사람의 관계를 한마디로
-   - description: 핵심 요약 2-3문장
+### 1. summary (총 요약 섹션)
 
-2. **chemistry**: 두 사람의 케미
-   - attraction: 서로 끌리는 포인트
-   - synergy: 함께 있을 때 시너지
+- **relationshipTag**: 두 사람 관계를 재미있게 정의하는 별명
+  - 예: "톰과 제리", "환상의 짝꿍", "불타는 로맨스", "전우애", "밀당 고수들"
+- **tagDescription**: 별명의 부제 설명
+  - 예: "티격태격", "상호보완", "열정 과다", "동지적 관계"
+- **score**: 0-100점 종합 궁합 점수
+- **ranking**: 점수를 재미있게 표현
+  - 예: "상위 1% 천생연분", "상위 10% 찰떡궁합", "노력이 필요한 40점", "운명적 만남 85점"
+- **good**: 장점 한 줄 요약 (**40자 이상**)
+  - 예: "서로의 부족한 오행을 채워주는 완벽한 보완 관계"
+- **bad**: 단점 한 줄 요약 (**40자 이상**)
+  - 예: "의사소통 방식이 완전 반대라 오해가 생기기 쉬움"
 
-3. **wuXingMatch**: 오행 궁합
-   - analysis: 두 사람의 오행이 어떻게 보완/충돌하는지
-   - meaning: 이 조합의 의미
+### 2. physical (스킨십 & 본능적 끌림)
+**유료 결제 포인트! 솔직하지만 저속하지 않게**
 
-4. **dayMasterMatch**: 일간 궁합
-   - relationship: ${result1.dayMasterKorean}와 ${result2.dayMasterKorean}의 관계
-   - influence: 서로에게 미치는 영향
+- **attractionScore**: 본능적 끌림 지수 (0-100)
+  - 일지(배우자 궁)의 육합, 삼합 여부로 판단
+- **attractionDescription**: 끌림을 재미있게 표현 (**60자 이상**)
+  - 좋은 예: "만나자마자 스파크 튀는 사이", "친구처럼 편안한 스킨십", "노력이 필요한 온도 차이"
+- **intimacyStyle**: 낮져밤이 스타일 분석 (**80자 이상**)
+  - ${result1.dayMasterKorean}와 ${result2.dayMasterKorean}의 에너지 레벨 비교
+  - 예: "낮에는 ${name2}님이 리드, 밤에는 ${name1}님이 주도권을 잡는 게 좋아요"
 
-5. **cautions**: 주의할 점
-   - conflicts: 갈등이 생길 수 있는 상황
-   - solutions: 극복하는 방법
+### 3. conflict (갈등 & 해결 솔루션)
+**실용적인 조언 제공**
 
-6. **yearlyOutlook**: ${currentYear}년 두 사람의 관계운
-   - goodPeriod: 관계가 좋아지는 시기
-   - cautionPeriod: 주의할 시기
+- **triggers**: 주요 싸움 원인 **3개** (형, 충, 원진살 작용 고려)
+  - 예: "돈 문제로 예민함", "이성 친구 문제(질투)", "자존심 싸움", "말투 때문에 빈정 상함", "계획 vs 즉흥"
+- **reconciliation**: 화해 매뉴얼 (**100자 이상**)
+  - 상대 성향에 맞는 구체적 화해법
+  - 예: "이 상대는 논리적으로 따지면 안 됩니다. 무조건 감정적으로 공감해 주세요"
+  - 예: "감정 호소보다는 팩트로 설득해야 풀립니다. 시간을 두고 차분히 대화하세요"
+- **roles**: 서로에게 되어주는 역할
+  - myRole: ${name1}이 ${name2}에게 되어주는 역할 (**40자 이상**)
+    - 예: "당신은 상대의 '브레이크' 역할입니다. 과한 열정을 적당히 식혀주세요"
+  - partnerRole: ${name2}가 ${name1}에게 되어주는 역할 (**40자 이상**)
+    - 예: "상대는 당신의 '엑셀' 역할입니다. 소심할 때 용기를 불어넣어 줄 거예요"
 
-7. **advice**: 관계 발전 조언
-   - activities: 함께 하면 좋은 활동 2-3개
-   - tips: 서로를 이해하기 위한 팁 2-3개`
+### 4. future (결혼 & 미래 가능성)
+
+- **marriageProspect**: 결혼 성사 확률/전망 (**80자 이상**)
+  - 배우자 자리 글자 확인, 대운 흐름 고려
+  - 예: "연애만 하는 게 좋을 수도? 결혼하면 서로 간섭이 많아질 수 있어요"
+  - 예: "결혼하면 더 대박 나는 커플! 함께할수록 시너지가 커집니다"
+- **synergy**: 자녀운/재물운 시너지 (**80자 이상**)
+  - 예: "둘이 합치면 재물운이 2배! 공동 투자나 사업 추천"
+  - 예: "자식 교육관 충돌 주의. 미리 대화로 기준을 정해두세요"
+
+### 5. emotional (속마음 & 성향 분석)
+
+- **loveBalance**: 애정도 밸런스 (**80자 이상**)
+  - 일간의 생(生)/극(剋) 관계 분석
+  - 예: "${name1}님이 더 많이 퍼주는 사랑. 가끔은 받기만 해도 괜찮아요"
+  - 예: "${name2}님이 더 집착하는 관계. 적당한 밀당이 필요합니다"
+  - 예: "대등한 밀당 고수들! 서로 적당한 거리감을 유지하는 게 오래 가는 비결"
+- **communication**: 티키타카 소통 스타일 (**80자 이상**)
+  - 천간(생각/이상)의 합/충 관계 분석
+  - 예: "개그 코드가 잘 맞음! 같이 있으면 웃음이 끊이지 않아요"
+  - 예: "말만 하면 오해 발생. 중요한 얘기는 문자보다 직접 만나서 하세요"
+  - 예: "눈빛만 봐도 아는 사이. 말 없이도 통하는 텔레파시 커플"`
 }
 
 export function buildLoveSajuPrompt(result: SajuResult, gender: string): string {

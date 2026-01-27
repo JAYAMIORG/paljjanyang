@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { Card } from '@/components/ui'
 import type { SajuResult } from '@/types/saju'
 import type { CompatibilityInterpretation } from '@/types/interpretation'
@@ -21,7 +20,6 @@ const WUXING_KOREAN: Record<string, string> = {
   water: '수',
 }
 
-// 일간 오행 이모지 매핑
 const DAY_MASTER_EMOJI: Record<string, string> = {
   '甲': '🌳', '乙': '🌿',
   '丙': '☀️', '丁': '🕯️',
@@ -40,59 +38,24 @@ interface CompatibilityResultContentProps {
   interpretation: CompatibilityInterpretation | null
 }
 
-// 오행 조화 점수 계산 (간단한 버전)
-function calculateWuxingHarmony(wuxing1: SajuResult['wuXing'], wuxing2: SajuResult['wuXing']): number {
-  let harmony = 50
-
-  const elements = ['wood', 'fire', 'earth', 'metal', 'water'] as const
-
-  for (const elem of elements) {
-    const diff = Math.abs(wuxing1[elem] - wuxing2[elem])
-    if (diff < 10) harmony += 5
-    if ((wuxing1[elem] < 15 && wuxing2[elem] > 20) || (wuxing2[elem] < 15 && wuxing1[elem] > 20)) {
-      harmony += 3
-    }
-  }
-
-  return Math.min(100, Math.max(0, harmony))
-}
-
-// 점수에 따른 등급 표시
-function ScoreGrade({ score }: { score: number }) {
-  let grade = ''
-  let color = ''
-  let emoji = ''
-
-  if (score >= 90) {
-    grade = '천생연분'
-    color = 'text-pink-500'
-    emoji = '💕'
-  } else if (score >= 80) {
-    grade = '아주 좋음'
-    color = 'text-red-500'
-    emoji = '❤️'
-  } else if (score >= 70) {
-    grade = '좋음'
-    color = 'text-orange-500'
-    emoji = '🧡'
-  } else if (score >= 60) {
-    grade = '보통'
-    color = 'text-yellow-500'
-    emoji = '💛'
-  } else if (score >= 50) {
-    grade = '노력 필요'
-    color = 'text-blue-500'
-    emoji = '💙'
-  } else {
-    grade = '많은 노력 필요'
-    color = 'text-gray-500'
-    emoji = '🤍'
-  }
+// 점수 바 컴포넌트
+function ScoreBar({ score, label }: { score: number; label?: string }) {
+  const barColor = score >= 70 ? 'bg-pink-500' : score >= 40 ? 'bg-yellow-500' : 'bg-gray-400'
 
   return (
-    <div className="text-center">
-      <span className="text-4xl block mb-2">{emoji}</span>
-      <span className={`text-lg font-semibold ${color}`}>{grade}</span>
+    <div>
+      {label && (
+        <div className="flex justify-between items-center mb-1">
+          <span className="text-small text-text-muted">{label}</span>
+          <span className="text-small font-bold text-text">{score}점</span>
+        </div>
+      )}
+      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div
+          className={`h-full ${barColor} rounded-full transition-all`}
+          style={{ width: `${score}%` }}
+        />
+      </div>
     </div>
   )
 }
@@ -119,9 +82,6 @@ function PersonCard({
       </div>
       <p className="font-semibold text-text truncate">{name}</p>
       <p className="text-small text-primary">{result.dayMasterKorean}</p>
-      <p className="text-caption text-text-muted mt-1">
-        {result.koreanGanji.split(' ')[0]}
-      </p>
     </div>
   )
 }
@@ -150,7 +110,7 @@ function WuxingComparison({
         <div key={element} className="flex items-center gap-2">
           <div className="flex-1 flex items-center justify-end gap-2">
             <span className="text-small text-text-muted">{wuxing1[element]}%</span>
-            <div className="w-24 h-3 bg-gray-100 rounded-full overflow-hidden flex justify-end">
+            <div className="w-20 h-3 bg-gray-100 rounded-full overflow-hidden flex justify-end">
               <div
                 className="h-full rounded-full"
                 style={{
@@ -162,14 +122,14 @@ function WuxingComparison({
           </div>
 
           <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-small font-bold flex-shrink-0"
+            className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
             style={{ backgroundColor: WUXING_COLORS[element] }}
           >
             {WUXING_KOREAN[element]}
           </div>
 
           <div className="flex-1 flex items-center gap-2">
-            <div className="w-24 h-3 bg-gray-100 rounded-full overflow-hidden">
+            <div className="w-20 h-3 bg-gray-100 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full"
                 style={{
@@ -195,10 +155,7 @@ export function CompatibilityResultContent({
   gender2,
   interpretation,
 }: CompatibilityResultContentProps) {
-  // 점수 결정 (LLM 해석에서 가져오거나 계산)
-  const score = useMemo(() => {
-    return interpretation?.summary.score || calculateWuxingHarmony(result1.wuXing, result2.wuXing)
-  }, [interpretation?.summary.score, result1.wuXing, result2.wuXing])
+  const score = interpretation?.summary.score || 50
 
   return (
     <div className="space-y-6">
@@ -209,43 +166,69 @@ export function CompatibilityResultContent({
           <span className="text-3xl">💕</span>
           <PersonCard result={result2} name={name2} gender={gender2} />
         </div>
-
-        {/* 궁합 점수 */}
-        <div className="text-center py-4 border-t border-gray-100">
-          <p className="text-small text-text-muted mb-2">궁합 점수</p>
-          <div className="flex items-center justify-center gap-3">
-            <span className="text-5xl font-bold text-primary">{score}</span>
-            <span className="text-2xl text-text-muted">/ 100</span>
-          </div>
-          <div className="mt-3">
-            <ScoreGrade score={score} />
-          </div>
-        </div>
       </Card>
 
       {interpretation ? (
         <>
-          {/* 핵심 요약 */}
+          {/* 총 요약 섹션 */}
           <Card>
-            <h3 className="text-subheading font-semibold text-text mb-3">
-              💑 궁합 핵심 요약
-            </h3>
-            <p className="text-lg font-medium text-primary mb-2">
-              "{interpretation.summary.oneLine}"
-            </p>
-            <p className="text-body text-text-muted leading-relaxed">
-              {interpretation.summary.description}
-            </p>
+            <div className="text-center mb-4">
+              {/* 관계 태그 */}
+              <div className="inline-block px-4 py-2 bg-gradient-to-r from-pink-100 to-red-100 rounded-full mb-3">
+                <span className="text-xl font-bold text-pink-600">
+                  {interpretation.summary.relationshipTag}
+                </span>
+                <span className="text-pink-400 ml-2">
+                  ({interpretation.summary.tagDescription})
+                </span>
+              </div>
+
+              {/* 종합 점수 */}
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <span className="text-5xl font-bold text-primary">{score}</span>
+                <span className="text-2xl text-text-muted">/ 100</span>
+              </div>
+              <p className="text-lg font-semibold text-pink-500 mb-4">
+                {interpretation.summary.ranking}
+              </p>
+
+              {/* 장단점 요약 */}
+              <div className="grid grid-cols-1 gap-2 text-left">
+                <div className="p-3 bg-green-50 rounded-lg">
+                  <span className="font-semibold text-green-600">👍 Good: </span>
+                  <span className="text-text-muted">{interpretation.summary.good}</span>
+                </div>
+                <div className="p-3 bg-red-50 rounded-lg">
+                  <span className="font-semibold text-red-500">👎 Bad: </span>
+                  <span className="text-text-muted">{interpretation.summary.bad}</span>
+                </div>
+              </div>
+            </div>
           </Card>
 
-          {/* 두 사람의 케미 */}
+          {/* 스킨십 & 본능적 끌림 */}
           <Card>
-            <h3 className="text-subheading font-semibold text-text mb-3">
-              ✨ 두 사람의 케미
+            <h3 className="text-subheading font-semibold text-text mb-4">
+              🔥 스킨십 & 본능적 끌림
             </h3>
-            <div className="space-y-3 text-body text-text-muted leading-relaxed">
-              <p><strong className="text-primary">끌리는 포인트:</strong> {interpretation.chemistry.attraction}</p>
-              <p><strong className="text-primary">시너지:</strong> {interpretation.chemistry.synergy}</p>
+
+            {/* 끌림 지수 */}
+            <div className="mb-4">
+              <ScoreBar score={interpretation.physical.attractionScore} label="본능적 끌림 지수" />
+            </div>
+
+            <div className="space-y-3">
+              <div className="p-3 bg-pink-50 rounded-lg">
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.physical.attractionDescription}
+                </p>
+              </div>
+              <div className="p-3 bg-purple-50 rounded-lg">
+                <h4 className="font-semibold text-purple-600 mb-1">🌙 낮져밤이 스타일</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.physical.intimacyStyle}
+                </p>
+              </div>
             </div>
           </Card>
 
@@ -260,123 +243,99 @@ export function CompatibilityResultContent({
               name1={name1}
               name2={name2}
             />
-            <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
-              <p className="text-body text-text-muted leading-relaxed">
-                {interpretation.wuXingMatch.analysis}
-              </p>
-              <p className="text-body text-text-muted leading-relaxed">
-                {interpretation.wuXingMatch.meaning}
-              </p>
-            </div>
           </Card>
 
-          {/* 일주 동물 궁합 */}
-          {result1.dayPillarAnimal && result2.dayPillarAnimal && (
-            <Card>
-              <h3 className="text-subheading font-semibold text-text mb-4">
-                🐾 일주 동물 궁합
-              </h3>
-              <div className="text-center py-4">
-                <div className="flex items-center justify-center gap-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-serif mb-1">{result1.bazi.day}</p>
-                    <p className="text-lg font-bold text-primary">{result1.dayPillarAnimal}</p>
-                    <p className="text-caption text-text-muted">{name1}</p>
-                  </div>
-                  <span className="text-3xl">❤️</span>
-                  <div className="text-center">
-                    <p className="text-2xl font-serif mb-1">{result2.bazi.day}</p>
-                    <p className="text-lg font-bold text-primary">{result2.dayPillarAnimal}</p>
-                    <p className="text-caption text-text-muted">{name2}</p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* 일간 궁합 */}
+          {/* 갈등 & 해결 솔루션 */}
           <Card>
-            <h3 className="text-subheading font-semibold text-text mb-3">
-              🌟 일간 궁합
+            <h3 className="text-subheading font-semibold text-text mb-4">
+              ⚡ 갈등 & 해결 솔루션
             </h3>
-            <div className="flex justify-center gap-4 mb-4">
-              <div className="text-center">
-                <span className="text-2xl">{DAY_MASTER_EMOJI[result1.dayMaster] || '🐱'}</span>
-                <p className="text-small text-primary mt-1">{result1.dayMasterKorean}</p>
-              </div>
-              <span className="text-2xl">↔️</span>
-              <div className="text-center">
-                <span className="text-2xl">{DAY_MASTER_EMOJI[result2.dayMaster] || '🐱'}</span>
-                <p className="text-small text-primary mt-1">{result2.dayMasterKorean}</p>
+
+            {/* 주요 싸움 원인 */}
+            <div className="mb-4">
+              <h4 className="font-semibold text-orange-600 mb-2">🎯 주요 싸움 원인</h4>
+              <div className="flex flex-wrap gap-2">
+                {interpretation.conflict.triggers.map((trigger, i) => (
+                  <span
+                    key={i}
+                    className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-small"
+                  >
+                    {trigger}
+                  </span>
+                ))}
               </div>
             </div>
-            <div className="space-y-2 text-body text-text-muted leading-relaxed">
-              <p>{interpretation.dayMasterMatch.relationship}</p>
-              <p>{interpretation.dayMasterMatch.influence}</p>
+
+            {/* 화해 매뉴얼 */}
+            <div className="p-4 bg-green-50 rounded-xl mb-4">
+              <h4 className="font-semibold text-green-600 mb-2">🕊️ 화해 매뉴얼</h4>
+              <p className="text-body text-text-muted leading-relaxed">
+                {interpretation.conflict.reconciliation}
+              </p>
+            </div>
+
+            {/* 서로의 역할 */}
+            <div className="grid grid-cols-1 gap-3">
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <h4 className="font-semibold text-blue-600 mb-1">
+                  {name1}님의 역할
+                </h4>
+                <p className="text-small text-text-muted">
+                  {interpretation.conflict.roles.myRole}
+                </p>
+              </div>
+              <div className="p-3 bg-pink-50 rounded-lg">
+                <h4 className="font-semibold text-pink-600 mb-1">
+                  {name2}님의 역할
+                </h4>
+                <p className="text-small text-text-muted">
+                  {interpretation.conflict.roles.partnerRole}
+                </p>
+              </div>
             </div>
           </Card>
 
-          {/* 주의할 점 */}
+          {/* 결혼 & 미래 가능성 */}
           <Card>
-            <h3 className="text-subheading font-semibold text-orange-500 mb-3">
-              ⚠️ 주의할 점
+            <h3 className="text-subheading font-semibold text-text mb-4">
+              💍 결혼 & 미래 가능성
             </h3>
             <div className="space-y-3">
-              <div className="p-3 bg-orange-50 rounded-lg">
-                <h4 className="font-semibold text-orange-600 mb-1">갈등 상황</h4>
-                <p className="text-body text-text-muted">{interpretation.cautions.conflicts}</p>
+              <div className="p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl">
+                <h4 className="font-semibold text-pink-600 mb-2">결혼 전망</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.future.marriageProspect}
+                </p>
               </div>
-              <div className="p-3 bg-primary/5 rounded-lg">
-                <h4 className="font-semibold text-primary mb-1">극복 방법</h4>
-                <p className="text-body text-text-muted">{interpretation.cautions.solutions}</p>
-              </div>
-            </div>
-          </Card>
-
-          {/* 올해 관계운 */}
-          <Card>
-            <h3 className="text-subheading font-semibold text-text mb-3">
-              📅 올해 두 사람의 관계운
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3 bg-green-50 rounded-lg">
-                <h4 className="font-semibold text-green-600 mb-1">좋아지는 시기</h4>
-                <p className="text-small text-text-muted">{interpretation.yearlyOutlook.goodPeriod}</p>
-              </div>
-              <div className="p-3 bg-orange-50 rounded-lg">
-                <h4 className="font-semibold text-orange-600 mb-1">주의할 시기</h4>
-                <p className="text-small text-text-muted">{interpretation.yearlyOutlook.cautionPeriod}</p>
+              <div className="p-4 bg-gradient-to-r from-yellow-50 to-green-50 rounded-xl">
+                <h4 className="font-semibold text-green-600 mb-2">재물운/자녀운 시너지</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.future.synergy}
+                </p>
               </div>
             </div>
           </Card>
 
-          {/* 조언 */}
+          {/* 속마음 & 성향 분석 */}
           <Card variant="highlighted">
-            <h3 className="text-subheading font-semibold text-text mb-3">
-              💡 관계 발전을 위한 조언
+            <h3 className="text-subheading font-semibold text-text mb-4">
+              💭 속마음 & 성향 분석
             </h3>
             <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold text-text mb-2">함께 하면 좋은 활동</h4>
-                <ul className="space-y-1">
-                  {interpretation.advice.activities.map((activity, i) => (
-                    <li key={i} className="flex items-start gap-2 text-body text-text-muted">
-                      <span className="text-primary">•</span>
-                      {activity}
-                    </li>
-                  ))}
-                </ul>
+              {/* 애정도 밸런스 */}
+              <div className="p-4 bg-white rounded-xl">
+                <h4 className="font-semibold text-red-500 mb-2">❤️ 누가 더 사랑할까?</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.emotional.loveBalance}
+                </p>
               </div>
-              <div>
-                <h4 className="font-semibold text-text mb-2">서로를 이해하기 위한 팁</h4>
-                <ul className="space-y-1">
-                  {interpretation.advice.tips.map((tip, i) => (
-                    <li key={i} className="flex items-start gap-2 text-body text-text-muted">
-                      <span className="text-primary">•</span>
-                      {tip}
-                    </li>
-                  ))}
-                </ul>
+
+              {/* 티키타카 */}
+              <div className="p-4 bg-white rounded-xl">
+                <h4 className="font-semibold text-blue-500 mb-2">💬 티키타카 (소통 스타일)</h4>
+                <p className="text-body text-text-muted leading-relaxed">
+                  {interpretation.emotional.communication}
+                </p>
               </div>
             </div>
           </Card>
@@ -387,7 +346,6 @@ export function CompatibilityResultContent({
           result2={result2}
           name1={name1}
           name2={name2}
-          score={score}
         />
       )}
     </div>
@@ -400,13 +358,11 @@ function CompatibilityDefaultContent({
   result2,
   name1,
   name2,
-  score,
 }: {
   result1: SajuResult
   result2: SajuResult
   name1: string
   name2: string
-  score: number
 }) {
   return (
     <div className="space-y-4">
@@ -416,22 +372,7 @@ function CompatibilityDefaultContent({
         </h3>
         <p className="text-body text-text-muted leading-relaxed">
           {name1}님의 <span className="font-semibold text-primary">{result1.dayMasterKorean}</span>와
-          {name2}님의 <span className="font-semibold text-primary">{result2.dayMasterKorean}</span>의 궁합은
-          {score >= 70 ? ' 좋은 편입니다.' : score >= 50 ? ' 보통입니다.' : ' 노력이 필요합니다.'}
-        </p>
-        <p className="text-body text-text-muted leading-relaxed mt-2">
-          두 사람은 서로 다른 오행의 에너지를 가지고 있어,
-          서로를 이해하고 보완하는 관계가 될 수 있습니다.
-        </p>
-      </Card>
-
-      <Card>
-        <h3 className="text-subheading font-semibold text-text mb-3">
-          💡 조언
-        </h3>
-        <p className="text-body text-text-muted leading-relaxed">
-          궁합은 참고사항일 뿐, 두 사람의 노력이 가장 중요합니다.
-          서로를 존중하고 이해하려는 마음이 좋은 관계의 기반이 됩니다.
+          {name2}님의 <span className="font-semibold text-primary">{result2.dayMasterKorean}</span>의 궁합을 분석 중입니다.
         </p>
       </Card>
     </div>
