@@ -9,7 +9,7 @@ export const size = {
 export const contentType = 'image/png'
 
 export default async function Image() {
-  const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
+  const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
   const imageUrl = `${productionUrl}/images/og-main.webp`
 
   let imageData: ArrayBuffer | null = null

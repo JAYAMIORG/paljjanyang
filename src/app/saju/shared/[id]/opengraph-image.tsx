@@ -52,7 +52,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const { id } = await params
 
   // Base URL
-  const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
+  const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
 
   // 데이터 조회 - 일주의 한자 간지를 직접 가져옴
   let ganziKorean: string | null = null

@@ -378,7 +378,7 @@ export default function SharedResultPage() {
 
     const dayPillarAnimal = data.dayPillarAnimal
 
-    const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bazi-azure.vercel.app'
+    const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
     const ganziMatch = dayPillarAnimal.match(/\(([가-힣]{2})/)
     const ganziKorean = ganziMatch ? ganziMatch[1] : null
     // 카카오 공유용 이미지는 JPG 사용 (WebP 미지원)
@@ -523,7 +523,7 @@ export default function SharedResultPage() {
               나도 내 사주가 궁금하다면?
             </p>
             <p style={{ fontSize: '12px', color: '#FFF8F0' }}>
-              paljjanyang.com
+              palzza.app
             </p>
           </div>
         </div>

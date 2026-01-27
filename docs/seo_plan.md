@@ -1,10 +1,10 @@
 # 팔자냥 SEO 최적화 구현 계획
 
 > 작성일: 2026-01-27
-> 상태: 도메인 구입 후 진행 예정
+> 상태: 도메인 구입 완료 - 구현 진행 가능
 
 ## 설정 정보
-- **현재 도메인**: `bazi-azure.vercel.app` (추후 커스텀 도메인으로 변경 예정)
+- **도메인**: `palzza.app`
 - **PWA 아이콘**: favicon.ico 기반으로 생성
 - **검색엔진 인증**: 나중에 추가 (아래 가이드 참조)
 
@@ -47,7 +47,7 @@
 - 동적 페이지: `/saju/shared/[id]` (Supabase에서 최근 30일 기록 조회)
 
 #### 1.3 환경변수 URL 통일
-모든 파일에서 `NEXT_PUBLIC_APP_URL` 기본값을 `https://bazi-azure.vercel.app`으로 통일
+모든 파일에서 `NEXT_PUBLIC_APP_URL` 기본값을 `https://palzza.app`으로 통일
 (추후 커스텀 도메인 구매 시 환경변수만 변경하면 됨)
 
 수정 파일:
@@ -218,7 +218,7 @@ npm run dev
 1. **사이트 등록**
    - https://search.google.com/search-console 접속
    - "속성 추가" → URL 접두어 방식 선택
-   - `https://bazi-azure.vercel.app` 입력 (도메인 변경 후 새 도메인으로)
+   - `https://palzza.app` 입력 (도메인 변경 후 새 도메인으로)
 
 2. **소유권 확인** (HTML 태그 방식 권장)
    - "HTML 태그" 방식 선택

@@ -86,7 +86,7 @@ export async function generateMetadata({
     // 에러 시 기본값 사용
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://paljjanyang.com'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
 
   return {
     title,
