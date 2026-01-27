@@ -136,6 +136,19 @@
   }
 }
 
+@keyframes progress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-progress {
+  animation: progress 25s ease-out forwards;
+}
+
 /* Base Styles */
 body {
   background-color: var(--color-background);

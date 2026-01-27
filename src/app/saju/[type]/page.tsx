@@ -61,6 +61,7 @@ export default function SajuInputPage() {
   const [isLoadingPersons, setIsLoadingPersons] = useState(true)
   const [showInputForm, setShowInputForm] = useState(false)
   const [completedPersonIds, setCompletedPersonIds] = useState<Set<string>>(new Set())
+  const [processingPersonIds, setProcessingPersonIds] = useState<Set<string>>(new Set())
 
   // 궁합용 선택된 인물
   const [selectedPerson1, setSelectedPerson1] = useState<Person | null>(null)
@@ -200,8 +201,9 @@ export default function SajuInputPage() {
         const response = await fetch(`/api/saju/completed-persons?type=${type}`)
         const data = await response.json()
 
-        if (data.success && data.data?.completedPersonIds) {
-          setCompletedPersonIds(new Set(data.data.completedPersonIds))
+        if (data.success && data.data) {
+          setCompletedPersonIds(new Set(data.data.completedPersonIds || []))
+          setProcessingPersonIds(new Set(data.data.processingPersonIds || []))
         }
       } catch {
         // 에러 시 무시 (뱃지만 안 보임)
@@ -721,6 +723,12 @@ export default function SajuInputPage() {
                   {completedPersonIds.has(person.id) && (
                     <span className="px-2 py-0.5 text-xs font-medium bg-primary text-white rounded-full">
                       분석 완료
+                    </span>
+                  )}
+                  {processingPersonIds.has(person.id) && !completedPersonIds.has(person.id) && (
+                    <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+                      분석 중
                     </span>
                   )}
                   <span className={`text-2xl ${person.gender === 'male' ? 'text-blue-500' : 'text-red-500'}`}>

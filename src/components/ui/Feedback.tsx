@@ -12,16 +12,20 @@ interface LoadingScreenProps {
   message?: string
   emoji?: string
   useCharacter?: boolean
+  showProgress?: boolean
+  subMessage?: string
 }
 
 export function LoadingScreen({
   message = '로딩 중...',
   emoji,
-  useCharacter = true
+  useCharacter = true,
+  showProgress = false,
+  subMessage,
 }: LoadingScreenProps) {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="text-center">
+      <div className="text-center px-6 w-full max-w-xs">
         {emoji ? (
           <div className="text-6xl mb-4 animate-bounce">{emoji}</div>
         ) : useCharacter ? (
@@ -36,6 +40,18 @@ export function LoadingScreen({
           <div className="text-6xl mb-4 animate-bounce">🐱</div>
         )}
         <p className="text-body text-text-muted">{message}</p>
+
+        {subMessage && (
+          <p className="text-small text-text-light mt-2">{subMessage}</p>
+        )}
+
+        {showProgress && (
+          <div className="mt-4 w-full">
+            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-full bg-primary rounded-full animate-progress" />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

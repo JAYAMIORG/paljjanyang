@@ -5,6 +5,7 @@ export interface CompletedPersonsResponse {
   success: boolean
   data?: {
     completedPersonIds: string[]
+    processingPersonIds: string[]
   }
   error?: {
     code: string
@@ -61,13 +62,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 해당 type의 completed readings에서 person1_id 목록 조회
+    // 해당 type의 readings에서 person1_id와 status 목록 조회
     let query = supabase
       .from('readings')
-      .select('person1_id')
+      .select('person1_id, status')
       .eq('user_id', user.id)
       .eq('type', type)
-      .eq('status', 'completed')
+      .in('status', ['completed', 'processing'])
       .not('person1_id', 'is', null)
 
     // yearly 타입인 경우 올해 연도만 필터
@@ -91,13 +92,19 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // person1_id 목록을 unique하게 추출
-    const completedPersonIds = [...new Set(data?.map(r => r.person1_id).filter(Boolean) as string[])]
+    // person1_id 목록을 status별로 분류
+    const completedPersonIds = [...new Set(
+      data?.filter(r => r.status === 'completed').map(r => r.person1_id).filter(Boolean) as string[]
+    )]
+    const processingPersonIds = [...new Set(
+      data?.filter(r => r.status === 'processing').map(r => r.person1_id).filter(Boolean) as string[]
+    )]
 
     return NextResponse.json<CompletedPersonsResponse>({
       success: true,
       data: {
         completedPersonIds,
+        processingPersonIds,
       },
     })
   } catch (error) {

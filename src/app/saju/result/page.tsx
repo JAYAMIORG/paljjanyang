@@ -806,6 +806,8 @@ function ResultContent() {
           isLoading ? '사주를 계산하고 있어요...' :
           '운명을 해석하고 있어요...'
         }
+        showProgress={isInterpretLoading}
+        subMessage={isInterpretLoading ? '최대 30초까지 걸릴 수 있어요' : undefined}
       />
     )
   }
