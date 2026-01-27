@@ -332,7 +332,7 @@ export async function GET(
         type: reading.type,
         status: reading.status || 'completed', // 기존 데이터는 completed로 처리
         koreanGanji: reading.korean_ganji || '',
-        interpretation: reading.interpretation?.text || null,
+        interpretation: reading.interpretation || null,
         bazi,
         wuXing,
         dayMaster,
