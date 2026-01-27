@@ -511,10 +511,23 @@ export function buildDailySajuPrompt(result: SajuResult, gender: string): string
   const day = today.getDate()
   const weekday = ['일', '월', '화', '수', '목', '금', '토'][today.getDay()]
 
+  // 오행 분포에서 상위/하위 추출
+  const wuXingArray = [
+    { name: '목(木)', value: result.wuXing.wood },
+    { name: '화(火)', value: result.wuXing.fire },
+    { name: '토(土)', value: result.wuXing.earth },
+    { name: '금(金)', value: result.wuXing.metal },
+    { name: '수(水)', value: result.wuXing.water },
+  ].sort((a, b) => b.value - a.value)
+
+  const strongElement = wuXingArray[0].name
+  const weakElement = wuXingArray[wuXingArray.length - 1].name
+
   return `## 사주 정보
 
 성별: ${gender === 'male' ? '남성' : '여성'}
 일간: ${result.dayMaster} (${result.dayMasterKorean})
+일주: ${result.bazi.day}
 
 ### 오행 분포
 - 목(木): ${result.wuXing.wood}%
@@ -523,31 +536,55 @@ export function buildDailySajuPrompt(result: SajuResult, gender: string): string
 - 금(金): ${result.wuXing.metal}%
 - 수(水): ${result.wuXing.water}%
 
+강한 오행: ${strongElement}
+약한 오행: ${weakElement}
+
 오늘 날짜: ${month}월 ${day}일 (${weekday}요일)
 
 ---
 
 ## 요청
 
-오늘의 운세를 아래 JSON 형식으로 **짧고 간결하게** 응답해주세요.
+오늘의 운세를 아래 JSON 형식으로 응답해주세요.
 
 **중요 규칙:**
 1. 반드시 유효한 JSON 형식으로만 응답하세요
 2. JSON 외의 텍스트는 절대 포함하지 마세요
-3. 전체 내용을 간결하게 유지하세요
+3. ${result.dayMasterKorean} 일간과 오늘 날짜의 기운을 고려하여 작성하세요
+4. 구체적이고 실용적인 조언을 담아주세요
 
 ## JSON 스키마
 
 ${DAILY_JSON_SCHEMA}
 
-## 각 필드 설명
+## 각 필드 상세 가이드
 
-1. **overview**: 오늘 하루의 전체적인 분위기 (1문장)
+1. **overview**: **80자 이상** 작성
+   - 오늘 하루의 전체적인 기운과 분위기
+   - ${result.dayMasterKorean}에게 오늘이 어떤 날인지
+   - 오늘의 핵심 포인트
 
-2. **lucky**: 행운 키워드 (1-2개만 선택해서 포함)
-   - color: 행운의 색상 (선택)
-   - number: 행운의 숫자 (선택)
-   - direction: 행운의 방향 (선택)
+2. **energy**: 오늘의 에너지
+   - keywords: 오늘을 표현하는 키워드 **2-3개** (예: "새로운 시작", "차분한 집중")
+   - score: 오늘의 운세 점수 (1: 주의 필요, 2: 보통 이하, 3: 평범, 4: 좋음, 5: 최고)
 
-3. **advice**: 오늘 하면 좋은 일 또는 주의할 점 (1-2문장)`
+3. **categories**: 분야별 운세 (각 **40자 이상**)
+   - wealth: 오늘의 재물운 (수입/지출/금전 관련)
+   - love: 오늘의 연애운 (만남/관계/소통)
+   - health: 오늘의 건강운 (컨디션/주의사항)
+   - work: 오늘의 업무/학업운 (일/공부/프로젝트)
+
+4. **lucky**: 행운 키워드 (모두 필수)
+   - color: 오늘의 행운 색상 (예: 파란색, 연두색)
+   - number: 행운의 숫자 (1-99)
+   - direction: 행운의 방향 (동/서/남/북/동북/동남/서북/서남 중 하나)
+   - food: 오늘 먹으면 좋은 음식 (구체적으로)
+
+5. **timing**: 시간대별 운세
+   - goodTime: 오늘 운이 좋은 시간대와 그 시간에 하면 좋은 일 (**40자 이상**)
+   - cautionTime: 주의가 필요한 시간대와 피해야 할 행동 (**40자 이상**)
+
+6. **advice**: 오늘의 조언
+   - dos: 오늘 하면 좋은 것 **3개** (구체적인 행동)
+   - donts: 오늘 피하면 좋은 것 **2개** (구체적인 행동/상황)`
 }
