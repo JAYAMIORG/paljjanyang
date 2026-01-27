@@ -267,6 +267,28 @@ function ResultContent() {
           dayPillarAnimal: data.data.dayPillarAnimal || '',
           dayNaYin: data.data.dayNaYin || '',
         })
+
+        // 궁합인 경우 두 번째 사람 데이터도 설정
+        if (data.data.type === 'compatibility' && data.data.person2) {
+          const p2 = data.data.person2
+          setResult2({
+            bazi: p2.bazi,
+            wuXing: p2.wuXing,
+            dayMaster: p2.dayMaster,
+            dayMasterKorean: p2.dayMasterKorean,
+            koreanGanji: '', // 궁합에서는 사용 안 함
+            zodiacEmoji: p2.zodiacEmoji,
+            dominantElement: p2.dominantElement,
+            weakElement: p2.weakElement,
+            daYun: [],
+            shiShen: { yearGan: '', monthGan: '', hourGan: null },
+            zodiac: '',
+            naYin: '',
+            dayPillarAnimal: '',
+            dayNaYin: '',
+          })
+        }
+
         // 저장된 해석을 JSON으로 파싱 시도
         if (data.data.interpretation) {
           try {

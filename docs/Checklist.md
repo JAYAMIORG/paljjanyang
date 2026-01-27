@@ -1,7 +1,7 @@
 # 팔자냥 개발 체크리스트
 
 > 작성일: 2025-01-15
-> 최종 업데이트: 2026-01-23
+> 최종 업데이트: 2026-01-27
 > 상태: MVP 개발 완료 (실결제 테스트 완료)
 
 ---
@@ -58,6 +58,7 @@
 - [x] 프롬프트 설계 (궁합)
 - [x] 프롬프트 설계 (연애운)
 - [x] LLM API 연동 (OpenAI GPT-4o-mini) ✅ (2025-01-16)
+- [x] 궁합 프롬프트 고도화 ✅ (2026-01-27) - 4개 핵심 섹션 추가 및 필드별 상세 가이드
 
 ### 코인 시스템
 - [x] 코인 잔액 관리 API ✅ (2025-01-16)
@@ -168,12 +169,30 @@
   - OpenAI 클라이언트 싱글톤화 (커넥션 재사용)
   - 시스템 상태 API (/api/admin/status)
   - 부하 테스트 스크립트 (scripts/load-test.js)
+- [x] 궁합 분석 핵심 섹션 추가 ✅ (2026-01-27)
+  - 감정 표현 & 교류 궁합 (emotionalExpression): 표현 방식 차이, 공감 스타일, 사랑 언어
+  - 주도권 & 힘의 균형 (powerBalance): 균형 비율, 의사결정 방식, 미래 변화
+  - 위험 신호 & 주의 구간 (warning): 반복 이슈, 위험 시기, 외부 요인
+  - 궁합 개선 전략 (improvement): 변화 포인트, 역할 분담, 소통 규칙, 핵심 조언
+  - CompatibilityInterpretation 타입 및 스키마 업데이트
+  - 궁합 프롬프트 필드별 상세 가이드 추가
+  - CompatibilityResultContent UI 전면 개선
 - [ ] 푸시 알림
 
 ---
 
 ## Phase 3: 확장 (v2.0)
 
+- [ ] SEO 최적화 (도메인 구입 후 진행) → 상세 계획: `docs/seo_plan.md`
+  - robots.ts 생성 (크롤링 정책)
+  - sitemap.ts 생성 (동적 사이트맵)
+  - manifest.ts 생성 (PWA 지원)
+  - JSON-LD 구조화된 데이터 (Organization, LocalBusiness, WebSite)
+  - 페이지별 메타데이터 개선 (title.template, canonical)
+  - 인증 페이지 noindex 처리
+  - PWA 아이콘 생성 (180x180, 192x192, 512x512)
+  - Google Search Console 등록
+  - Naver Search Advisor 등록
 - [ ] 영어 지원 (미국 시장)
 - [ ] 구독 모델 구현
 - [ ] 힌디어 지원 (인도 시장)
@@ -239,7 +258,7 @@
 
 ### 결과 컴포넌트 (`src/components/result/`)
 - [x] YearlyResultContent.tsx (신년운세 결과 UI)
-- [x] CompatibilityResultContent.tsx (궁합 결과 UI)
+- [x] CompatibilityResultContent.tsx (궁합 결과 UI) ✅ UPDATED (2026-01-27) - 4개 핵심 섹션 UI 추가
 - [x] DailyResultContent.tsx (오늘의 운세 결과 UI)
 - [x] InterpretationCard.tsx (LLM 해석 카드) ✅ NEW
 - [x] FallbackInterpretation.tsx (폴백 해석) ✅ NEW
@@ -252,6 +271,7 @@
 - [x] database.ts (Supabase 테이블 타입)
 - [x] saju.ts (사주 결과 타입)
 - [x] kakao.d.ts (카카오 SDK 타입 선언)
+- [x] interpretation.ts (LLM 해석 결과 타입 + JSON 스키마) ✅ NEW
 
 ### 페이지 구조
 ```
@@ -304,6 +324,15 @@
 ### SQL 마이그레이션
 - [x] supabase/migrations/001_initial_schema.sql (전체 스키마)
 - [x] supabase/migrations/003_interpretation_cache.sql (캐시 테이블) ✅ NEW
+
+### 관리자 기능
+- [x] 캐시 통계 조회 (/api/admin/cache-stats)
+- [x] 시스템 상태 조회 (/api/admin/status)
+- [x] 캐시 삭제 방법 문서화 ✅ (2026-01-27)
+  - interpretation_cache 테이블: LLM 비용 절감 캐시 (동일 사주 = 동일 결과)
+  - readings 테이블: 사용자별 분석 기록 (마이페이지 "이전 분석 결과")
+  - 터미널: `npx supabase db execute "DELETE FROM interpretation_cache"`
+  - Supabase 대시보드: Table Editor에서 수동 삭제
 
 ---
 

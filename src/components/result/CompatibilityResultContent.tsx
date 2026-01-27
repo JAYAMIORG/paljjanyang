@@ -33,8 +33,8 @@ interface CompatibilityResultContentProps {
   result2: SajuResult
   name1: string
   name2: string
-  gender1: string
-  gender2: string
+  gender1?: string  // 현재 미사용
+  gender2?: string  // 현재 미사용
   interpretation: CompatibilityInterpretation | null
 }
 
@@ -60,51 +60,47 @@ function ScoreBar({ score, label }: { score: number; label?: string }) {
   )
 }
 
-// 개인 카드 컴포넌트
-function PersonCard({
-  result,
-  name,
-  gender,
-}: {
-  result: SajuResult
-  name: string
-  gender: string
-}) {
-  const emoji = DAY_MASTER_EMOJI[result.dayMaster] || '🐱'
-  const genderEmoji = gender === 'male' ? '♂' : '♀'
-  const genderColor = gender === 'male' ? 'text-blue-500' : 'text-pink-500'
-
-  return (
-    <div className="bg-white rounded-xl p-4 border border-gray-100 text-center">
-      <div className="flex items-center justify-center gap-1 mb-2">
-        <span className="text-2xl">{emoji}</span>
-        <span className={`text-lg ${genderColor}`}>{genderEmoji}</span>
-      </div>
-      <p className="font-semibold text-text truncate">{name}</p>
-      <p className="text-small text-primary">{result.dayMasterKorean}</p>
-    </div>
-  )
-}
-
 // 오행 비교 차트
 function WuxingComparison({
   wuxing1,
   wuxing2,
   name1,
   name2,
+  dayMaster1,
+  dayMaster2,
+  dayMasterKorean1,
+  dayMasterKorean2,
 }: {
   wuxing1: SajuResult['wuXing']
   wuxing2: SajuResult['wuXing']
   name1: string
   name2: string
+  dayMaster1?: string
+  dayMaster2?: string
+  dayMasterKorean1?: string
+  dayMasterKorean2?: string
 }) {
   const elements = ['wood', 'fire', 'earth', 'metal', 'water'] as const
+  const emoji1 = dayMaster1 ? (DAY_MASTER_EMOJI[dayMaster1] || '🐱') : ''
+  const emoji2 = dayMaster2 ? (DAY_MASTER_EMOJI[dayMaster2] || '🐱') : ''
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-between text-small text-text-muted mb-2">
-        <span>{name1}</span>
-        <span>{name2}</span>
+      {/* 일간 정보 포함된 헤더 - 오행 바와 동일한 3열 구조 */}
+      <div className="flex items-center gap-2 mb-3">
+        <div className="flex-1 flex items-center justify-end gap-1">
+          {emoji1 && <span className="text-lg">{emoji1}</span>}
+          <span className="text-text font-semibold text-lg">{name1}</span>
+          {dayMasterKorean1 && <span className="text-primary text-sm">({dayMasterKorean1})</span>}
+        </div>
+        <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
+          <span className="text-pink-500 text-xl">❤️</span>
+        </div>
+        <div className="flex-1 flex items-center gap-1">
+          {dayMasterKorean2 && <span className="text-primary text-sm">({dayMasterKorean2})</span>}
+          <span className="text-text font-semibold text-lg">{name2}</span>
+          {emoji2 && <span className="text-lg">{emoji2}</span>}
+        </div>
       </div>
       {elements.map((element) => (
         <div key={element} className="flex items-center gap-2">
@@ -151,8 +147,6 @@ export function CompatibilityResultContent({
   result2,
   name1,
   name2,
-  gender1,
-  gender2,
   interpretation,
 }: CompatibilityResultContentProps) {
   const score = interpretation?.summary?.score || 50
@@ -170,28 +164,36 @@ export function CompatibilityResultContent({
 
   return (
     <div className="space-y-6">
-      {/* 두 사람 요약 카드 */}
-      <Card variant="highlighted">
-        <div className="flex items-center justify-center gap-4 mb-4">
-          <PersonCard result={result1} name={name1} gender={gender1} />
-          <span className="text-3xl">💕</span>
-          <PersonCard result={result2} name={name2} gender={gender2} />
-        </div>
-      </Card>
-
       {isNewFormat ? (
         <>
+          {/* 오행 궁합 - 맨 위로 이동 */}
+          <Card>
+            <h3 className="text-subheading font-semibold text-text mb-4">
+              🔮 오행 궁합
+            </h3>
+            <WuxingComparison
+              wuxing1={result1.wuXing}
+              wuxing2={result2.wuXing}
+              name1={name1}
+              name2={name2}
+              dayMaster1={result1.dayMaster}
+              dayMaster2={result2.dayMaster}
+              dayMasterKorean1={result1.dayMasterKorean}
+              dayMasterKorean2={result2.dayMasterKorean}
+            />
+          </Card>
+
           {/* 총 요약 섹션 */}
           <Card>
             <div className="text-center mb-4">
               {/* 관계 태그 */}
-              <div className="inline-block px-4 py-2 bg-gradient-to-r from-pink-100 to-red-100 rounded-full mb-3">
-                <span className="text-xl font-bold text-pink-600">
+              <div className="w-full px-4 py-4 bg-gradient-to-r from-pink-100 to-red-100 rounded-2xl mb-3">
+                <div className="text-2xl font-bold text-pink-600">
                   {interpretation.summary.relationshipTag}
-                </span>
-                <span className="text-pink-400 ml-2">
+                </div>
+                <div className="text-pink-400 text-base mt-1">
                   ({interpretation.summary.tagDescription})
-                </span>
+                </div>
               </div>
 
               {/* 종합 점수 */}
@@ -306,19 +308,6 @@ export function CompatibilityResultContent({
                 </p>
               </div>
             </div>
-          </Card>
-
-          {/* 오행 비교 */}
-          <Card>
-            <h3 className="text-subheading font-semibold text-text mb-4">
-              🔮 오행 궁합
-            </h3>
-            <WuxingComparison
-              wuxing1={result1.wuXing}
-              wuxing2={result2.wuXing}
-              name1={name1}
-              name2={name2}
-            />
           </Card>
 
           {/* 속마음 & 성향 분석 */}
@@ -523,16 +512,6 @@ function CompatibilityDefaultContent({
 }) {
   return (
     <div className="space-y-4">
-      <Card>
-        <h3 className="text-subheading font-semibold text-text mb-3">
-          💑 궁합 분석
-        </h3>
-        <p className="text-body text-text-muted leading-relaxed">
-          {name1}님의 <span className="font-semibold text-primary">{result1.dayMasterKorean}</span>와{' '}
-          {name2}님의 <span className="font-semibold text-primary">{result2.dayMasterKorean}</span>의 궁합입니다.
-        </p>
-      </Card>
-
       {/* 오행 비교 */}
       <Card>
         <h3 className="text-subheading font-semibold text-text mb-4">
@@ -543,6 +522,10 @@ function CompatibilityDefaultContent({
           wuxing2={result2.wuXing}
           name1={name1}
           name2={name2}
+          dayMaster1={result1.dayMaster}
+          dayMaster2={result2.dayMaster}
+          dayMasterKorean1={result1.dayMasterKorean}
+          dayMasterKorean2={result2.dayMasterKorean}
         />
       </Card>
 
