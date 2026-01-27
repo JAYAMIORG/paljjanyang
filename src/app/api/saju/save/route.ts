@@ -2,19 +2,25 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import type { SajuResult } from '@/types/saju'
 
+interface BirthInfo {
+  year: number
+  month: number
+  day: number
+  hour?: number
+  isLunar: boolean
+  name?: string
+}
+
 export interface SaveReadingRequest {
   type: 'personal' | 'yearly' | 'compatibility' | 'love' | 'daily'
   sajuResult: SajuResult
   interpretation?: string
   gender: 'male' | 'female'
-  birthInfo: {
-    year: number
-    month: number
-    day: number
-    hour?: number
-    isLunar: boolean
-    name?: string
-  }
+  birthInfo: BirthInfo
+  // 궁합용 두 번째 사람 데이터
+  sajuResult2?: SajuResult
+  gender2?: 'male' | 'female'
+  birthInfo2?: BirthInfo
 }
 
 export interface SaveReadingResponse {
@@ -62,7 +68,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: SaveReadingRequest = await request.json()
-    const { type, sajuResult, interpretation, gender, birthInfo } = body
+    const { type, sajuResult, interpretation, gender, birthInfo, sajuResult2, gender2, birthInfo2 } = body
 
     // 입력 검증
     if (!type || !sajuResult || !gender || !birthInfo) {
@@ -72,6 +78,20 @@ export async function POST(request: NextRequest) {
           error: {
             code: 'VALIDATION_ERROR',
             message: '필수 정보가 누락되었습니다.',
+          },
+        },
+        { status: 400 }
+      )
+    }
+
+    // 궁합 타입은 두 번째 사람 정보 필수
+    if (type === 'compatibility' && (!sajuResult2 || !gender2 || !birthInfo2)) {
+      return NextResponse.json<SaveReadingResponse>(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: '궁합 분석에는 두 사람의 정보가 필요합니다.',
           },
         },
         { status: 400 }
@@ -128,6 +148,57 @@ export async function POST(request: NextRequest) {
       personId = newPerson.id
     }
 
+    // 1-2. 궁합인 경우 Person2 생성 또는 조회
+    let person2Id: string | null = null
+    if (type === 'compatibility' && birthInfo2 && gender2) {
+      const { data: existingPerson2 } = await supabase
+        .from('persons')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('birth_year', birthInfo2.year)
+        .eq('birth_month', birthInfo2.month)
+        .eq('birth_day', birthInfo2.day)
+        .eq('gender', gender2)
+        .single()
+
+      if (existingPerson2) {
+        person2Id = existingPerson2.id
+      } else {
+        const { data: newPerson2, error: person2Error } = await supabase
+          .from('persons')
+          .insert({
+            user_id: user.id,
+            name: birthInfo2.name || '상대방',
+            relationship: 'partner',
+            birth_year: birthInfo2.year,
+            birth_month: birthInfo2.month,
+            birth_day: birthInfo2.day,
+            birth_hour: birthInfo2.hour ?? null,
+            is_lunar: birthInfo2.isLunar,
+            is_leap_month: false,
+            gender: gender2,
+          })
+          .select('id')
+          .single()
+
+        if (person2Error || !newPerson2) {
+          console.error('Person2 creation error:', person2Error)
+          return NextResponse.json<SaveReadingResponse>(
+            {
+              success: false,
+              error: {
+                code: 'DB_ERROR',
+                message: '두 번째 인물 정보 저장에 실패했습니다.',
+              },
+            },
+            { status: 500 }
+          )
+        }
+
+        person2Id = newPerson2.id
+      }
+    }
+
     // 2. Reading 생성
     const readingData: Record<string, unknown> = {
       user_id: user.id,
@@ -146,6 +217,14 @@ export async function POST(request: NextRequest) {
     // yearly 타입인 경우 연도 추가
     if (type === 'yearly') {
       readingData.yearly_year = new Date().getFullYear()
+    }
+
+    // 궁합인 경우 두 번째 사람 데이터 추가
+    if (type === 'compatibility' && person2Id && sajuResult2) {
+      readingData.person2_id = person2Id
+      readingData.person2_bazi = sajuResult2.bazi
+      readingData.person2_wuxing = sajuResult2.wuXing
+      readingData.person2_day_master = sajuResult2.dayMaster
     }
 
     // 해석 결과가 있으면 저장

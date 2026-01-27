@@ -123,29 +123,53 @@ function ResultContent() {
   const lunar2 = searchParams.get('lunar2')
 
   // 자동 저장 함수
-  const autoSave = async (sajuResult: SajuResult, interpretationData: InterpretationData | null) => {
-    // 궁합은 두 명의 데이터가 필요하므로 현재는 스킵
-    if (!user || hasSavedRef.current || type === 'compatibility') return
+  const autoSave = async (
+    sajuResult: SajuResult,
+    interpretationData: InterpretationData | null,
+    sajuResult2ForCompatibility?: SajuResult | null
+  ) => {
+    if (!user || hasSavedRef.current) return
+
+    // 궁합 타입인데 result2가 없으면 스킵
+    if (type === 'compatibility' && !sajuResult2ForCompatibility) return
 
     hasSavedRef.current = true
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const saveData: any = {
+        type,
+        sajuResult,
+        interpretation: interpretationData ? JSON.stringify(interpretationData) : null,
+        gender,
+        birthInfo: {
+          year: parseInt(year!),
+          month: parseInt(month!),
+          day: parseInt(day!),
+          hour: hour ? parseInt(hour) : undefined,
+          isLunar: lunar === '1',
+          name: name1 !== '첫 번째 사람' ? name1 : undefined,
+        },
+      }
+
+      // 궁합인 경우 두 번째 사람 데이터 추가
+      if (type === 'compatibility' && sajuResult2ForCompatibility) {
+        saveData.sajuResult2 = sajuResult2ForCompatibility
+        saveData.gender2 = gender2
+        saveData.birthInfo2 = {
+          year: parseInt(year2!),
+          month: parseInt(month2!),
+          day: parseInt(day2!),
+          hour: hour2 ? parseInt(hour2) : undefined,
+          isLunar: lunar2 === '1',
+          name: name2 !== '두 번째 사람' ? name2 : undefined,
+        }
+      }
+
       const response = await fetch('/api/saju/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type,
-          sajuResult,
-          interpretation: interpretationData ? JSON.stringify(interpretationData) : null,
-          gender,
-          birthInfo: {
-            year: parseInt(year!),
-            month: parseInt(month!),
-            day: parseInt(day!),
-            hour: hour ? parseInt(hour) : undefined,
-            isLunar: lunar === '1',
-          },
-        }),
+        body: JSON.stringify(saveData),
       })
 
       const data = await response.json()
@@ -510,16 +534,16 @@ function ResultContent() {
         const data = await response.json()
         if (data.success) {
           setInterpretation(data.data.interpretation)
-          // 해석 완료 후 자동 저장
-          await autoSave(result, data.data.interpretation)
+          // 해석 완료 후 자동 저장 (궁합이면 result2도 전달)
+          await autoSave(result, data.data.interpretation, result2)
         } else {
           // LLM 실패해도 자동 저장 (기본 해석으로)
-          await autoSave(result, null)
+          await autoSave(result, null, result2)
         }
       } catch {
         console.log('LLM interpretation failed, using fallback')
         // LLM 실패해도 자동 저장
-        await autoSave(result, null)
+        await autoSave(result, null, result2)
       } finally {
         setIsInterpretLoading(false)
       }

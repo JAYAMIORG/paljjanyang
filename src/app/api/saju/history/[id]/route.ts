@@ -2,6 +2,29 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { Solar, Lunar } from 'lunar-typescript'
 
+interface PersonData {
+  bazi: {
+    year: string
+    month: string
+    day: string
+    time: string | null
+  }
+  wuXing: {
+    wood: number
+    fire: number
+    earth: number
+    metal: number
+    water: number
+  }
+  dayMaster: string
+  dayMasterKorean: string
+  zodiacEmoji: string
+  dominantElement: string
+  weakElement: string
+  name?: string
+  gender?: string
+}
+
 export interface ReadingDetailResponse {
   success: boolean
   data?: {
@@ -35,6 +58,10 @@ export interface ReadingDetailResponse {
     dayPillarAnimal: string
     dayNaYin: string
     createdAt: string
+    // 궁합용 두 번째 사람 데이터
+    person2?: PersonData
+    name1?: string
+    name2?: string
   }
   error?: {
     code: string
@@ -162,8 +189,22 @@ export async function GET(
         person1_wuxing,
         person1_day_master,
         person1_id,
+        person2_bazi,
+        person2_wuxing,
+        person2_day_master,
+        person2_id,
         created_at,
-        persons:person1_id (
+        person1:person1_id (
+          name,
+          birth_year,
+          birth_month,
+          birth_day,
+          birth_hour,
+          is_lunar,
+          gender
+        ),
+        person2:person2_id (
+          name,
           birth_year,
           birth_month,
           birth_day,
@@ -205,7 +246,7 @@ export async function GET(
     let daYun: Array<{ startAge: number; endAge: number; ganZhi: string }> = []
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const person = reading.persons as any
+    const person = reading.person1 as any
     if (person && person.birth_year && person.birth_month && person.birth_day) {
       try {
         let lunar
@@ -254,6 +295,32 @@ export async function GET(
     const bazi = reading.person1_bazi || { year: '', month: '', day: '', time: null }
     const dayPillarAnimal = getJiaziAnimalName(bazi.day || '')
 
+    // 궁합인 경우 person2 데이터 준비
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let person2Data: PersonData | undefined
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const person2Info = reading.person2 as any
+    if (reading.type === 'compatibility' && reading.person2_bazi) {
+      const dayMaster2 = reading.person2_day_master || ''
+      const dayMasterInfo2 = DAY_MASTER_MAP[dayMaster2] || { korean: dayMaster2, emoji: '🐱' }
+      const wuXing2 = reading.person2_wuxing || { wood: 20, fire: 20, earth: 20, metal: 20, water: 20 }
+      const entries2 = Object.entries(wuXing2) as [string, number][]
+      const dominantEntry2 = entries2.reduce((a, b) => a[1] > b[1] ? a : b)
+      const weakEntry2 = entries2.reduce((a, b) => a[1] < b[1] ? a : b)
+
+      person2Data = {
+        bazi: reading.person2_bazi,
+        wuXing: wuXing2,
+        dayMaster: dayMaster2,
+        dayMasterKorean: dayMasterInfo2.korean,
+        zodiacEmoji: dayMasterInfo2.emoji,
+        dominantElement: WUXING_KOREAN[dominantEntry2[0]] || dominantEntry2[0],
+        weakElement: WUXING_KOREAN[weakEntry2[0]] || weakEntry2[0],
+        name: person2Info?.name,
+        gender: person2Info?.gender,
+      }
+    }
+
     return NextResponse.json<ReadingDetailResponse>({
       success: true,
       data: {
@@ -272,6 +339,10 @@ export async function GET(
         dayPillarAnimal,
         dayNaYin: '', // DB에 저장되지 않음
         createdAt: reading.created_at,
+        // 궁합용 데이터
+        ...(person2Data && { person2: person2Data }),
+        ...(person?.name && { name1: person.name }),
+        ...(person2Info?.name && { name2: person2Info.name }),
       },
     })
   } catch (error) {
