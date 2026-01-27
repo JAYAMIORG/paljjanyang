@@ -9,33 +9,11 @@ interface LoveResultContentProps {
   interpretation: LoveInterpretation | null
 }
 
-const DAY_MASTER_EMOJI: Record<string, string> = {
-  '甲': '🌳', '乙': '🌿',
-  '丙': '☀️', '丁': '🕯️',
-  '戊': '⛰️', '己': '🏔️',
-  '庚': '⚔️', '辛': '💎',
-  '壬': '🌊', '癸': '💧',
-}
-
 export function LoveResultContent({ result, interpretation }: LoveResultContentProps) {
-  const emoji = DAY_MASTER_EMOJI[result.dayMaster] || '🐱'
   const currentYear = new Date().getFullYear()
 
   return (
     <div className="space-y-6">
-      {/* 요약 카드 */}
-      <Card variant="highlighted">
-        <div className="text-center">
-          <span className="text-5xl mb-3 block">{emoji}</span>
-          <h2 className="text-heading font-semibold text-text mb-2">
-            {result.dayMasterKorean}의 연애운
-          </h2>
-          <p className="text-body text-text-muted">
-            {result.koreanGanji}
-          </p>
-        </div>
-      </Card>
-
       {interpretation ? (
         <>
           {/* 연애 스타일 */}

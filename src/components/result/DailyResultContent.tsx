@@ -212,11 +212,6 @@ export function DailyResultContent({ result, interpretation, isNew }: DailyResul
           </div>
         </Card>
       )}
-
-      {/* 안내 메시지 */}
-      <div className="text-center text-small text-text-muted py-2">
-        오늘의 운세는 하루에 한 번만 무료로 볼 수 있어요
-      </div>
     </div>
   )
 }
