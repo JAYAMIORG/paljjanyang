@@ -91,6 +91,13 @@ export async function generateMetadata({
   return {
     title,
     description,
+    robots: {
+      index: true,
+      follow: true,
+    },
+    alternates: {
+      canonical: `/saju/shared/${id}`,
+    },
     openGraph: {
       title,
       description,
