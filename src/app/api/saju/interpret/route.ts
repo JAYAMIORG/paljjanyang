@@ -191,9 +191,10 @@ export async function POST(request: NextRequest) {
         // 캐시 히트 - JSON 파싱 시도
         const parsedCache = parseJsonResponse(cached.interpretation)
         if (parsedCache) {
-          // Reading 레코드 업데이트 (캐시 히트 시에도 처리)
+          // Reading 레코드 업데이트 (캐시 히트 시에도 처리) - await으로 변경
           if (readingId) {
-            adminClient
+            console.log('[interpret] Cache hit - updating reading:', { readingId, userId: user.id })
+            const { data: updateData, error: updateError } = await adminClient
               .from('readings')
               .update({
                 interpretation: parsedCache,
@@ -202,9 +203,15 @@ export async function POST(request: NextRequest) {
               })
               .eq('id', readingId)
               .eq('user_id', user.id)
-              .then(({ error }) => {
-                if (error) console.error('Reading update error (cache hit):', error)
-              })
+              .select('id, status')
+
+            if (updateError) {
+              console.error('[interpret] Reading update error (cache hit):', updateError)
+            } else {
+              console.log('[interpret] Reading updated (cache hit):', updateData)
+            }
+          } else {
+            console.log('[interpret] Cache hit but no readingId to update')
           }
 
           return NextResponse.json<InterpretResponse>({
@@ -340,7 +347,9 @@ export async function POST(request: NextRequest) {
     // ========================================
     if (readingId && adminClient) {
       try {
-        const { error: updateError } = await adminClient
+        console.log('[interpret] Updating reading:', { readingId, userId: user.id })
+
+        const { data: updateData, error: updateError } = await adminClient
           .from('readings')
           .update({
             interpretation: parsedResponse,
@@ -349,14 +358,18 @@ export async function POST(request: NextRequest) {
           })
           .eq('id', readingId)
           .eq('user_id', user.id) // 보안: 본인 reading만 업데이트
+          .select('id, status')
 
         if (updateError) {
-          console.error('Reading update error:', updateError)
-          // 업데이트 실패해도 해석 결과는 반환 (사용자 경험 우선)
+          console.error('[interpret] Reading update error:', updateError)
+        } else {
+          console.log('[interpret] Reading updated successfully:', updateData)
         }
       } catch (err) {
-        console.error('Reading update failed:', err)
+        console.error('[interpret] Reading update failed:', err)
       }
+    } else {
+      console.log('[interpret] Skipping reading update:', { readingId, hasAdminClient: !!adminClient })
     }
 
     return NextResponse.json<InterpretResponse>({

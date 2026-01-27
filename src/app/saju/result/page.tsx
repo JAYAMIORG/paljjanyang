@@ -533,6 +533,7 @@ function ResultContent() {
 
     const fetchInterpretation = async () => {
       setIsInterpretLoading(true)
+      console.log('[result] Starting interpretation with readingId:', readingId)
       try {
         // 저장된 reading에서 불러온 값 우선 사용, 없으면 URL 파라미터 사용
         const effectiveGender = savedGender || gender

@@ -210,6 +210,7 @@ export async function POST(request: Request) {
     }
 
     const readingId = readingResult.id
+    console.log('[use-coin] Reading created:', { readingId, userId: user.id, type, status: 'processing' })
 
     // 3. 코인 차감 (Atomic RPC 함수 사용)
     const { data: rpcResult, error: rpcError } = await adminClient
