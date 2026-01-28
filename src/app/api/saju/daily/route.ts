@@ -31,6 +31,7 @@ export interface DailyResponse {
   data?: {
     interpretation: DailyInterpretation
     isNew: boolean // 새로 생성된 결과인지
+    readingId: string // 공유 페이지 리다이렉트용
   }
   error?: {
     code: string
@@ -125,7 +126,7 @@ export async function POST(request: NextRequest) {
     // 1. 먼저 이 유저가 오늘 이미 조회했는지 확인
     const { data: existingReading } = await supabase
       .from('readings')
-      .select('interpretation')
+      .select('id, interpretation')
       .eq('user_id', user.id)
       .eq('reading_type', 'daily')
       .gte('created_at', `${todayString}T00:00:00`)
@@ -151,6 +152,7 @@ export async function POST(request: NextRequest) {
           data: {
             interpretation: parsedInterpretation,
             isNew: false,
+            readingId: existingReading.id,
           },
         })
       }
@@ -247,7 +249,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. 유저별 기록 저장 (readings 테이블)
-    await supabase.from('readings').insert({
+    const { data: newReading } = await supabase.from('readings').insert({
       user_id: user.id,
       reading_type: 'daily',
       input_data: {
@@ -257,13 +259,14 @@ export async function POST(request: NextRequest) {
       },
       saju_result: sajuResult,
       interpretation: JSON.stringify(parsedResponse),
-    })
+    }).select('id').single()
 
     return NextResponse.json<DailyResponse>({
       success: true,
       data: {
         interpretation: parsedResponse,
         isNew: true,
+        readingId: newReading?.id || '',
       },
     })
   } catch (error) {

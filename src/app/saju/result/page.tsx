@@ -237,15 +237,9 @@ function ResultContent() {
         const needsInterpretation = status === 'processing' || status === 'failed'
 
         if (data.data.interpretation && !needsInterpretation) {
-          try {
-            const parsedInterpretation = typeof data.data.interpretation === 'string'
-              ? JSON.parse(data.data.interpretation)
-              : data.data.interpretation
-            setInterpretation(parsedInterpretation)
-          } catch {
-            // 파싱 실패 시 (구 마크다운 형식) null로 설정
-            setInterpretation(null)
-          }
+          // 완료된 결과 - 공유 페이지로 리다이렉트
+          router.replace(`/saju/shared/${id}`)
+          return { loaded: true, needsInterpretation: false }
         }
         setReadingId(id)
         hasSavedRef.current = true // 이미 저장된 결과
@@ -397,6 +391,13 @@ function ResultContent() {
             return
           }
 
+          // daily 완료 - 공유 페이지로 리다이렉트
+          if (dailyData.data.readingId) {
+            router.replace(`/saju/shared/${dailyData.data.readingId}`)
+            return
+          }
+
+          // readingId가 없는 경우 폴백 (기존 로직)
           setResult(calcData.data)
           setInterpretation(dailyData.data.interpretation)
           setIsDailyNew(dailyData.data.isNew)
@@ -586,8 +587,9 @@ function ResultContent() {
 
         const data = await response.json()
         if (data.success) {
-          setInterpretation(data.data.interpretation)
-          // 해석 완료 - reading 업데이트는 interpret API에서 처리됨
+          // 해석 완료 - 공유 페이지로 리다이렉트
+          router.replace(`/saju/shared/${readingId}`)
+          return
         }
         // LLM 실패해도 reading은 이미 저장되어 있음 (status='processing')
       } catch {
