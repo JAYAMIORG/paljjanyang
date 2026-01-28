@@ -73,33 +73,18 @@ function tryParseJsonInterpretation(interpretation: string | null): Interpretati
   }
 }
 
-// 모바일 디바이스 감지
-function isMobileDevice(): boolean {
-  if (typeof window === 'undefined') return false
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent
-  )
-}
-
 export default function SharedResultPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
-  const { createButton: createKakaoButton, isReady: isKakaoReady } = useKakaoShare()
+  const { share: shareKakao, isReady: isKakaoReady } = useKakaoShare()
   const shareCardRef = useRef<HTMLDivElement>(null)
   const [isShareLoading, setIsShareLoading] = useState(false)
-  const [kakaoButtonCreated, setKakaoButtonCreated] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
 
   const [data, setData] = useState<SharedReadingResponse['data'] | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const isMountedRef = useRef(true)
-
-  // 모바일 여부 감지
-  useEffect(() => {
-    setIsMobile(isMobileDevice())
-  }, [])
 
   useEffect(() => {
     isMountedRef.current = true
@@ -261,10 +246,9 @@ export default function SharedResultPage() {
     }
   }
 
-  // 카카오 공유 버튼 생성 (모바일에서만 - createDefaultButton 방식)
-  useEffect(() => {
-    // 모바일에서만 카카오 버튼 생성
-    if (!isMobile || !data || !isKakaoReady || kakaoButtonCreated) return
+  // 카카오 공유 - 카카오 SDK 사용 (데스크톱에서도 웹 팝업으로 폴백됨)
+  const handleKakaoShare = () => {
+    if (!data) return
 
     const shareUrl = getShareUrl()
 
@@ -283,72 +267,33 @@ export default function SharedResultPage() {
     const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
     const ganziMatch = dayPillarAnimal.match(/\(([가-힣]{2})/)
     const ganziKorean = ganziMatch ? ganziMatch[1] : null
+    // 카카오 공유용 이미지는 JPG 사용 (WebP 미지원)
     const imageUrl = ganziKorean
       ? `${productionUrl}/images/animals/${encodeURIComponent(ganziKorean)}.jpg`
       : `${productionUrl}/images/og-default.png`
 
-    // 약간의 지연 후 버튼 생성 (DOM이 확실히 렌더링된 후)
-    const timer = setTimeout(() => {
-      const created = createKakaoButton({
-        container: '#kakao-share-btn',
-        title,
-        description,
-        imageUrl,
-        buttonText: '결과 보러가기',
-        shareUrl,
-      })
-      if (created) {
-        setKakaoButtonCreated(true)
-      }
-    }, 100)
+    // 카카오 SDK 사용 (모바일: 앱, 데스크톱: 웹 팝업으로 폴백)
+    const shared = shareKakao({
+      title,
+      description,
+      imageUrl,
+      buttonText: '결과 보러가기',
+      shareUrl,
+    })
 
-    return () => clearTimeout(timer)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMobile, data, isKakaoReady, kakaoButtonCreated])
-
-  // 데스크톱용 Web Share API 또는 클립보드 공유
-  const handleDesktopShare = async () => {
-    if (!data) return
-
-    const shareUrl = getShareUrl()
-    const typeLabel = {
-      personal: '개인 사주',
-      yearly: '신년운세',
-      compatibility: '궁합',
-      love: '연애운',
-      daily: '오늘의 운세',
-    }[data.type] || '사주'
-
-    const dayPillarAnimal = data.dayPillarAnimal
-    const title = `${dayPillarAnimal}의 ${typeLabel} - 팔자냥`
-    const description = `${data.koreanGanji} - 나의 사주를 확인해보세요!`
-
-    // Web Share API 시도 (Chrome, Edge 등에서 지원)
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title,
-          text: description,
-          url: shareUrl,
+    // 카카오 SDK 실패 시 링크 복사 폴백
+    if (!shared) {
+      navigator.clipboard.writeText(shareUrl)
+        .then(() => alert('링크가 복사되었습니다!'))
+        .catch(() => {
+          const textArea = document.createElement('textarea')
+          textArea.value = shareUrl
+          document.body.appendChild(textArea)
+          textArea.select()
+          document.execCommand('copy')
+          document.body.removeChild(textArea)
+          alert('링크가 복사되었습니다!')
         })
-        return
-      } catch {
-        // 사용자가 취소하거나 실패한 경우 클립보드로 폴백
-      }
-    }
-
-    // 클립보드 복사
-    try {
-      await navigator.clipboard.writeText(shareUrl)
-      alert('링크가 복사되었습니다!')
-    } catch {
-      const textArea = document.createElement('textarea')
-      textArea.value = shareUrl
-      document.body.appendChild(textArea)
-      textArea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textArea)
-      alert('링크가 복사되었습니다!')
     }
   }
 
@@ -766,36 +711,18 @@ export default function SharedResultPage() {
                 )}
               </button>
 
-              {/* 모바일: 카카오 공유 버튼 */}
-              {isMobile ? (
-                <div
-                  id="kakao-share-btn"
-                  className={`relative w-14 h-14 flex items-center justify-center rounded-xl bg-[#FEE500] cursor-pointer transition-opacity hover:opacity-90 [&>a]:absolute [&>a]:inset-0 [&>a]:z-10 ${
-                    !isKakaoReady ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  title="카카오톡 공유"
-                  suppressHydrationWarning
-                >
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="#3C1E1E" className="pointer-events-none">
-                    <path d="M12 3c-5.52 0-10 3.59-10 8 0 2.84 1.89 5.33 4.71 6.72-.17.64-.68 2.53-.78 2.92-.12.49.18.48.38.35.16-.1 2.49-1.68 3.49-2.36.72.11 1.46.17 2.2.17 5.52 0 10-3.59 10-8s-4.48-8-10-8z"/>
-                  </svg>
-                </div>
-              ) : (
-                /* 데스크톱: Web Share API 버튼 */
-                <button
-                  onClick={handleDesktopShare}
-                  className="w-14 h-14 flex items-center justify-center rounded-xl bg-primary text-white transition-opacity hover:opacity-90"
-                  title="공유하기"
-                >
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="18" cy="5" r="3"/>
-                    <circle cx="6" cy="12" r="3"/>
-                    <circle cx="18" cy="19" r="3"/>
-                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                  </svg>
-                </button>
-              )}
+              <button
+                onClick={handleKakaoShare}
+                disabled={!isKakaoReady}
+                className={`w-14 h-14 flex items-center justify-center rounded-xl bg-[#FEE500] text-[#3C1E1E] transition-opacity ${
+                  isKakaoReady ? 'hover:opacity-90' : 'opacity-50 cursor-not-allowed'
+                }`}
+                title="카카오톡 공유"
+              >
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 3c-5.52 0-10 3.59-10 8 0 2.84 1.89 5.33 4.71 6.72-.17.64-.68 2.53-.78 2.92-.12.49.18.48.38.35.16-.1 2.49-1.68 3.49-2.36.72.11 1.46.17 2.2.17 5.52 0 10-3.59 10-8s-4.48-8-10-8z"/>
+                </svg>
+              </button>
 
               <button
                 onClick={handleCopyLink}

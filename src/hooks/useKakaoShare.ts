@@ -10,10 +10,6 @@ interface ShareContent {
   shareUrl?: string
 }
 
-interface CreateButtonOptions extends ShareContent {
-  container: string // CSS selector for the container element
-}
-
 // 모바일 디바이스 감지 (export하여 외부에서도 사용 가능)
 export function isMobileDevice(): boolean {
   if (typeof window === 'undefined') return false
@@ -138,61 +134,5 @@ export function useKakaoShare() {
     [isReady]
   )
 
-  // createDefaultButton 방식 - 팝업 차단 우회
-  const createButton = useCallback(
-    ({ container, title, description, imageUrl, buttonText = '사주 보러가기', shareUrl }: CreateButtonOptions) => {
-      if (!isReady || !window.Kakao) {
-        return false
-      }
-
-      const baseUrl = window.location.origin
-      const contentUrl = shareUrl || window.location.href
-
-      try {
-        const createMethod = window.Kakao.Share?.createDefaultButton || window.Kakao.Link?.createDefaultButton
-
-        if (!createMethod) {
-          return false
-        }
-
-        // 기존 버튼이 이미 있는지 확인
-        const containerEl = document.querySelector(container)
-        if (containerEl && containerEl.querySelector('a')) {
-          // 이미 카카오 버튼이 생성되어 있으면 스킵
-          return true
-        }
-
-        createMethod({
-          container,
-          objectType: 'feed',
-          content: {
-            title,
-            description,
-            imageUrl: imageUrl || `${baseUrl}/images/animals/test.jpg`,
-            link: {
-              mobileWebUrl: contentUrl,
-              webUrl: contentUrl,
-            },
-          },
-          buttons: [
-            {
-              title: buttonText,
-              link: {
-                mobileWebUrl: contentUrl,
-                webUrl: contentUrl,
-              },
-            },
-          ],
-        })
-
-        return true
-      } catch (e) {
-        console.error('Kakao createButton error:', e)
-        return false
-      }
-    },
-    [isReady]
-  )
-
-  return { isReady, isLoading, isMobile, share, createButton }
+  return { isReady, isLoading, isMobile, share }
 }
