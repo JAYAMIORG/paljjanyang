@@ -80,7 +80,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
   category: 'lifestyle',
   verification: {
-    google: 'IMkvmqIgYjiHU1z1M2QVCnMlUSsdt6bwvkLXiOVORrk',
+    google: 'pzrENBhpRmTygyMPJaRW4J_H6H3cbO6LwnbH0cAov9c',
     other: {
       'naver-site-verification': '286f540148822c516c0d0ce965034a16d3d3a46d',
     },
