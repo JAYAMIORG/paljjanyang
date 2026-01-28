@@ -32,30 +32,27 @@ export const size = {
 export const contentType = 'image/png'
 
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
+  const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
+
   try {
     const { id } = await params
-    const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
 
     // DB에서 직접 조회 (result 페이지와 동일한 방식)
     let ganziKorean: string | null = null
 
-    try {
-      const supabase = createAdminClient()
-      if (supabase) {
-        const { data: reading } = await supabase
-          .from('readings')
-          .select('person1_bazi')
-          .eq('id', id)
-          .single()
+    const supabase = createAdminClient()
+    if (supabase) {
+      const { data: reading, error } = await supabase
+        .from('readings')
+        .select('person1_bazi')
+        .eq('id', id)
+        .single()
 
-        if (reading?.person1_bazi) {
-          // person1_bazi.day에서 한글 간지 추출
-          const dayGanZhi = reading.person1_bazi.day || ''
-          ganziKorean = getKoreanGanzi(dayGanZhi)
-        }
+      if (!error && reading?.person1_bazi) {
+        // person1_bazi.day에서 한글 간지 추출
+        const dayGanZhi = reading.person1_bazi.day || ''
+        ganziKorean = getKoreanGanzi(dayGanZhi)
       }
-    } catch (e) {
-      console.error('DB fetch error:', e)
     }
 
     // 이미지 URL 생성 (result 페이지와 동일한 방식)
@@ -79,11 +76,9 @@ export default async function Image({ params }: { params: Promise<{ id: string }
 
         if (imageResponse.ok) {
           imageData = await imageResponse.arrayBuffer()
-        } else {
-          console.error('Image fetch failed:', imageResponse.status, imageUrl)
         }
       } catch (e) {
-        console.error('Image fetch error:', e)
+        console.error('Failed to fetch image:', e)
       }
     }
 
