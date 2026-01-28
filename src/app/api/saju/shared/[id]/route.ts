@@ -169,6 +169,7 @@ export async function GET(
         person2_day_master,
         person2_id,
         created_at,
+        input_data,
         persons:person1_id (
           name,
           birth_year,
@@ -322,6 +323,10 @@ export async function GET(
       }
     }
 
+    // input_data에서 gender 가져오기 (daily 타입 등 person이 없는 경우)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const inputData = reading.input_data as any
+
     return NextResponse.json<SharedReadingResponse>({
       success: true,
       data: {
@@ -340,10 +345,10 @@ export async function GET(
         dayNaYin,
         daYun,
         createdAt: reading.created_at,
-        // 궁합용 추가 데이터
+        // 궁합용 추가 데이터, daily의 경우 input_data에서 gender 가져옴
         name1: person?.name || undefined,
         name2: person2Info?.name || undefined,
-        gender: person?.gender || undefined,
+        gender: person?.gender || inputData?.gender || undefined,
         gender2: person2Info?.gender || undefined,
         person2: person2Data,
       },

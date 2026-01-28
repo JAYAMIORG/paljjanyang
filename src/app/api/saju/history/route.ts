@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export interface ReadingHistoryItem {
   id: string
-  type: 'personal' | 'yearly' | 'compatibility' | 'love'
+  type: 'personal' | 'yearly' | 'compatibility' | 'love' | 'daily'
   koreanGanji: string
   personName: string
   birthDate: string // YYYY.M.D 형식

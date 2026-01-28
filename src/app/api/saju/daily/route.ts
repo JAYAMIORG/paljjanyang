@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
       .from('readings')
       .select('id, interpretation')
       .eq('user_id', user.id)
-      .eq('reading_type', 'daily')
+      .eq('type', 'daily')
       .gte('created_at', `${todayString}T00:00:00`)
       .lt('created_at', `${todayString}T23:59:59`)
       .order('created_at', { ascending: false })
@@ -248,17 +248,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 5. 유저별 기록 저장 (readings 테이블)
+    // 5. 유저별 기록 저장 (readings 테이블) - 다른 타입들과 동일한 형식으로 저장
     const { data: newReading } = await supabase.from('readings').insert({
       user_id: user.id,
-      reading_type: 'daily',
+      type: 'daily',
+      status: 'completed',
+      person1_bazi: sajuResult.bazi,
+      person1_wuxing: sajuResult.wuXing,
+      person1_day_master: sajuResult.dayMaster,
+      korean_ganji: sajuResult.koreanGanji,
+      interpretation: parsedResponse,
       input_data: {
         gender,
-        dayMaster: sajuResult.dayMaster,
-        wuXing: sajuResult.wuXing,
+        personId: body.personId,
       },
-      saju_result: sajuResult,
-      interpretation: JSON.stringify(parsedResponse),
+      coins_used: 0,
+      is_free: true,
     }).select('id').single()
 
     return NextResponse.json<DailyResponse>({
