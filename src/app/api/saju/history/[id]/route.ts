@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { Solar, Lunar } from 'lunar-typescript'
 
 interface PersonData {
   bazi: {
@@ -51,11 +50,6 @@ export interface ReadingDetailResponse {
     zodiacEmoji: string
     dominantElement: string
     weakElement: string
-    daYun: Array<{
-      startAge: number
-      endAge: number
-      ganZhi: string
-    }>
     dayPillarAnimal: string
     dayNaYin: string
     createdAt: string
@@ -246,54 +240,8 @@ export async function GET(
     const dominantElement = WUXING_KOREAN[dominantEntry[0]] || dominantEntry[0]
     const weakElement = WUXING_KOREAN[weakEntry[0]] || weakEntry[0]
 
-    // 대운 재계산
-    let daYun: Array<{ startAge: number; endAge: number; ganZhi: string }> = []
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const person = reading.person1 as any
-    if (person && person.birth_year && person.birth_month && person.birth_day) {
-      try {
-        let lunar
-        if (person.is_lunar) {
-          // 음력 입력인 경우
-          lunar = Lunar.fromYmd(person.birth_year, person.birth_month, person.birth_day)
-        } else {
-          // 양력 입력인 경우
-          const solar = Solar.fromYmd(person.birth_year, person.birth_month, person.birth_day)
-          lunar = solar.getLunar()
-        }
-
-        // 시간이 있으면 시간 포함하여 계산
-        let eightChar
-        if (person.birth_hour !== null && person.birth_hour !== undefined) {
-          const solarDate = lunar.getSolar()
-          const solarWithTime = Solar.fromYmdHms(
-            solarDate.getYear(),
-            solarDate.getMonth(),
-            solarDate.getDay(),
-            person.birth_hour,
-            0,
-            0
-          )
-          eightChar = solarWithTime.getLunar().getEightChar()
-        } else {
-          eightChar = lunar.getEightChar()
-        }
-
-        // 대운 계산 (0=여성, 1=남성)
-        const genderValue = person.gender === 'male' ? 1 : 0
-        const yun = eightChar.getYun(genderValue)
-        const daYunList = yun.getDaYun(10)
-
-        daYun = daYunList.map((dy: { getStartAge: () => number; getEndAge: () => number; getGanZhi: () => string }) => ({
-          startAge: dy.getStartAge(),
-          endAge: dy.getEndAge(),
-          ganZhi: dy.getGanZhi(),
-        }))
-      } catch (e) {
-        console.error('DaYun calculation error:', e)
-      }
-    }
 
     // 일주 동물 별칭 (예: 황말, 백개)
     const bazi = reading.person1_bazi || { year: '', month: '', day: '', time: null }
@@ -340,7 +288,6 @@ export async function GET(
         zodiacEmoji: dayMasterInfo.emoji,
         dominantElement,
         weakElement,
-        daYun,
         dayPillarAnimal,
         dayNaYin: '', // DB에 저장되지 않음
         createdAt: reading.created_at,

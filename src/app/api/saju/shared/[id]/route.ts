@@ -29,11 +29,6 @@ export interface SharedReadingResponse {
     weakElement: string
     dayPillarAnimal: string
     dayNaYin: string
-    daYun: Array<{
-      startAge: number
-      endAge: number
-      ganZhi: string
-    }>
     createdAt: string
     // 궁합용 추가 필드
     name1?: string
@@ -221,8 +216,7 @@ export async function GET(
     const dominantElement = WUXING_KOREAN[dominantEntry[0]] || dominantEntry[0]
     const weakElement = WUXING_KOREAN[weakEntry[0]] || weakEntry[0]
 
-    // 대운 계산 및 납음 가져오기
-    let daYun: Array<{ startAge: number; endAge: number; ganZhi: string }> = []
+    // 납음 가져오기
     let dayNaYin = ''
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -255,18 +249,8 @@ export async function GET(
 
         // 일주 납음 가져오기
         dayNaYin = eightChar.getDayNaYin() || ''
-
-        const genderValue = person.gender === 'male' ? 1 : 0
-        const yun = eightChar.getYun(genderValue)
-        const daYunList = yun.getDaYun(10)
-
-        daYun = daYunList.map((dy: { getStartAge: () => number; getEndAge: () => number; getGanZhi: () => string }) => ({
-          startAge: dy.getStartAge(),
-          endAge: dy.getEndAge(),
-          ganZhi: dy.getGanZhi(),
-        }))
       } catch (e) {
-        console.error('DaYun calculation error:', e)
+        console.error('NaYin calculation error:', e)
       }
     }
 
@@ -338,7 +322,6 @@ export async function GET(
         weakElement,
         dayPillarAnimal,
         dayNaYin,
-        daYun,
         createdAt: reading.created_at,
         // 궁합용 추가 데이터
         name1: person?.name || undefined,

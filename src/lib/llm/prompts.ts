@@ -92,11 +92,6 @@ export function buildPersonalSajuPrompt(result: SajuResult, gender: string): str
 - 월간: ${result.shiShen.monthGan}
 - 시간: ${result.shiShen.hourGan || '미상'}
 
-### 대운 (10년 단위 운세)
-${result.daYun.slice(0, 8).map(dy =>
-  `- ${dy.startAge}~${dy.endAge}세: ${dy.ganZhi}`
-).join('\n')}
-
 ---
 
 ## 요청

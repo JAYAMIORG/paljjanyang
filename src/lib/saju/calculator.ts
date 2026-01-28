@@ -5,7 +5,6 @@ import type {
   Bazi,
   WuXing,
   ShiShen,
-  DaYun,
 } from '@/types/saju'
 import {
   TIANGAN_KOREAN,
@@ -81,20 +80,6 @@ export function calculateSaju(request: SajuCalculateRequest): SajuResult {
     hourGan: birthHour !== null && birthHour !== undefined ? eightChar.getTimeShiShenGan() : null,
   }
 
-  // 대운 계산 (0=여성, 1=남성)
-  const genderValue = gender === 'male' ? 1 : 0
-  const yun = eightChar.getYun(genderValue)
-  const daYunList = yun.getDaYun(10)  // 10개 대운
-
-  const daYun: DaYun[] = daYunList.map((dy, index) => ({
-    index,
-    startAge: dy.getStartAge(),
-    endAge: dy.getEndAge(),
-    ganZhi: dy.getGanZhi(),
-    startYear: dy.getStartYear(),
-    endYear: dy.getEndYear(),
-  }))
-
   // 띠
   const zodiacChar = lunar.getYearShengXiao()
   const zodiac = ZODIAC_KOREAN[zodiacChar] || zodiacChar
@@ -124,7 +109,6 @@ export function calculateSaju(request: SajuCalculateRequest): SajuResult {
     dominantElement,
     weakElement,
     shiShen,
-    daYun,
     zodiac,
     zodiacEmoji,
     naYin,

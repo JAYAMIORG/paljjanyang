@@ -222,7 +222,6 @@ function ResultContent() {
             zodiacEmoji: p2.zodiacEmoji,
             dominantElement: p2.dominantElement,
             weakElement: p2.weakElement,
-            daYun: [],
             shiShen: { yearGan: '', monthGan: '', hourGan: null },
             zodiac: '',
             naYin: '',
@@ -282,7 +281,6 @@ function ResultContent() {
     zodiacEmoji: data.zodiacEmoji,
     dominantElement: data.dominantElement,
     weakElement: data.weakElement,
-    daYun: data.daYun || [],
     // 저장되지 않은 필드는 기본값 사용
     shiShen: { yearGan: '', monthGan: '', hourGan: null },
     zodiac: '',

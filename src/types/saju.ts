@@ -33,16 +33,6 @@ export interface ShiShen {
   hourGan: string | null  // 시간 십신
 }
 
-// 대운 (大運)
-export interface DaYun {
-  index: number      // 순번 (0부터)
-  startAge: number   // 시작 나이
-  endAge: number     // 끝 나이
-  ganZhi: string     // 간지 (예: 庚辰)
-  startYear: number  // 시작 연도
-  endYear: number    // 끝 연도
-}
-
 // 세운/유년 (流年)
 export interface LiuNian {
   year: number       // 연도
@@ -65,9 +55,6 @@ export interface SajuResult {
 
   // 십신
   shiShen: ShiShen
-
-  // 대운 (10개)
-  daYun: DaYun[]
 
   // 기타 정보
   zodiac: string       // 띠 (예: 돼지띠)

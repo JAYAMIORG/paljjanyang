@@ -46,6 +46,7 @@ const TYPE_LABEL: Record<string, string> = {
   yearly: '신년운세',
   compatibility: '궁합',
   love: '연애운',
+  daily: '오늘운세',
 }
 
 export async function generateMetadata({
