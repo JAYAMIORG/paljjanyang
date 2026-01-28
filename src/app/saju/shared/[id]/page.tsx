@@ -77,7 +77,7 @@ export default function SharedResultPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
-  const { share: shareKakao, isReady: isKakaoReady } = useKakaoShare()
+  const { share: shareKakao, isReady: isKakaoReady, isMobile } = useKakaoShare()
   const shareCardRef = useRef<HTMLDivElement>(null)
   const [isShareLoading, setIsShareLoading] = useState(false)
 
@@ -246,7 +246,7 @@ export default function SharedResultPage() {
     }
   }
 
-  // 카카오 공유
+  // 카카오 공유 (모바일) 또는 Web Share/링크 복사 (데스크톱)
   const handleKakaoShare = async () => {
     if (!data) return
 
@@ -261,22 +261,57 @@ export default function SharedResultPage() {
     }[data.type] || '사주'
 
     const dayPillarAnimal = data.dayPillarAnimal
+    const title = `${dayPillarAnimal}의 ${typeLabel} - 팔자냥`
+    const description = `${data.koreanGanji} - 나의 사주를 확인해보세요!`
 
-    const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
-    const ganziMatch = dayPillarAnimal.match(/\(([가-힣]{2})/)
-    const ganziKorean = ganziMatch ? ganziMatch[1] : null
-    // 카카오 공유용 이미지는 JPG 사용 (WebP 미지원)
-    const imageUrl = ganziKorean
-      ? `${productionUrl}/images/animals/${encodeURIComponent(ganziKorean)}.jpg`
-      : `${productionUrl}/images/og-default.png`
+    // 모바일: 카카오 공유 사용
+    if (isMobile) {
+      const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
+      const ganziMatch = dayPillarAnimal.match(/\(([가-힣]{2})/)
+      const ganziKorean = ganziMatch ? ganziMatch[1] : null
+      // 카카오 공유용 이미지는 JPG 사용 (WebP 미지원)
+      const imageUrl = ganziKorean
+        ? `${productionUrl}/images/animals/${encodeURIComponent(ganziKorean)}.jpg`
+        : `${productionUrl}/images/og-default.png`
 
-    shareKakao({
-      title: `${dayPillarAnimal}의 ${typeLabel} - 팔자냥`,
-      description: `${data.koreanGanji} - 나의 사주를 확인해보세요!`,
-      imageUrl,
-      buttonText: '결과 보러가기',
-      shareUrl,
-    })
+      shareKakao({
+        title,
+        description,
+        imageUrl,
+        buttonText: '결과 보러가기',
+        shareUrl,
+      })
+      return
+    }
+
+    // 데스크톱: Web Share API 또는 링크 복사
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title,
+          text: description,
+          url: shareUrl,
+        })
+        return
+      } catch {
+        // 사용자가 취소한 경우 무시
+      }
+    }
+
+    // Web Share 불가 시 링크 복사
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      alert('링크가 복사되었습니다!')
+    } catch {
+      // 클립보드 API 실패 시 폴백
+      const textArea = document.createElement('textarea')
+      textArea.value = shareUrl
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      alert('링크가 복사되었습니다!')
+    }
   }
 
   if (isLoading) {
@@ -695,14 +730,27 @@ export default function SharedResultPage() {
 
               <button
                 onClick={handleKakaoShare}
-                disabled={!isKakaoReady}
-                className={`w-14 h-14 flex items-center justify-center rounded-xl bg-[#FEE500] text-[#3C1E1E] transition-opacity ${
-                  isKakaoReady ? 'hover:opacity-90' : 'opacity-50 cursor-not-allowed'
+                disabled={isMobile && !isKakaoReady}
+                className={`w-14 h-14 flex items-center justify-center rounded-xl transition-opacity ${
+                  isMobile
+                    ? `bg-[#FEE500] text-[#3C1E1E] ${isKakaoReady ? 'hover:opacity-90' : 'opacity-50 cursor-not-allowed'}`
+                    : 'bg-primary text-white hover:opacity-90'
                 }`}
+                title={isMobile ? '카카오톡 공유' : '공유하기'}
               >
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 3c-5.52 0-10 3.59-10 8 0 2.84 1.89 5.33 4.71 6.72-.17.64-.68 2.53-.78 2.92-.12.49.18.48.38.35.16-.1 2.49-1.68 3.49-2.36.72.11 1.46.17 2.2.17 5.52 0 10-3.59 10-8s-4.48-8-10-8z"/>
-                </svg>
+                {isMobile ? (
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 3c-5.52 0-10 3.59-10 8 0 2.84 1.89 5.33 4.71 6.72-.17.64-.68 2.53-.78 2.92-.12.49.18.48.38.35.16-.1 2.49-1.68 3.49-2.36.72.11 1.46.17 2.2.17 5.52 0 10-3.59 10-8s-4.48-8-10-8z"/>
+                  </svg>
+                ) : (
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="18" cy="5" r="3"/>
+                    <circle cx="6" cy="12" r="3"/>
+                    <circle cx="18" cy="19" r="3"/>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                  </svg>
+                )}
               </button>
 
               <button
