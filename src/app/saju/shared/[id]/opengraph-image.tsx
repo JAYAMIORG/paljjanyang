@@ -18,9 +18,14 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     let ganziKorean: string | null = null
 
     try {
+      const apiController = new AbortController()
+      const apiTimeoutId = setTimeout(() => apiController.abort(), 5000)
+
       const apiResponse = await fetch(`${productionUrl}/api/saju/shared/${id}`, {
         cache: 'no-store',
+        signal: apiController.signal,
       })
+      clearTimeout(apiTimeoutId)
 
       if (apiResponse.ok) {
         const data = await apiResponse.json()
@@ -34,18 +39,29 @@ export default async function Image({ params }: { params: Promise<{ id: string }
       console.error('API fetch error:', e)
     }
 
-    // 이미지 URL 생성
-    const imageUrl = ganziKorean
-      ? `${productionUrl}/images/animals/${encodeURIComponent(ganziKorean)}.webp`
+    // 이미지 URL 생성 (result 페이지와 동일한 방식)
+    const imageFileName = ganziKorean ? `${ganziKorean}.webp` : null
+    const imageUrl = imageFileName
+      ? `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
       : null
 
-    // 이미지 가져오기
+    // 이미지 가져오기 (result 페이지와 동일한 방식)
     let imageData: ArrayBuffer | null = null
     if (imageUrl) {
       try {
-        const imageResponse = await fetch(imageUrl)
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 5000)
+
+        const imageResponse = await fetch(imageUrl, {
+          signal: controller.signal,
+          headers: { 'Accept': 'image/*' },
+        })
+        clearTimeout(timeoutId)
+
         if (imageResponse.ok) {
           imageData = await imageResponse.arrayBuffer()
+        } else {
+          console.error('Image fetch failed:', imageResponse.status, imageUrl)
         }
       } catch (e) {
         console.error('Image fetch error:', e)
