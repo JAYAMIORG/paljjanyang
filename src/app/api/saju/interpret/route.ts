@@ -26,6 +26,90 @@ import {
 } from '@/lib/cache/interpretation-cache'
 import { openaiRateLimiter } from '@/lib/llm/rate-limiter'
 
+/**
+ * LLM 실패 시 코인 환불 및 Reading 상태 업데이트
+ */
+async function handleLLMFailure(
+  adminClient: ReturnType<typeof createAdminClient>,
+  readingId: string | undefined,
+  userId: string,
+  errorReason: string
+): Promise<{ refunded: boolean; newBalance?: number }> {
+  if (!adminClient || !readingId) {
+    return { refunded: false }
+  }
+
+  try {
+    // 1. Reading 상태를 'failed'로 업데이트
+    await adminClient
+      .from('readings')
+      .update({
+        status: 'failed',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', readingId)
+      .eq('user_id', userId)
+
+    // 2. 코인 환불 (Atomic RPC 사용)
+    const { data: rpcResult, error: rpcError } = await adminClient
+      .rpc('refund_coin', {
+        p_user_id: userId,
+        p_amount: 1,
+        p_description: `사주 해석 실패 자동 환불 (${errorReason})`,
+      })
+
+    if (rpcError) {
+      // RPC 함수가 없는 경우 fallback
+      if (rpcError.code === 'PGRST202') {
+        const { data: balanceData } = await adminClient
+          .from('coin_balances')
+          .select('balance')
+          .eq('user_id', userId)
+          .single()
+
+        const currentBalance = Number(balanceData?.balance ?? 0)
+        const newBalance = currentBalance + 1
+
+        await adminClient
+          .from('coin_balances')
+          .upsert({
+            user_id: userId,
+            balance: newBalance,
+            updated_at: new Date().toISOString(),
+          })
+
+        await adminClient
+          .from('coin_transactions')
+          .insert({
+            user_id: userId,
+            type: 'refund',
+            amount: 1,
+            balance_before: currentBalance,
+            balance_after: newBalance,
+            description: `사주 해석 실패 자동 환불 (${errorReason})`,
+          })
+
+        console.log(`[interpret] Fallback refund success: user=${userId}, newBalance=${newBalance}`)
+        return { refunded: true, newBalance }
+      }
+
+      console.error('[interpret] Refund RPC error:', rpcError)
+      return { refunded: false }
+    }
+
+    const result = rpcResult?.[0]
+    if (result?.success) {
+      console.log(`[interpret] Auto refund success: user=${userId}, newBalance=${result.new_balance}`)
+      return { refunded: true, newBalance: result.new_balance }
+    }
+
+    return { refunded: false }
+  } catch (error) {
+    console.error('[interpret] Auto refund failed:', error)
+    return { refunded: false }
+  }
+}
+
 // JSON 응답 타입 유니온
 type InterpretationData =
   | PersonalInterpretation
@@ -71,6 +155,8 @@ export interface InterpretResponse {
   error?: {
     code: string
     message: string
+    refunded?: boolean      // 자동 환불 여부
+    newBalance?: number     // 환불 후 잔액
   }
 }
 
@@ -111,6 +197,11 @@ function parseJsonResponse(text: string): InterpretationData | null {
 }
 
 export async function POST(request: NextRequest) {
+  // catch 블록에서 환불 처리를 위해 변수 선언
+  let userId: string | undefined
+  let currentReadingId: string | undefined
+  let currentAdminClient: ReturnType<typeof createAdminClient> = null
+
   try {
     // 인증 확인 (비용 공격 방지)
     const supabase = await createClient()
@@ -140,9 +231,11 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       )
     }
+    userId = user.id  // catch 블록에서 사용
 
     const body: InterpretRequest = await request.json()
     const { type, sajuResult, gender, sajuResult2, gender2, name1, name2, readingId } = body
+    currentReadingId = readingId  // catch 블록에서 사용
 
     // 입력 검증
     if (!sajuResult || !type || !gender) {
@@ -185,6 +278,7 @@ export async function POST(request: NextRequest) {
 
     // Admin 클라이언트로 캐시 조회 (RLS 우회)
     const adminClient = createAdminClient()
+    currentAdminClient = adminClient  // catch 블록에서 사용
     if (adminClient) {
       const cached = await getCachedInterpretation(adminClient, cacheKey)
       if (cached) {
@@ -303,12 +397,23 @@ export async function POST(request: NextRequest) {
     if (!parsedResponse) {
       console.error('Failed to parse LLM JSON response')
       console.error('Raw response:', responseText.slice(0, 1000))
+
+      // 자동 환불 처리
+      const refundResult = await handleLLMFailure(
+        adminClient,
+        readingId,
+        user.id,
+        'JSON 파싱 실패'
+      )
+
       return NextResponse.json<InterpretResponse>(
         {
           success: false,
           error: {
             code: 'PARSE_ERROR',
             message: '응답 형식 오류가 발생했습니다. 다시 시도해주세요.',
+            refunded: refundResult.refunded,
+            newBalance: refundResult.newBalance,
           },
         },
         { status: 500 }
@@ -372,13 +477,28 @@ export async function POST(request: NextRequest) {
       errorMessage.toLowerCase().includes('rate limit') ||
       errorMessage.includes('429')
 
+    // 자동 환불 처리 (userId와 readingId가 있는 경우에만)
+    let refundResult: { refunded: boolean; newBalance?: number } = { refunded: false }
+    if (userId && currentReadingId) {
+      refundResult = await handleLLMFailure(
+        currentAdminClient,
+        currentReadingId,
+        userId,
+        isRateLimitError ? 'Rate Limit 초과' : 'LLM 호출 실패'
+      )
+    }
+
     if (isRateLimitError) {
       return NextResponse.json<InterpretResponse>(
         {
           success: false,
           error: {
             code: 'RATE_LIMIT_ERROR',
-            message: '현재 요청이 많습니다. 잠시 후 다시 시도해주세요.',
+            message: refundResult.refunded
+              ? '현재 요청이 많습니다. 코인이 자동 환불되었습니다.'
+              : '현재 요청이 많습니다. 잠시 후 다시 시도해주세요.',
+            refunded: refundResult.refunded,
+            newBalance: refundResult.newBalance,
           },
         },
         { status: 429 }
@@ -390,10 +510,13 @@ export async function POST(request: NextRequest) {
         success: false,
         error: {
           code: 'INTERPRETATION_ERROR',
-          message:
-            error instanceof Error
+          message: refundResult.refunded
+            ? '해석 중 오류가 발생했습니다. 코인이 자동 환불되었습니다.'
+            : error instanceof Error
               ? error.message
               : '해석 중 오류가 발생했습니다.',
+          refunded: refundResult.refunded,
+          newBalance: refundResult.newBalance,
         },
       },
       { status: 500 }
