@@ -308,13 +308,27 @@ export async function GET(
       }
     }
 
+    // interpretation 처리: save API({ text: string })와 interpret API(직접 객체) 두 형식 모두 지원
+    let interpretationText: string | null = null
+    if (reading.interpretation) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const interp = reading.interpretation as any
+      if (typeof interp === 'object' && 'text' in interp && typeof interp.text === 'string') {
+        // save API 방식: { text: "..." }
+        interpretationText = interp.text
+      } else if (typeof interp === 'object') {
+        // interpret API 방식: 직접 객체 -> JSON 문자열로 변환
+        interpretationText = JSON.stringify(interp)
+      }
+    }
+
     return NextResponse.json<SharedReadingResponse>({
       success: true,
       data: {
         id: reading.id,
         type: reading.type,
         koreanGanji: reading.korean_ganji || '',
-        interpretation: reading.interpretation?.text || null,
+        interpretation: interpretationText,
         bazi,
         wuXing,
         dayMaster,
