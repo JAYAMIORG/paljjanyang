@@ -224,7 +224,7 @@ function CoinContent() {
                           {pkg.name}
                         </span>
                         {pkg.bonusCoins > 0 && (
-                          <span className="text-caption bg-accent/10 text-accent px-2 py-0.5 rounded-full">
+                          <span className="text-caption font-semibold bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 rounded-full shadow-sm">
                             +{pkg.bonusCoins} 보너스
                           </span>
                         )}
@@ -235,8 +235,8 @@ function CoinContent() {
                         )}
                       </div>
                       {pkg.bonusCoins > 0 && (
-                        <p className="text-small text-text-muted mt-1">
-                          총 {pkg.totalCoins} 코인 지급
+                        <p className="text-small font-medium text-amber-600 mt-1">
+                          🎁 총 {pkg.totalCoins} 코인 지급
                         </p>
                       )}
                     </div>

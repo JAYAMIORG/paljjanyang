@@ -40,7 +40,7 @@ export function JsonLd() {
     name: '팔자냥',
     alternateName: ['팔자냥 사주', 'Paljjanyang'],
     url: baseUrl,
-    description: '880원으로 보는 프리미엄 사주 서비스. 개인 사주, 신년운세, 궁합, 연애운을 AI가 분석해드립니다.',
+    description: '880원으로 보는 프리미엄 사주 서비스. 개인 사주, 신년운세, 궁합, 연애운을 상세하게 풀이해드립니다.',
     inLanguage: 'ko-KR',
     potentialAction: {
       '@type': 'SearchAction',
@@ -60,7 +60,7 @@ export function JsonLd() {
       '@type': 'Organization',
       name: 'ChartIQ',
     },
-    description: '만세력 기반 정통 사주팔자 분석 서비스. 개인 사주, 신년운세, 궁합, 연애운을 AI가 상세하게 분석해드립니다.',
+    description: '만세력 기반 정통 사주팔자 분석 서비스. 개인 사주, 신년운세, 궁합, 연애운을 상세하게 풀이해드립니다.',
     offers: {
       '@type': 'Offer',
       price: '880',

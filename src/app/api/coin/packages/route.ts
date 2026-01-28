@@ -32,8 +32,8 @@ export async function GET() {
         data: {
           packages: [
             { id: '1', name: '1 코인', coins: 1, price: 880, bonusCoins: 0, totalCoins: 1 },
-            { id: '2', name: '5 코인', coins: 5, price: 3900, bonusCoins: 0.5, totalCoins: 5.5 },
-            { id: '3', name: '10 코인', coins: 10, price: 6900, bonusCoins: 2, totalCoins: 12 },
+            { id: '2', name: '3 코인', coins: 3, price: 2640, bonusCoins: 1, totalCoins: 4 },
+            { id: '3', name: '6 코인', coins: 6, price: 5280, bonusCoins: 2, totalCoins: 8 },
           ],
         },
       })
@@ -54,8 +54,8 @@ export async function GET() {
         data: {
           packages: [
             { id: '1', name: '1 코인', coins: 1, price: 880, bonusCoins: 0, totalCoins: 1 },
-            { id: '2', name: '5 코인', coins: 5, price: 3900, bonusCoins: 0.5, totalCoins: 5.5 },
-            { id: '3', name: '10 코인', coins: 10, price: 6900, bonusCoins: 2, totalCoins: 12 },
+            { id: '2', name: '3 코인', coins: 3, price: 2640, bonusCoins: 1, totalCoins: 4 },
+            { id: '3', name: '6 코인', coins: 6, price: 5280, bonusCoins: 2, totalCoins: 8 },
           ],
         },
       })
