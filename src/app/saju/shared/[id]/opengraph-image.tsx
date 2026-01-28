@@ -32,8 +32,11 @@ export const size = {
 export const contentType = 'image/png'
 
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
+  let debugInfo = ''
   try {
-    const { id } = await params
+    const resolvedParams = await params
+    const id = resolvedParams?.id || 'no-id'
+    debugInfo = `id: ${id}`
     const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
 
     let ganziKorean: string | null = null
@@ -127,8 +130,9 @@ export default async function Image({ params }: { params: Promise<{ id: string }
       }
     )
   } catch (e) {
+    const errorMsg = e instanceof Error ? e.message : 'Unknown error'
     console.error('OG Image generation error:', e)
-    // Fallback image
+    // Fallback image with error info for debugging
     return new ImageResponse(
       (
         <div
@@ -137,13 +141,15 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             height: '100%',
             backgroundColor: '#6B5B95',
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             color: 'white',
             fontSize: 48,
           }}
         >
-          팔자냥
+          <div>팔자냥</div>
+          <div style={{ fontSize: 16, marginTop: 20 }}>Error: {errorMsg}</div>
         </div>
       ),
       {
