@@ -1,2 +1,2 @@
 export { useAuth } from './useAuth'
-export { useKakaoShare } from './useKakaoShare'
+export { useKakaoShare, isMobileDevice } from './useKakaoShare'

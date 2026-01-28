@@ -10,8 +10,8 @@ interface ShareContent {
   shareUrl?: string
 }
 
-// 모바일 디바이스 감지
-function isMobileDevice(): boolean {
+// 모바일 디바이스 감지 (export하여 외부에서도 사용 가능)
+export function isMobileDevice(): boolean {
   if (typeof window === 'undefined') return false
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent

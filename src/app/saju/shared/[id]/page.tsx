@@ -7,7 +7,7 @@ import html2canvas from 'html2canvas'
 import { Header } from '@/components/layout'
 import { Button, Card, LoadingScreen, WuXingRadarChart } from '@/components/ui'
 import { PersonalResultContent, YearlyResultContent, CompatibilityResultContent, DailyResultContent, LoveResultContent } from '@/components/result'
-import { useKakaoShare } from '@/hooks'
+import { useKakaoShare, isMobileDevice } from '@/hooks'
 import { getNaYinInfo } from '@/lib/saju/constants'
 import type { SharedReadingResponse } from '@/app/api/saju/shared/[id]/route'
 import type {
@@ -264,8 +264,11 @@ export default function SharedResultPage() {
     const title = `${dayPillarAnimal}의 ${typeLabel} - 팔자냥`
     const description = `${data.koreanGanji} - 나의 사주를 확인해보세요!`
 
+    // 클릭 시점에 동기적으로 모바일 여부 판단 (user gesture 요구사항 충족)
+    const isMobileNow = isMobileDevice()
+
     // 모바일: 카카오 공유 사용
-    if (isMobile) {
+    if (isMobileNow) {
       const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
       const ganziMatch = dayPillarAnimal.match(/\(([가-힣]{2})/)
       const ganziKorean = ganziMatch ? ganziMatch[1] : null
