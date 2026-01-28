@@ -95,7 +95,6 @@ function ResultContent() {
   const [readingId, setReadingId] = useState<string | null>(null)
   const [shareRewardClaimed, setShareRewardClaimed] = useState(false)
   const [showRewardToast, setShowRewardToast] = useState(false)
-  const [isDailyNew, setIsDailyNew] = useState(true) // 오늘의 운세가 새로 생성된 것인지
   // 저장된 reading에서 불러온 정보 (URL 파라미터 대신 사용)
   const [savedGender, setSavedGender] = useState<string | null>(null)
   const [savedGender2, setSavedGender2] = useState<string | null>(null)
@@ -386,6 +385,8 @@ function ResultContent() {
             body: JSON.stringify({
               sajuResult: calcData.data,
               gender,
+              personName: name1 !== '첫 번째 사람' ? name1 : undefined,
+              birthDate: `${year}-${month}-${day}`,
             }),
           })
 
@@ -405,7 +406,6 @@ function ResultContent() {
           // readingId가 없는 경우 폴백 (기존 로직)
           setResult(calcData.data)
           setInterpretation(dailyData.data.interpretation)
-          setIsDailyNew(dailyData.data.isNew)
           hasSavedRef.current = true // daily는 API에서 자동 저장
           hasDeductedCoinRef.current = true // 무료이지만 중복 방지용
           setIsLoading(false)
@@ -1169,7 +1169,6 @@ function ResultContent() {
           <DailyResultContent
             result={result}
             interpretation={interpretation as DailyInterpretation | null}
-            isNew={isDailyNew}
           />
         ) : type === 'yearly' ? (
           <YearlyResultContent

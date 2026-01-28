@@ -618,7 +618,6 @@ export default function SharedResultPage() {
               <DailyResultContent
                 result={sajuResult}
                 interpretation={interpretation as DailyInterpretation | null}
-                isNew={false}
               />
             )
           } else if (type === 'yearly') {

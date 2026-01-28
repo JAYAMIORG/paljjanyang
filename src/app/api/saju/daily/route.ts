@@ -24,6 +24,8 @@ export interface DailyRequest {
   sajuResult: SajuResult
   gender: 'male' | 'female'
   personId?: string
+  personName?: string
+  birthDate?: string // "YYYY-M-D" 형식
 }
 
 export interface DailyResponse {
@@ -106,7 +108,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: DailyRequest = await request.json()
-    const { sajuResult, gender } = body
+    const { sajuResult, gender, personId, personName, birthDate } = body
 
     if (!sajuResult || !gender) {
       return NextResponse.json<DailyResponse>(
@@ -123,12 +125,60 @@ export async function POST(request: NextRequest) {
 
     const todayString = getTodayString()
 
-    // 1. 먼저 이 유저가 오늘 이미 조회했는지 확인
+    // birthDate 파싱 및 person 찾기/생성
+    let resolvedPersonId: string | null = personId || null
+    if (!resolvedPersonId && birthDate) {
+      const parts = birthDate.split('-')
+      if (parts.length >= 3) {
+        const birthYear = parseInt(parts[0])
+        const birthMonth = parseInt(parts[1])
+        const birthDay = parseInt(parts[2])
+
+        // 기존 person 찾기
+        const { data: existingPerson } = await supabase
+          .from('persons')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('birth_year', birthYear)
+          .eq('birth_month', birthMonth)
+          .eq('birth_day', birthDay)
+          .eq('gender', gender)
+          .limit(1)
+          .single()
+
+        if (existingPerson) {
+          resolvedPersonId = existingPerson.id
+        } else {
+          // 새 person 생성
+          const { data: newPerson } = await supabase
+            .from('persons')
+            .insert({
+              user_id: user.id,
+              name: personName || '나',
+              relationship: 'self',
+              birth_year: birthYear,
+              birth_month: birthMonth,
+              birth_day: birthDay,
+              gender,
+              is_lunar: false,
+            })
+            .select('id')
+            .single()
+
+          if (newPerson) {
+            resolvedPersonId = newPerson.id
+          }
+        }
+      }
+    }
+
+    // 1. 먼저 이 유저가 오늘 이미 같은 사주로 조회했는지 확인
     const { data: existingReading } = await supabase
       .from('readings')
       .select('id, interpretation')
       .eq('user_id', user.id)
-      .eq('reading_type', 'daily')
+      .eq('type', 'daily')
+      .eq('korean_ganji', sajuResult.koreanGanji)
       .gte('created_at', `${todayString}T00:00:00`)
       .lt('created_at', `${todayString}T23:59:59`)
       .order('created_at', { ascending: false })
@@ -248,17 +298,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 5. 유저별 기록 저장 (readings 테이블)
+    // 5. 유저별 기록 저장 (readings 테이블) - 다른 타입들과 동일한 형식
     const { data: newReading } = await supabase.from('readings').insert({
       user_id: user.id,
-      reading_type: 'daily',
-      input_data: {
-        gender,
-        dayMaster: sajuResult.dayMaster,
-        wuXing: sajuResult.wuXing,
-      },
-      saju_result: sajuResult,
-      interpretation: JSON.stringify(parsedResponse),
+      type: 'daily',
+      status: 'completed',
+      person1_id: resolvedPersonId,
+      person1_name: personName || null,
+      person1_bazi: sajuResult.bazi,
+      person1_wuxing: sajuResult.wuXing,
+      person1_day_master: sajuResult.dayMaster,
+      korean_ganji: sajuResult.koreanGanji,
+      interpretation: parsedResponse,
+      coins_used: 0,
+      is_free: true,
     }).select('id').single()
 
     return NextResponse.json<DailyResponse>({

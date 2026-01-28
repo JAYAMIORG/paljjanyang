@@ -146,7 +146,7 @@
 }
 
 .animate-progress {
-  animation: progress 25s ease-out forwards;
+  animation: progress 60s linear forwards;
 }
 
 /* Base Styles */

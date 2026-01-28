@@ -7,7 +7,6 @@ import type { DailyInterpretation } from '@/types/interpretation'
 interface DailyResultContentProps {
   result: SajuResult
   interpretation: DailyInterpretation | null
-  isNew: boolean
 }
 
 const DAY_MASTER_EMOJI: Record<string, string> = {
@@ -63,7 +62,7 @@ function ScoreBar({ score }: { score: number }) {
   )
 }
 
-export function DailyResultContent({ result, interpretation, isNew }: DailyResultContentProps) {
+export function DailyResultContent({ result, interpretation }: DailyResultContentProps) {
   const emoji = DAY_MASTER_EMOJI[result.dayMaster] || '🐱'
   const today = new Date()
   const dateString = `${today.getMonth() + 1}월 ${today.getDate()}일`
@@ -80,11 +79,6 @@ export function DailyResultContent({ result, interpretation, isNew }: DailyResul
           <p className="text-small text-text-muted">
             {result.dayMasterKorean}의 오늘
           </p>
-          {!isNew && (
-            <p className="text-xs text-primary mt-2">
-              오늘 이미 확인한 운세예요
-            </p>
-          )}
         </div>
       </Card>
 
