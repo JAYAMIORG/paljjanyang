@@ -19,6 +19,7 @@ function PreviewContent() {
   const [coinBalance, setCoinBalance] = useState<number | null>(null)
   const [hasExistingRecord, setHasExistingRecord] = useState<boolean | null>(null)
   const [existingRecordStatus, setExistingRecordStatus] = useState<'completed' | 'processing' | null>(null)
+  const [existingReadingId, setExistingReadingId] = useState<string | null>(null)
 
   const type = searchParams.get('type') || 'personal'
   const isCompatibility = type === 'compatibility'
@@ -202,13 +203,16 @@ function PreviewContent() {
         if (data.success) {
           setHasExistingRecord(data.data?.exists || false)
           setExistingRecordStatus(data.data?.status || null)
+          setExistingReadingId(data.data?.readingId || null)
         } else {
           setHasExistingRecord(false)
           setExistingRecordStatus(null)
+          setExistingReadingId(null)
         }
       } catch {
         setHasExistingRecord(false)
         setExistingRecordStatus(null)
+        setExistingReadingId(null)
       }
     }
 
@@ -227,8 +231,22 @@ function PreviewContent() {
       return
     }
 
-    // 기존 기록이 있으면 코인 체크 없이 바로 이동
-    if (!hasExistingRecord && coinBalance !== null && coinBalance < 1) {
+    // 기존 완료된 기록이 있으면 공유 페이지로 바로 이동
+    if (hasExistingRecord && existingReadingId && existingRecordStatus !== 'processing') {
+      router.push(`/saju/shared/${existingReadingId}`)
+      return
+    }
+
+    // 기존 processing 기록이 있으면 result 페이지로 이동 (해석 재시도)
+    if (hasExistingRecord && existingReadingId && existingRecordStatus === 'processing') {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set('id', existingReadingId)
+      router.push(`/saju/result?${params.toString()}`)
+      return
+    }
+
+    // 신규 분석 - 코인 체크
+    if (coinBalance !== null && coinBalance < 1) {
       // 코인 부족 시 결제 페이지로 이동
       const resultUrl = `/saju/result?${searchParams.toString()}`
       router.push(`/coin?redirect=${encodeURIComponent(resultUrl)}`)
