@@ -124,7 +124,7 @@ export default function MyPage() {
   if (!isConfigured) {
     return (
       <div className="min-h-screen bg-background">
-        <Header showBack backHref="/home" title="마이페이지" hideMyPageLink />
+        <Header showBack useHistoryBack title="마이페이지" hideMyPageLink />
         <main className="px-4 py-8 max-w-lg mx-auto text-center">
           <div className="text-6xl mb-4" aria-hidden="true">🔧</div>
           <h2 className="text-heading font-semibold text-text mb-2">
@@ -140,7 +140,7 @@ export default function MyPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Header showBack backHref="/home" title="마이페이지" hideMyPageLink />
+      <Header showBack useHistoryBack title="마이페이지" hideMyPageLink />
 
       <main className="px-4 py-6 max-w-lg mx-auto flex flex-col gap-6 flex-1 w-full">
         {/* 프로필 섹션 */}
