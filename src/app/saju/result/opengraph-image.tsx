@@ -62,7 +62,8 @@ export default async function Image({
   // 1. id 파라미터가 있으면 API를 통해 조회
   const rawId = params?.id
   const readingId = typeof rawId === 'string' ? rawId : (Array.isArray(rawId) ? rawId[0] : null)
-  let debugInfo = `sp:${searchParams ? 'ok' : 'null'},keys:${Object.keys(params).join('|') || 'empty'},id:${readingId?.slice(0, 8) || 'none'}`
+  const paramsKeys = Object.keys(params).join('|') || 'empty'
+  let debugInfo = `keys:${paramsKeys},id:${readingId?.slice(0, 8) || 'none'}`
 
   if (readingId) {
     try {
