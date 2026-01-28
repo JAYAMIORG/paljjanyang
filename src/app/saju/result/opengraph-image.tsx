@@ -66,23 +66,16 @@ export default async function Image({
     try {
       const supabase = createAdminClient()
       if (supabase) {
-        const { data: reading, error } = await supabase
+        const { data: reading } = await supabase
           .from('readings')
           .select('person1_bazi')
           .eq('id', readingId)
           .single()
 
-        if (error) {
-          console.error('DB query error:', error.code, error.message)
-        }
-
         if (reading?.person1_bazi) {
           const dayGanZhi = reading.person1_bazi.day || ''
           ganziKorean = getKoreanGanzi(dayGanZhi)
-          console.log('OG Image - readingId:', readingId, 'dayGanZhi:', dayGanZhi, 'ganziKorean:', ganziKorean)
         }
-      } else {
-        console.error('OG Image - createAdminClient returned null')
       }
     } catch (e) {
       console.error('DB fetch error:', e)
@@ -110,29 +103,25 @@ export default async function Image({
     ? `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
     : null
 
-  // 디버그: 하드코딩된 테스트 이미지 URL
-  const testImageUrl = `${productionUrl}/images/animals/%EA%B8%B0%EC%B6%95.png`
-  const finalImageUrl = imageUrl || testImageUrl
-
-  // 이미지 가져오기 (항상 테스트 이미지 시도)
+  // 이미지 가져오기
   let imageData: ArrayBuffer | null = null
-  try {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 5000)
+  if (imageUrl) {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-    const imageResponse = await fetch(finalImageUrl, {
-      signal: controller.signal,
-      headers: { 'Accept': 'image/*' },
-    })
-    clearTimeout(timeoutId)
+      const imageResponse = await fetch(imageUrl, {
+        signal: controller.signal,
+        headers: { 'Accept': 'image/*' },
+      })
+      clearTimeout(timeoutId)
 
-    if (imageResponse.ok) {
-      imageData = await imageResponse.arrayBuffer()
-    } else {
-      console.error('Image fetch failed:', imageResponse.status, finalImageUrl)
+      if (imageResponse.ok) {
+        imageData = await imageResponse.arrayBuffer()
+      }
+    } catch (e) {
+      console.error('Failed to fetch image:', e)
     }
-  } catch (e) {
-    console.error('Failed to fetch image:', e)
   }
 
   return new ImageResponse(
@@ -162,17 +151,13 @@ export default async function Image({
               height: '100%',
               backgroundColor: '#6B5B95',
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
-              fontSize: 32,
+              fontSize: 48,
             }}
           >
-            <div>팔자냥</div>
-            <div style={{ fontSize: 16, marginTop: 10 }}>
-              id:{readingId?.slice(0, 8) || 'none'}, ganzi:{ganziKorean || 'null'}, url:{imageUrl ? 'set' : 'null'}
-            </div>
+            팔자냥
           </div>
         )}
       </div>
