@@ -16,7 +16,7 @@ function CoinContent() {
   const [balance, setBalance] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
-  const [paymentMethod, setPaymentMethod] = useState<'카드' | '카카오페이' | null>(null)
+  const [paymentMethod, setPaymentMethod] = useState<'카카오페이' | null>(null)
   const [isPurchasing, setIsPurchasing] = useState(false)
 
   // redirect 파라미터 가져오기 (결제 후 이동할 URL)
@@ -65,35 +65,7 @@ function CoinContent() {
     setIsPurchasing(true)
 
     try {
-      // 카카오페이 결제
-      if (paymentMethod === '카카오페이') {
-        const response = await fetch('/api/payment/kakaopay/ready', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ packageId: selectedPackage }),
-        })
-
-        const data = await response.json()
-
-        if (!data.success) {
-          alert(data.error?.message || '카카오페이 결제 준비에 실패했습니다.')
-          setIsPurchasing(false)
-          return
-        }
-
-        // 카카오페이 결제 페이지로 리다이렉트
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-        const kakaoRedirectUrl = isMobile
-          ? data.data.next_redirect_mobile_url
-          : data.data.next_redirect_pc_url
-
-        window.location.href = kakaoRedirectUrl
-        return
-      }
-
-      // 토스페이먼츠 결제 (카드, 토스페이, 휴대폰)
-      // 1. 결제 초기화 API 호출
-      const response = await fetch('/api/payment/initiate', {
+      const response = await fetch('/api/payment/kakaopay/ready', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ packageId: selectedPackage }),
@@ -102,39 +74,18 @@ function CoinContent() {
       const data = await response.json()
 
       if (!data.success) {
-        alert(data.error?.message || '결제 초기화에 실패했습니다.')
+        alert(data.error?.message || '카카오페이 결제 준비에 실패했습니다.')
         setIsPurchasing(false)
         return
       }
 
-      const { orderId, amount, orderName } = data.data
+      // 카카오페이 결제 페이지로 리다이렉트
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      const kakaoRedirectUrl = isMobile
+        ? data.data.next_redirect_mobile_url
+        : data.data.next_redirect_pc_url
 
-      // 2. 토스페이먼츠 결제창 호출
-      const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY
-
-      if (!clientKey) {
-        alert('결제 설정이 올바르지 않습니다. 관리자에게 문의해주세요.')
-        setIsPurchasing(false)
-        return
-      }
-
-      // 토스페이먼츠 SDK 동적 로드
-      const { loadTossPayments } = await import('@tosspayments/payment-sdk')
-      const tossPayments = await loadTossPayments(clientKey)
-
-      // redirect 파라미터 포함 URL 생성
-      const successUrl = redirectUrl
-        ? `${window.location.origin}/payment/success?redirect=${encodeURIComponent(redirectUrl)}`
-        : `${window.location.origin}/payment/success`
-
-      await tossPayments.requestPayment(paymentMethod, {
-        amount,
-        orderId,
-        orderName,
-        customerEmail: user.email,
-        successUrl,
-        failUrl: `${window.location.origin}/payment/fail`,
-      })
+      window.location.href = kakaoRedirectUrl
     } catch {
       alert('결제 중 오류가 발생했습니다.')
       setIsPurchasing(false)
@@ -260,28 +211,13 @@ function CoinContent() {
           <h3 id="payment-method-label" className="text-subheading font-semibold text-text mb-4">
             결제 수단 선택
           </h3>
-          <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-labelledby="payment-method-label">
-            <button
-              role="radio"
-              aria-checked={paymentMethod === '카드'}
-              onClick={() => setPaymentMethod('카드')}
-              className={`
-                p-4 rounded-xl border-2 transition-all text-center bg-white
-                ${paymentMethod === '카드'
-                  ? 'border-primary'
-                  : 'border-gray-200 hover:border-gray-300'
-                }
-              `}
-            >
-              <span className="text-2xl block mb-1" aria-hidden="true">💳</span>
-              <span className="text-small font-medium text-text">신용카드</span>
-            </button>
+          <div className="space-y-3" role="radiogroup" aria-labelledby="payment-method-label">
             <button
               role="radio"
               aria-checked={paymentMethod === '카카오페이'}
               onClick={() => setPaymentMethod('카카오페이')}
               className={`
-                p-4 rounded-xl border-2 transition-all text-center bg-white
+                w-full p-4 rounded-xl border-2 transition-all text-center bg-white flex items-center justify-center gap-3
                 ${paymentMethod === '카카오페이'
                   ? 'border-primary'
                   : 'border-gray-200 hover:border-gray-300'
@@ -293,9 +229,8 @@ function CoinContent() {
                 alt="카카오페이"
                 width={48}
                 height={48}
-                className="mx-auto mb-1"
               />
-              <span className="text-small font-medium text-text">카카오페이</span>
+              <span className="text-body font-medium text-text">카카오페이로 결제</span>
             </button>
           </div>
         </div>
