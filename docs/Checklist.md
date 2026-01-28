@@ -1,7 +1,7 @@
 # 팔자냥 개발 체크리스트
 
 > 작성일: 2025-01-15
-> 최종 업데이트: 2026-01-27
+> 최종 업데이트: 2026-01-28
 > 상태: MVP 개발 완료 (실결제 테스트 완료)
 
 ---
@@ -183,16 +183,16 @@
 
 ## Phase 3: 확장 (v2.0)
 
-- [ ] SEO 최적화 (도메인 구입 후 진행) → 상세 계획: `docs/seo_plan.md`
-  - robots.ts 생성 (크롤링 정책)
-  - sitemap.ts 생성 (동적 사이트맵)
-  - manifest.ts 생성 (PWA 지원)
-  - JSON-LD 구조화된 데이터 (Organization, LocalBusiness, WebSite)
-  - 페이지별 메타데이터 개선 (title.template, canonical)
-  - 인증 페이지 noindex 처리
-  - PWA 아이콘 생성 (180x180, 192x192, 512x512)
-  - Google Search Console 등록
-  - Naver Search Advisor 등록
+- [x] SEO 최적화 ✅ (2026-01-28) → 상세 계획: `docs/seo_plan.md`
+  - [x] robots.ts 생성 (크롤링 정책) ✅
+  - [x] sitemap.ts 생성 (동적 사이트맵) ✅
+  - [x] manifest.ts 생성 (PWA 지원) ✅
+  - [x] JSON-LD 구조화된 데이터 (Organization, LocalBusiness, WebSite) ✅
+  - [x] 페이지별 메타데이터 개선 (title.template, canonical) ✅
+  - [x] 인증 페이지 noindex 처리 ✅ (auth, mypage, coin, payment 등)
+  - [ ] PWA 아이콘 생성 (apple-touch-icon.png, 192x192, 512x512) - 미완료
+  - [ ] Google Search Console 등록 - 도메인 확정 후 진행
+  - [ ] Naver Search Advisor 등록 - 도메인 확정 후 진행
 - [ ] 영어 지원 (미국 시장)
 - [ ] 구독 모델 구현
 - [ ] 힌디어 지원 (인도 시장)
@@ -266,6 +266,24 @@
 ### Hooks (`src/hooks/`)
 - [x] useAuth.ts (인증 상태 관리)
 - [x] useKakaoShare.ts (카카오톡 공유 SDK)
+
+### SEO 컴포넌트 (`src/components/seo/`, `src/app/`)
+- [x] JsonLd.tsx (구조화된 데이터 - Organization, LocalBusiness, WebSite, Service) ✅ NEW
+- [x] robots.ts (크롤링 정책 - 인증/결제 페이지 차단) ✅ NEW
+- [x] sitemap.ts (동적 사이트맵 - 공유 페이지 포함) ✅ NEW
+- [x] manifest.ts (PWA 매니페스트) ✅ NEW
+- [x] opengraph-image.tsx (루트 OG 이미지 동적 생성) ✅ NEW
+
+### 페이지 레이아웃 (SEO 메타데이터)
+- [x] /home/layout.tsx (title: "사주 유형 선택")
+- [x] /terms/layout.tsx (title: "서비스 이용약관")
+- [x] /privacy/layout.tsx (title: "개인정보처리방침")
+- [x] /refund/layout.tsx (title: "환불 정책")
+- [x] /auth/layout.tsx (noindex)
+- [x] /mypage/layout.tsx (noindex)
+- [x] /coin/layout.tsx (noindex)
+- [x] /payment/layout.tsx (noindex)
+- [x] /saju/shared/[id]/layout.tsx (동적 메타데이터 + OG 이미지)
 
 ### 타입 (`src/types/`)
 - [x] database.ts (Supabase 테이블 타입)

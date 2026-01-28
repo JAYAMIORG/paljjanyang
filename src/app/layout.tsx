@@ -79,6 +79,9 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.webmanifest',
   category: 'lifestyle',
+  verification: {
+    google: 'ff0UtorPHNWYMKLGVAX7knKfowbmpJC0cilStH_ts7E',
+  },
 }
 
 export const viewport: Viewport = {
