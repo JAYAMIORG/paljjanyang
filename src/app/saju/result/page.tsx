@@ -803,6 +803,7 @@ function ResultContent() {
       yearly: '신년운세',
       compatibility: '궁합',
       love: '연애운',
+      daily: '오늘의 운세',
     }[type] || '사주'
 
     // 일주 동물 이름 (예: 하얀 강아지(경술일주))

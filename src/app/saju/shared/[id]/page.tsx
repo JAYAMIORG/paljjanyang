@@ -257,6 +257,7 @@ export default function SharedResultPage() {
       yearly: '신년운세',
       compatibility: '궁합',
       love: '연애운',
+      daily: '오늘의 운세',
     }[data.type] || '사주'
 
     const dayPillarAnimal = data.dayPillarAnimal
@@ -264,8 +265,9 @@ export default function SharedResultPage() {
     const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
     const ganziMatch = dayPillarAnimal.match(/\(([가-힣]{2})/)
     const ganziKorean = ganziMatch ? ganziMatch[1] : null
+    // 카카오 공유용 이미지는 JPG 사용 (WebP 미지원)
     const imageUrl = ganziKorean
-      ? `${productionUrl}/images/animals/${encodeURIComponent(ganziKorean)}.webp`
+      ? `${productionUrl}/images/animals/${encodeURIComponent(ganziKorean)}.jpg`
       : `${productionUrl}/images/og-default.png`
 
     shareKakao({
