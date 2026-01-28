@@ -217,8 +217,8 @@ function PreviewContent() {
 
   // 전체 해석 보기 (결과 페이지에서 코인 차감)
   const handleViewResult = () => {
-    // 인증 로딩 중이면 대기
-    if (authLoading) return
+    // 인증 로딩 중이거나 기존 기록 확인 중이면 대기
+    if (authLoading || hasExistingRecord === null) return
 
     if (!user) {
       // 로그인 안 된 경우 로그인 페이지로
@@ -388,21 +388,26 @@ function PreviewContent() {
             fullWidth
             size="lg"
             onClick={handleViewResult}
+            disabled={hasExistingRecord === null}
           >
-            {hasExistingRecord
-              ? existingRecordStatus === 'processing'
-                ? (isCompatibility ? '💕 궁합 분석 이어보기' : '🔮 분석 이어보기')
-                : (isCompatibility ? '💕 이전 궁합 결과 보기' : '🔮 이전 분석 결과 보기')
-              : (isCompatibility ? '💕 궁합 분석 보기 (1코인)' : '🔮 전체 해석 보기 (1코인)')
+            {hasExistingRecord === null
+              ? '확인 중...'
+              : hasExistingRecord
+                ? existingRecordStatus === 'processing'
+                  ? (isCompatibility ? '💕 궁합 분석 이어보기' : '🔮 분석 이어보기')
+                  : (isCompatibility ? '💕 이전 궁합 결과 보기' : '🔮 이전 분석 결과 보기')
+                : (isCompatibility ? '💕 궁합 분석 보기 (1코인)' : '🔮 전체 해석 보기 (1코인)')
             }
           </Button>
           {/* 보유 코인 또는 기존 기록 안내 */}
           <p className="text-center text-caption text-text-light mt-2">
-            {hasExistingRecord
-              ? existingRecordStatus === 'processing'
-                ? '⏳ 분석 중인 기록이 있어요'
-                : '✨ 이미 분석한 기록이 있어요'
-              : `보유 코인: ${coinBalance !== null ? coinBalance : '...'} 🪙`
+            {hasExistingRecord === null
+              ? '기존 분석 기록을 확인하고 있어요...'
+              : hasExistingRecord
+                ? existingRecordStatus === 'processing'
+                  ? '⏳ 분석 중인 기록이 있어요'
+                  : '✨ 이미 분석한 기록이 있어요'
+                : `보유 코인: ${coinBalance !== null ? coinBalance : '...'} 🪙`
             }
           </p>
         </div>
