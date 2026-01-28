@@ -149,6 +149,26 @@
   animation: progress 60s linear forwards;
 }
 
+/* 부드러운 indeterminate 프로그레스바 애니메이션 */
+@keyframes progress-indeterminate {
+  0% {
+    width: 0%;
+    margin-left: 0%;
+  }
+  50% {
+    width: 60%;
+    margin-left: 20%;
+  }
+  100% {
+    width: 0%;
+    margin-left: 100%;
+  }
+}
+
+.animate-progress-indeterminate {
+  animation: progress-indeterminate 2s ease-in-out infinite;
+}
+
 /* Base Styles */
 body {
   background-color: var(--color-background);

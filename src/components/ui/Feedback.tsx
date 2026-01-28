@@ -15,6 +15,7 @@ interface LoadingScreenProps {
   showProgress?: boolean
   subMessage?: string
   exitHint?: string  // 이탈 시 안내 메시지
+  progress?: number  // 0-100 사이의 진행률 (선택사항)
 }
 
 export function LoadingScreen({
@@ -24,6 +25,7 @@ export function LoadingScreen({
   showProgress = false,
   subMessage,
   exitHint,
+  progress,
 }: LoadingScreenProps) {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -50,7 +52,16 @@ export function LoadingScreen({
         {showProgress && (
           <div className="mt-4 w-full">
             <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-              <div className="h-full bg-primary rounded-full animate-progress" />
+              {progress !== undefined ? (
+                // 실제 진행률이 있으면 해당 값 사용
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${Math.min(progress, 100)}%` }}
+                />
+              ) : (
+                // 진행률이 없으면 부드러운 indeterminate 애니메이션
+                <div className="h-full bg-primary rounded-full animate-progress-indeterminate" />
+              )}
             </div>
           </div>
         )}
