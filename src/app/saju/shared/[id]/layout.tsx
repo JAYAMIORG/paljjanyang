@@ -88,6 +88,9 @@ export async function generateMetadata({
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
 
+  // OG 이미지 URL 생성 (result 페이지의 OG 이미지 엔드포인트 활용)
+  const ogImageUrl = `${appUrl}/saju/result/opengraph-image?id=${id}`
+
   return {
     title,
     description,
@@ -105,11 +108,20 @@ export async function generateMetadata({
       siteName: '팔자냥',
       locale: 'ko_KR',
       type: 'website',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: [ogImageUrl],
     },
   }
 }
