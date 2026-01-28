@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 
 interface ShareContent {
   title: string
@@ -26,18 +26,9 @@ export function useKakaoShare() {
   const [isReady, setIsReady] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
-  const cleanupFunctionsRef = useRef<(() => void)[]>([])
 
   useEffect(() => {
     setIsMobile(isMobileDevice())
-  }, [])
-
-  // 컴포넌트 언마운트 시 정리
-  useEffect(() => {
-    return () => {
-      cleanupFunctionsRef.current.forEach(fn => fn())
-      cleanupFunctionsRef.current = []
-    }
   }, [])
 
   useEffect(() => {
@@ -164,10 +155,11 @@ export function useKakaoShare() {
           return false
         }
 
-        // 기존 버튼 정리 (cleanup 함수 호출)
+        // 기존 버튼이 이미 있는지 확인
         const containerEl = document.querySelector(container)
-        if (containerEl) {
-          containerEl.innerHTML = ''
+        if (containerEl && containerEl.querySelector('a')) {
+          // 이미 카카오 버튼이 생성되어 있으면 스킵
+          return true
         }
 
         createMethod({
@@ -191,12 +183,6 @@ export function useKakaoShare() {
               },
             },
           ],
-        })
-
-        // cleanup 함수 등록
-        cleanupFunctionsRef.current.push(() => {
-          const el = document.querySelector(container)
-          if (el) el.innerHTML = ''
         })
 
         return true

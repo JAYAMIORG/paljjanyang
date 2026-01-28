@@ -708,17 +708,16 @@ export default function SharedResultPage() {
               {/* 카카오 공유 버튼 - SDK가 내부에 버튼 생성 */}
               <div
                 id="kakao-share-btn"
-                className={`w-14 h-14 flex items-center justify-center rounded-xl bg-[#FEE500] text-[#3C1E1E] cursor-pointer transition-opacity hover:opacity-90 ${
+                className={`relative w-14 h-14 flex items-center justify-center rounded-xl bg-[#FEE500] cursor-pointer transition-opacity hover:opacity-90 [&>a]:absolute [&>a]:inset-0 [&>a]:z-10 ${
                   !isKakaoReady ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
                 title="카카오톡 공유"
+                suppressHydrationWarning
               >
-                {/* SDK가 버튼을 생성하지 않은 경우 기본 아이콘 표시 */}
-                {!kakaoButtonCreated && (
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 3c-5.52 0-10 3.59-10 8 0 2.84 1.89 5.33 4.71 6.72-.17.64-.68 2.53-.78 2.92-.12.49.18.48.38.35.16-.1 2.49-1.68 3.49-2.36.72.11 1.46.17 2.2.17 5.52 0 10-3.59 10-8s-4.48-8-10-8z"/>
-                  </svg>
-                )}
+                {/* 카카오 아이콘 (항상 표시) */}
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="#3C1E1E" className="pointer-events-none">
+                  <path d="M12 3c-5.52 0-10 3.59-10 8 0 2.84 1.89 5.33 4.71 6.72-.17.64-.68 2.53-.78 2.92-.12.49.18.48.38.35.16-.1 2.49-1.68 3.49-2.36.72.11 1.46.17 2.2.17 5.52 0 10-3.59 10-8s-4.48-8-10-8z"/>
+                </svg>
               </div>
 
               <button
