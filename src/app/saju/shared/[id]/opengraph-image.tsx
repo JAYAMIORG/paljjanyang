@@ -41,6 +41,7 @@ function getKoreanGanzi(ganZhi: string): string | null {
 }
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 export const alt = '팔자냥 사주 결과'
 export const size = {
   width: 1200,
@@ -48,104 +49,132 @@ export const size = {
 }
 export const contentType = 'image/png'
 
-export default async function Image({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-
-  // Base URL
-  const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
-
-  // 데이터 조회 - 일주의 한자 간지를 직접 가져옴
-  let ganziKorean: string | null = null
-
-  try {
-    const supabase = createAdminClient()
-    if (supabase) {
-      const { data: reading } = await supabase
-        .from('readings')
-        .select('person1_bazi')
-        .eq('id', id)
-        .single()
-
-      if (reading) {
-        const bazi = reading.person1_bazi || {}
-        // 한자 간지(庚戌)에서 직접 한글 간지(경술) 추출
-        ganziKorean = getKoreanGanzi(bazi.day || '')
-      }
-    }
-  } catch (e) {
-    console.error('DB fetch error:', e)
-  }
-
-  const imageFileName = ganziKorean ? `${ganziKorean}.webp` : null
-  const imageUrl = imageFileName
-    ? `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
-    : null
-
-  // 이미지를 ArrayBuffer로 가져오기
-  let imageData: ArrayBuffer | null = null
-  if (imageUrl) {
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
-
-      const imageResponse = await fetch(imageUrl, {
-        signal: controller.signal,
-        headers: {
-          'Accept': 'image/*',
-        },
-      })
-      clearTimeout(timeoutId)
-
-      if (imageResponse.ok) {
-        imageData = await imageResponse.arrayBuffer()
-      } else {
-        console.error('Image fetch failed:', imageResponse.status, imageUrl)
-      }
-    } catch (e) {
-      console.error('Failed to fetch image:', e, imageUrl)
-    }
-  }
-
+// 기본 fallback 이미지 생성 함수
+function createFallbackImage() {
   return new ImageResponse(
     (
       <div
         style={{
           width: '100%',
           height: '100%',
+          backgroundColor: '#6B5B95',
           display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontSize: 48,
         }}
       >
-        {imageData ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={`data:image/webp;base64,${Buffer.from(imageData).toString('base64')}`}
-            alt=""
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              backgroundColor: '#6B5B95',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: 48,
-            }}
-          >
-            팔자냥
-          </div>
-        )}
+        팔자냥
       </div>
     ),
-    {
-      ...size,
-    }
+    { ...size }
   )
+}
+
+export default async function Image({ params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params
+
+    // Base URL
+    const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
+
+    // 데이터 조회 - 일주의 한자 간지를 직접 가져옴
+    let ganziKorean: string | null = null
+
+    try {
+      const supabase = createAdminClient()
+      if (supabase) {
+        const { data: reading } = await supabase
+          .from('readings')
+          .select('person1_bazi')
+          .eq('id', id)
+          .single()
+
+        if (reading) {
+          const bazi = reading.person1_bazi || {}
+          // 한자 간지(庚戌)에서 직접 한글 간지(경술) 추출
+          ganziKorean = getKoreanGanzi(bazi.day || '')
+        }
+      }
+    } catch (e) {
+      console.error('DB fetch error:', e)
+    }
+
+    const imageFileName = ganziKorean ? `${ganziKorean}.webp` : null
+    const imageUrl = imageFileName
+      ? `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
+      : null
+
+    // 이미지를 ArrayBuffer로 가져오기
+    let imageData: ArrayBuffer | null = null
+    if (imageUrl) {
+      try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 5000)
+
+        const imageResponse = await fetch(imageUrl, {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'image/*',
+          },
+        })
+        clearTimeout(timeoutId)
+
+        if (imageResponse.ok) {
+          imageData = await imageResponse.arrayBuffer()
+        } else {
+          console.error('Image fetch failed:', imageResponse.status, imageUrl)
+        }
+      } catch (e) {
+        console.error('Failed to fetch image:', e, imageUrl)
+      }
+    }
+
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+          }}
+        >
+          {imageData ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={`data:image/webp;base64,${Buffer.from(imageData).toString('base64')}`}
+              alt=""
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#6B5B95',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: 48,
+              }}
+            >
+              팔자냥
+            </div>
+          )}
+        </div>
+      ),
+      {
+        ...size,
+      }
+    )
+  } catch (e) {
+    console.error('OG Image generation error:', e)
+    return createFallbackImage()
+  }
 }
