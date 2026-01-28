@@ -104,32 +104,35 @@ export default async function Image({
     }
   }
 
-  const imageFileName = ganziKorean ? `${ganziKorean}.webp` : null
+  // 이미지 URL 생성 (PNG 형식)
+  const imageFileName = ganziKorean ? `${ganziKorean}.png` : null
   const imageUrl = imageFileName
     ? `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
     : null
 
-  // 이미지 가져오기
+  // 디버그: 하드코딩된 테스트 이미지 URL
+  const testImageUrl = `${productionUrl}/images/animals/%EA%B8%B0%EC%B6%95.png`
+  const finalImageUrl = imageUrl || testImageUrl
+
+  // 이미지 가져오기 (항상 테스트 이미지 시도)
   let imageData: ArrayBuffer | null = null
-  if (imageUrl) {
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-      const imageResponse = await fetch(imageUrl, {
-        signal: controller.signal,
-        headers: { 'Accept': 'image/*' },
-      })
-      clearTimeout(timeoutId)
+    const imageResponse = await fetch(finalImageUrl, {
+      signal: controller.signal,
+      headers: { 'Accept': 'image/*' },
+    })
+    clearTimeout(timeoutId)
 
-      if (imageResponse.ok) {
-        imageData = await imageResponse.arrayBuffer()
-      } else {
-        console.error('Image fetch failed:', imageResponse.status, imageUrl)
-      }
-    } catch (e) {
-      console.error('Failed to fetch image:', e)
+    if (imageResponse.ok) {
+      imageData = await imageResponse.arrayBuffer()
+    } else {
+      console.error('Image fetch failed:', imageResponse.status, finalImageUrl)
     }
+  } catch (e) {
+    console.error('Failed to fetch image:', e)
   }
 
   return new ImageResponse(
@@ -144,7 +147,7 @@ export default async function Image({
         {imageData ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={`data:image/webp;base64,${Buffer.from(imageData).toString('base64')}`}
+            src={`data:image/png;base64,${Buffer.from(imageData).toString('base64')}`}
             alt=""
             style={{
               width: '100%',
