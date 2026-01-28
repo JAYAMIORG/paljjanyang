@@ -60,8 +60,9 @@ export default async function Image({
   let ganziKorean: string | null = null
 
   // 1. id 파라미터가 있으면 API를 통해 조회
-  const readingId = typeof params?.id === 'string' ? params.id : null
-  let debugInfo = `id:${readingId?.slice(0, 8) || 'none'}`
+  const rawId = params?.id
+  const readingId = typeof rawId === 'string' ? rawId : (Array.isArray(rawId) ? rawId[0] : null)
+  let debugInfo = `sp:${searchParams ? 'ok' : 'null'},keys:${Object.keys(params).join('|') || 'empty'},id:${readingId?.slice(0, 8) || 'none'}`
 
   if (readingId) {
     try {
