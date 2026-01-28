@@ -145,8 +145,8 @@ ${PERSONAL_JSON_SCHEMA}
 
 4. **relationships**: 대인관계 스타일
    - style: **150자 이상** 작성. 친구, 동료, 가족과의 관계 패턴
-   - compatible: **100자 이상** 작성. 구체적인 성격 유형 설명
-   - incompatible: **100자 이상** 작성. 갈등이 생기는 유형과 이유
+   - compatible: **100자 이상** 작성. 잘 맞는 사람의 성향/특징 (예: "차분하고 경청을 잘하는 사람", "계획적이고 신뢰감을 주는 사람") - MBTI 언급 금지
+   - incompatible: **100자 이상** 작성. 갈등이 생기는 사람의 성향/특징과 이유 (예: "즉흥적이고 약속을 잘 안 지키는 사람") - MBTI 언급 금지
    - advice: **100자 이상** 작성. 관계 개선을 위한 구체적 조언
 
 5. **career**: 적성과 직업
@@ -180,10 +180,10 @@ ${PERSONAL_JSON_SCHEMA}
     - strongPoints: **100자 이상** 작성. 강한 부분과 건강 장점
     - advice: **100자 이상** 작성. 건강 관리 구체적 방법
 
-11. **mbti**:
-    - likely: 이 사주에 많은 MBTI 2-3개
-    - compatible: 잘 맞는 MBTI 2-3개
-    - incompatible: 안 맞는 MBTI 1-2개`
+11. **mbti**: 이 사주와 어울리는 MBTI (사주 특성에 맞게 분석)
+    - likely: 이 사주를 가진 사람에게 많을 것 같은 MBTI 3-4개
+    - compatible: 이 사주와 잘 맞는 MBTI 3-4개
+    - incompatible: 이 사주와 안 맞는 MBTI 2-3개`
 }
 
 export function buildYearlySajuPrompt(result: SajuResult, gender: string): string {

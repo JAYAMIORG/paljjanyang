@@ -121,13 +121,13 @@ export interface PersonalInterpretation {
     advice: string
   }
 
-  /** 11. MBTI */
+  /** 11. 어울리는 MBTI */
   mbti: {
-    /** 어울리는 MBTI (2-3개) */
+    /** 이 사주에 많은 MBTI (3-4개) */
     likely: string[]
-    /** 잘 맞는 MBTI (2-3개) */
+    /** 잘 맞는 MBTI (3-4개) */
     compatible: string[]
-    /** 안 맞는 MBTI (1-2개) */
+    /** 안 맞는 MBTI (2-3개) */
     incompatible: string[]
   }
 }
@@ -472,9 +472,9 @@ export const PERSONAL_JSON_SCHEMA = `{
     "advice": "string"
   },
   "mbti": {
-    "likely": ["ENFP", "INFJ"],
-    "compatible": ["ISFJ", "ESFJ"],
-    "incompatible": ["ESTJ"]
+    "likely": ["string", "string", "string"],
+    "compatible": ["string", "string", "string", "string"],
+    "incompatible": ["string", "string"]
   }
 }`
 
