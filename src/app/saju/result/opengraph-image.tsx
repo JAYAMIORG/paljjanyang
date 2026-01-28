@@ -1,6 +1,5 @@
 import { ImageResponse } from 'next/og'
 import { Solar, Lunar } from 'lunar-typescript'
-import { createAdminClient } from '@/lib/supabase/admin'
 
 // 천간 한글 매핑
 const TIANGAN_KOREAN: Record<string, string> = {
@@ -60,25 +59,28 @@ export default async function Image({
 
   let ganziKorean: string | null = null
 
-  // 1. id 파라미터가 있으면 DB에서 조회
+  // 1. id 파라미터가 있으면 API를 통해 조회
   const readingId = typeof params?.id === 'string' ? params.id : null
   if (readingId) {
     try {
-      const supabase = createAdminClient()
-      if (supabase) {
-        const { data: reading } = await supabase
-          .from('readings')
-          .select('person1_bazi')
-          .eq('id', readingId)
-          .single()
+      const apiUrl = `${productionUrl}/api/saju/shared/${readingId}`
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-        if (reading?.person1_bazi) {
-          const dayGanZhi = reading.person1_bazi.day || ''
-          ganziKorean = getKoreanGanzi(dayGanZhi)
+      const apiResponse = await fetch(apiUrl, {
+        signal: controller.signal,
+        cache: 'no-store',
+      })
+      clearTimeout(timeoutId)
+
+      if (apiResponse.ok) {
+        const data = await apiResponse.json()
+        if (data.success && data.data?.bazi?.day) {
+          ganziKorean = getKoreanGanzi(data.data.bazi.day)
         }
       }
     } catch (e) {
-      console.error('DB fetch error:', e)
+      console.error('API fetch error:', e)
     }
   }
 
