@@ -18,6 +18,7 @@ function PreviewContent() {
   const [error, setError] = useState<string | null>(null)
   const [coinBalance, setCoinBalance] = useState<number | null>(null)
   const [hasExistingRecord, setHasExistingRecord] = useState<boolean | null>(null)
+  const [existingRecordStatus, setExistingRecordStatus] = useState<'completed' | 'processing' | null>(null)
 
   const type = searchParams.get('type') || 'personal'
   const isCompatibility = type === 'compatibility'
@@ -200,11 +201,14 @@ function PreviewContent() {
         const data = await response.json()
         if (data.success) {
           setHasExistingRecord(data.data?.exists || false)
+          setExistingRecordStatus(data.data?.status || null)
         } else {
           setHasExistingRecord(false)
+          setExistingRecordStatus(null)
         }
       } catch {
         setHasExistingRecord(false)
+        setExistingRecordStatus(null)
       }
     }
 
@@ -386,14 +390,18 @@ function PreviewContent() {
             onClick={handleViewResult}
           >
             {hasExistingRecord
-              ? (isCompatibility ? '💕 이전 궁합 결과 보기' : '🔮 이전 분석 결과 보기')
+              ? existingRecordStatus === 'processing'
+                ? (isCompatibility ? '💕 궁합 분석 이어보기' : '🔮 분석 이어보기')
+                : (isCompatibility ? '💕 이전 궁합 결과 보기' : '🔮 이전 분석 결과 보기')
               : (isCompatibility ? '💕 궁합 분석 보기 (1코인)' : '🔮 전체 해석 보기 (1코인)')
             }
           </Button>
           {/* 보유 코인 또는 기존 기록 안내 */}
           <p className="text-center text-caption text-text-light mt-2">
             {hasExistingRecord
-              ? '✨ 이미 분석한 기록이 있어요'
+              ? existingRecordStatus === 'processing'
+                ? '⏳ 분석 중인 기록이 있어요'
+                : '✨ 이미 분석한 기록이 있어요'
               : `보유 코인: ${coinBalance !== null ? coinBalance : '...'} 🪙`
             }
           </p>

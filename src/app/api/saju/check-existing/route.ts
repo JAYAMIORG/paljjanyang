@@ -23,6 +23,7 @@ export interface CheckExistingResponse {
   data?: {
     exists: boolean
     readingId?: string
+    status?: 'completed' | 'processing' | 'failed'  // reading 상태
   }
   error?: {
     code: string
@@ -116,14 +117,15 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // 2. 해당 person으로 된 reading 찾기
+    // 2. 해당 person으로 된 reading 찾기 (completed 또는 processing 상태)
+    // failed 상태는 이미 환불되었으므로 제외
     let query = supabase
       .from('readings')
-      .select('id')
+      .select('id, status')
       .eq('user_id', user.id)
       .eq('person1_id', person.id)
       .eq('type', type)
-      .eq('status', 'completed')
+      .in('status', ['completed', 'processing'])
 
     // yearly 타입인 경우 올해 연도도 확인
     if (type === 'yearly') {
@@ -167,6 +169,7 @@ export async function POST(request: NextRequest) {
         data: {
           exists: true,
           readingId: reading.id,
+          status: reading.status as 'completed' | 'processing',
         },
       })
     }
