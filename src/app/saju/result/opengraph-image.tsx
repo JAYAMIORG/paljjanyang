@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og'
 import { Solar, Lunar } from 'lunar-typescript'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 // 천간 한글 매핑
 const TIANGAN_KOREAN: Record<string, string> = {
@@ -57,22 +58,44 @@ export default async function Image({
   const params = searchParams ? await searchParams : {}
   const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
 
-  // 쿼리 파라미터에서 생년월일 추출
-  const year = Number(params?.year) || 0
-  const month = Number(params?.month) || 0
-  const day = Number(params?.day) || 0
-  const isLunar = params?.lunar === '1'
-
   let ganziKorean: string | null = null
 
-  if (year && month && day) {
-    const dayPillar = calculateDayPillar(year, month, day, isLunar)
-    if (dayPillar) {
-      ganziKorean = getKoreanGanzi(dayPillar)
+  // 1. id 파라미터가 있으면 DB에서 조회
+  const readingId = typeof params?.id === 'string' ? params.id : null
+  if (readingId) {
+    try {
+      const supabase = createAdminClient()
+      if (supabase) {
+        const { data: reading } = await supabase
+          .from('readings')
+          .select('person1_bazi')
+          .eq('id', readingId)
+          .single()
+
+        if (reading?.person1_bazi) {
+          ganziKorean = getKoreanGanzi(reading.person1_bazi.day || '')
+        }
+      }
+    } catch (e) {
+      console.error('DB fetch error:', e)
     }
   }
 
-  const isPng = !!ganziKorean
+  // 2. DB에서 못 가져오면 쿼리 파라미터에서 계산
+  if (!ganziKorean) {
+    const year = Number(params?.year) || 0
+    const month = Number(params?.month) || 0
+    const day = Number(params?.day) || 0
+    const isLunar = params?.lunar === '1'
+
+    if (year && month && day) {
+      const dayPillar = calculateDayPillar(year, month, day, isLunar)
+      if (dayPillar) {
+        ganziKorean = getKoreanGanzi(dayPillar)
+      }
+    }
+  }
+
   const imageFileName = ganziKorean ? `${ganziKorean}.png` : null
   const imageUrl = imageFileName
     ? `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
@@ -93,6 +116,8 @@ export default async function Image({
 
       if (imageResponse.ok) {
         imageData = await imageResponse.arrayBuffer()
+      } else {
+        console.error('Image fetch failed:', imageResponse.status, imageUrl)
       }
     } catch (e) {
       console.error('Failed to fetch image:', e)
@@ -111,7 +136,7 @@ export default async function Image({
         {imageData ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={`data:image/${isPng ? 'png' : 'jpeg'};base64,${Buffer.from(imageData).toString('base64')}`}
+            src={`data:image/png;base64,${Buffer.from(imageData).toString('base64')}`}
             alt=""
             style={{
               width: '100%',
