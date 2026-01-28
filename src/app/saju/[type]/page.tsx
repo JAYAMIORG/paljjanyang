@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Header } from '@/components/layout'
-import { Button, Card, Select, Input, LoadingScreen, AlertDialog } from '@/components/ui'
+import { Button, Card, Select, Input, LoadingScreen, AlertDialog, ConfirmModal } from '@/components/ui'
 import { useAuth } from '@/hooks'
 
 interface Person {
@@ -157,6 +157,10 @@ export default function SajuInputPage() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [alertMessage, setAlertMessage] = useState<string | null>(null)
+
+  // 삭제 관련 state
+  const [personToDelete, setPersonToDelete] = useState<Person | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // 저장된 인물 목록 조회
   useEffect(() => {
@@ -388,6 +392,42 @@ export default function SajuInputPage() {
       gender: '',
       saveInfo: true,
     })
+  }
+
+  // 프로필 삭제
+  const handleDeletePerson = async () => {
+    if (!personToDelete) return
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/persons/${personToDelete.id}`, {
+        method: 'DELETE',
+      })
+      const data = await response.json()
+
+      if (data.success) {
+        // 목록에서 제거
+        setPersons(persons.filter(p => p.id !== personToDelete.id))
+        // 선택된 인물이면 선택 해제
+        if (selectedPerson1?.id === personToDelete.id) {
+          setSelectedPerson1(null)
+        }
+        if (selectedPerson2?.id === personToDelete.id) {
+          setSelectedPerson2(null)
+        }
+        // 모든 인물이 삭제되면 입력 폼 표시
+        if (persons.length === 1) {
+          setShowInputForm(true)
+        }
+      } else {
+        setAlertMessage(data.error?.message || '삭제에 실패했습니다.')
+      }
+    } catch {
+      setAlertMessage('삭제에 실패했습니다.')
+    } finally {
+      setIsDeleting(false)
+      setPersonToDelete(null)
+    }
   }
 
   // 로딩 중
@@ -700,43 +740,61 @@ export default function SajuInputPage() {
         </h3>
         <div className="space-y-3">
           {persons.map((person) => (
-            <button
+            <div
               key={person.id}
-              onClick={() => handleSelectPerson(person)}
               className={`
-                w-full p-4 rounded-xl border-2 text-left transition-all
+                relative w-full p-4 rounded-xl border-2 transition-all
                 ${(selectedPerson1?.id === person.id || selectedPerson2?.id === person.id)
                   ? 'border-primary bg-primary/5'
                   : 'border-gray-100 bg-white hover:border-primary-light hover:shadow-sm'
                 }
               `}
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-text">{person.name}</p>
-                  <p className="text-small text-text-muted">
-                    {getRelationshipLabel(person.relationship)} · {person.birth_year}.{person.birth_month}.{person.birth_day}
-                    {person.is_lunar && ' (음력)'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {completedPersonIds.has(person.id) && (
-                    <span className="px-2 py-0.5 text-xs font-medium bg-primary text-white rounded-full">
-                      분석 완료
+              <button
+                onClick={() => handleSelectPerson(person)}
+                className="w-full text-left"
+              >
+                <div className="flex items-center justify-between pr-8">
+                  <div>
+                    <p className="font-semibold text-text">{person.name}</p>
+                    <p className="text-small text-text-muted">
+                      {getRelationshipLabel(person.relationship)} · {person.birth_year}.{person.birth_month}.{person.birth_day}
+                      {person.is_lunar && ' (음력)'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {completedPersonIds.has(person.id) && (
+                      <span className="px-2 py-0.5 text-xs font-medium bg-primary text-white rounded-full">
+                        분석 완료
+                      </span>
+                    )}
+                    {processingPersonIds.has(person.id) && !completedPersonIds.has(person.id) && (
+                      <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+                        분석 중
+                      </span>
+                    )}
+                    <span className={`text-2xl ${person.gender === 'male' ? 'text-blue-500' : 'text-red-500'}`}>
+                      {person.gender === 'male' ? '♂' : '♀'}
                     </span>
-                  )}
-                  {processingPersonIds.has(person.id) && !completedPersonIds.has(person.id) && (
-                    <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
-                      분석 중
-                    </span>
-                  )}
-                  <span className={`text-2xl ${person.gender === 'male' ? 'text-blue-500' : 'text-red-500'}`}>
-                    {person.gender === 'male' ? '♂' : '♀'}
-                  </span>
+                  </div>
                 </div>
-              </div>
-            </button>
+              </button>
+              {/* 삭제 버튼 */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setPersonToDelete(person)
+                }}
+                className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-red-500 transition-colors"
+                aria-label={`${person.name} 삭제`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
           ))}
         </div>
       </div>
@@ -774,6 +832,19 @@ export default function SajuInputPage() {
         message={alertMessage || ''}
         variant="error"
       />
+
+      {/* 삭제 확인 모달 */}
+      {personToDelete && (
+        <ConfirmModal
+          title="프로필 삭제"
+          message={`'${personToDelete.name}' 프로필을 삭제하시겠어요?\n삭제해도 이전 분석 결과는 유지됩니다.`}
+          confirmText="삭제"
+          cancelText="취소"
+          isLoading={isDeleting}
+          onConfirm={handleDeletePerson}
+          onCancel={() => setPersonToDelete(null)}
+        />
+      )}
     </div>
   )
 }
