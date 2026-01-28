@@ -191,8 +191,15 @@
   - [x] 페이지별 메타데이터 개선 (title.template, canonical) ✅
   - [x] 인증 페이지 noindex 처리 ✅ (auth, mypage, coin, payment 등)
   - [ ] PWA 아이콘 생성 (apple-touch-icon.png, 192x192, 512x512) - 미완료
-  - [ ] Google Search Console 등록 - 도메인 확정 후 진행
-  - [ ] Naver Search Advisor 등록 - 도메인 확정 후 진행
+  - [x] Google Search Console 인증 코드 추가 ✅ (2026-01-28) - DNS 전파 후 인증 완료 예정
+  - [x] Naver Search Advisor 인증 코드 추가 ✅ (2026-01-28) - DNS 전파 후 인증 완료 예정
+- [x] 커스텀 도메인 연결 ✅ (2026-01-28)
+  - [x] 도메인 구입: `palzza.app`
+  - [x] Vercel 도메인 연결
+  - [x] 환경변수 업데이트 (NEXT_PUBLIC_APP_URL)
+  - [x] Supabase OAuth Redirect URL 추가
+  - [x] 카카오 개발자 도메인/Redirect URI 추가
+  - [x] 구글 OAuth Redirect URI 추가
 - [ ] 영어 지원 (미국 시장)
 - [ ] 구독 모델 구현
 - [ ] 힌디어 지원 (인도 시장)
@@ -419,6 +426,7 @@
 
 ## 배포 정보
 
-- **Production URL**: https://bazi-azure.vercel.app
+- **Production URL**: https://palzza.app (커스텀 도메인, 2026-01-28~)
+- **이전 URL**: https://bazi-azure.vercel.app (Vercel 기본 도메인)
 - **GitHub Repository**: https://github.com/JAYAMIORG/paljjanyang
 - **Supabase Project**: lwgkuinqsrqkzybgexqo
