@@ -96,7 +96,7 @@ export default async function Image({
     }
   }
 
-  const imageFileName = ganziKorean ? `${ganziKorean}.png` : null
+  const imageFileName = ganziKorean ? `${ganziKorean}.webp` : null
   const imageUrl = imageFileName
     ? `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
     : null
@@ -136,7 +136,7 @@ export default async function Image({
         {imageData ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={`data:image/png;base64,${Buffer.from(imageData).toString('base64')}`}
+            src={`data:image/webp;base64,${Buffer.from(imageData).toString('base64')}`}
             alt=""
             style={{
               width: '100%',

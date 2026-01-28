@@ -76,31 +76,34 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     console.error('DB fetch error:', e)
   }
 
-  const isPng = !!ganziKorean
-  const imageFileName = ganziKorean ? `${ganziKorean}.png` : 'test.jpg'
-  const imageUrl = `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
+  const imageFileName = ganziKorean ? `${ganziKorean}.webp` : null
+  const imageUrl = imageFileName
+    ? `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
+    : null
 
   // 이미지를 ArrayBuffer로 가져오기
   let imageData: ArrayBuffer | null = null
-  try {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 5000)
+  if (imageUrl) {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-    const imageResponse = await fetch(imageUrl, {
-      signal: controller.signal,
-      headers: {
-        'Accept': 'image/*',
-      },
-    })
-    clearTimeout(timeoutId)
+      const imageResponse = await fetch(imageUrl, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'image/*',
+        },
+      })
+      clearTimeout(timeoutId)
 
-    if (imageResponse.ok) {
-      imageData = await imageResponse.arrayBuffer()
-    } else {
-      console.error('Image fetch failed:', imageResponse.status, imageUrl)
+      if (imageResponse.ok) {
+        imageData = await imageResponse.arrayBuffer()
+      } else {
+        console.error('Image fetch failed:', imageResponse.status, imageUrl)
+      }
+    } catch (e) {
+      console.error('Failed to fetch image:', e, imageUrl)
     }
-  } catch (e) {
-    console.error('Failed to fetch image:', e, imageUrl)
   }
 
   return new ImageResponse(
@@ -115,7 +118,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         {imageData ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={`data:image/${isPng ? 'png' : 'jpeg'};base64,${Buffer.from(imageData).toString('base64')}`}
+            src={`data:image/webp;base64,${Buffer.from(imageData).toString('base64')}`}
             alt=""
             style={{
               width: '100%',
