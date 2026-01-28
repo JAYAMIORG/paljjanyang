@@ -267,6 +267,10 @@ export default function SharedResultPage() {
     // 클릭 시점에 동기적으로 모바일 여부 판단 (user gesture 요구사항 충족)
     const isMobileNow = isMobileDevice()
 
+    // 디버깅용 로그
+    console.log('isMobileDevice():', isMobileNow)
+    console.log('userAgent:', navigator.userAgent)
+
     // 모바일: 카카오 공유 사용
     if (isMobileNow) {
       const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
