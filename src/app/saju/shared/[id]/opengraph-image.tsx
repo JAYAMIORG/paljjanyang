@@ -32,31 +32,39 @@ export const size = {
 export const contentType = 'image/png'
 
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
-  let debugInfo = ''
+  let debugInfo = 'start'
   try {
     const resolvedParams = await params
     const id = resolvedParams?.id || 'no-id'
-    debugInfo = `id: ${id}`
+    debugInfo = `id:${id.substring(0, 8)}`
     const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
 
     let ganziKorean: string | null = null
 
     // DB에서 조회
-    try {
-      const supabase = createAdminClient()
-      if (supabase) {
-        const { data: reading } = await supabase
+    const supabase = createAdminClient()
+    debugInfo += supabase ? ',db:ok' : ',db:null'
+
+    if (supabase) {
+      try {
+        const { data: reading, error } = await supabase
           .from('readings')
           .select('person1_bazi')
           .eq('id', id)
           .single()
 
-        if (reading?.person1_bazi) {
-          ganziKorean = getKoreanGanzi(reading.person1_bazi.day || '')
+        if (error) {
+          debugInfo += `,qErr:${error.code}`
+        } else if (reading?.person1_bazi) {
+          const day = reading.person1_bazi.day || ''
+          ganziKorean = getKoreanGanzi(day)
+          debugInfo += `,day:${day},gz:${ganziKorean || 'null'}`
+        } else {
+          debugInfo += ',noData'
         }
+      } catch (e) {
+        debugInfo += ',dbEx'
       }
-    } catch (e) {
-      console.error('DB fetch error:', e)
     }
 
     const imageFileName = ganziKorean ? `${ganziKorean}.webp` : null
@@ -68,23 +76,19 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     let imageData: ArrayBuffer | null = null
     if (imageUrl) {
       try {
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 5000)
-
-        const imageResponse = await fetch(imageUrl, {
-          signal: controller.signal,
-          headers: { 'Accept': 'image/*' },
-        })
-        clearTimeout(timeoutId)
+        const imageResponse = await fetch(imageUrl)
 
         if (imageResponse.ok) {
           imageData = await imageResponse.arrayBuffer()
+          debugInfo += `,img:${imageData.byteLength}`
         } else {
-          console.error('Image fetch failed:', imageResponse.status, imageUrl)
+          debugInfo += `,imgErr:${imageResponse.status}`
         }
       } catch (e) {
-        console.error('Failed to fetch image:', e)
+        debugInfo += ',imgEx'
       }
+    } else {
+      debugInfo += ',noUrl'
     }
 
     return new ImageResponse(
@@ -114,13 +118,14 @@ export default async function Image({ params }: { params: Promise<{ id: string }
                 height: '100%',
                 backgroundColor: '#6B5B95',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'white',
-                fontSize: 48,
               }}
             >
-              팔자냥
+              <div style={{ fontSize: 48 }}>팔자냥</div>
+              <div style={{ fontSize: 14, marginTop: 10 }}>{debugInfo}</div>
             </div>
           )}
         </div>
