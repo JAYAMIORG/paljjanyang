@@ -191,6 +191,7 @@ function ResultContent() {
   const fetchSavedReading = async (id: string): Promise<{
     loaded: boolean;
     needsInterpretation: boolean;
+    redirecting?: boolean; // 리다이렉트 중인지 (플래시 방지용)
     savedData?: {
       result: SajuResult;
       result2: SajuResult | null;
@@ -237,9 +238,9 @@ function ResultContent() {
         const needsInterpretation = status === 'processing' || status === 'failed'
 
         if (data.data.interpretation && !needsInterpretation) {
-          // 완료된 결과 - 공유 페이지로 리다이렉트
+          // 완료된 결과 - 공유 페이지로 리다이렉트 (로딩 상태 유지)
           router.replace(`/saju/shared/${id}`)
-          return { loaded: true, needsInterpretation: false }
+          return { loaded: true, needsInterpretation: false, redirecting: true }
         }
         setReadingId(id)
         hasSavedRef.current = true // 이미 저장된 결과
@@ -322,8 +323,12 @@ function ResultContent() {
 
         // 저장된 결과가 있으면 불러오기
         if (savedId) {
-          const { loaded, needsInterpretation, savedData } = await fetchSavedReading(savedId)
+          const { loaded, needsInterpretation, redirecting, savedData } = await fetchSavedReading(savedId)
           if (loaded) {
+            // 리다이렉트 중이면 로딩 상태 유지 (플래시 방지)
+            if (redirecting) {
+              return
+            }
             // processing 또는 failed 상태인 경우 해석 재시도
             if (needsInterpretation && savedData) {
               setIsLoading(false)
@@ -440,7 +445,11 @@ function ResultContent() {
           const existingReadingId = checkData.data.readingId
           const loadResult = await fetchSavedReading(existingReadingId)
           if (loadResult.loaded) {
-            // URL에 reading ID 추가 (공유 시 비로그인 사용자도 볼 수 있도록)
+            // 리다이렉트 중이면 로딩 상태 유지 (플래시 방지)
+            if (loadResult.redirecting) {
+              return
+            }
+            // processing/failed 상태 - URL에 reading ID 추가하여 해석 재시도
             const newSearchParams = new URLSearchParams(searchParams.toString())
             newSearchParams.set('id', existingReadingId)
             router.replace(`/saju/result?${newSearchParams.toString()}`, { scroll: false })
@@ -553,6 +562,7 @@ function ResultContent() {
 
     const fetchInterpretation = async () => {
       setIsInterpretLoading(true)
+      let isRedirecting = false
       try {
         // 저장된 reading에서 불러온 값 우선 사용, 없으면 URL 파라미터 사용
         const effectiveGender = savedGender || gender
@@ -587,7 +597,8 @@ function ResultContent() {
 
         const data = await response.json()
         if (data.success) {
-          // 해석 완료 - 공유 페이지로 리다이렉트
+          // 해석 완료 - 공유 페이지로 리다이렉트 (로딩 상태 유지)
+          isRedirecting = true
           router.replace(`/saju/shared/${readingId}`)
           return
         }
@@ -595,7 +606,10 @@ function ResultContent() {
       } catch {
         // LLM 실패해도 reading은 이미 저장되어 있음 (status='processing')
       } finally {
-        setIsInterpretLoading(false)
+        // 리다이렉트 중이면 로딩 상태 유지 (플래시 방지)
+        if (!isRedirecting) {
+          setIsInterpretLoading(false)
+        }
       }
     }
 

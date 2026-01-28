@@ -203,6 +203,10 @@ export default function MyPage() {
               {readings.map((reading) => {
                 const isProcessing = reading.status === 'processing'
                 const isFailed = reading.status === 'failed'
+                // 완료된 분석은 공유 페이지로, processing/failed는 result 페이지로
+                const readingUrl = (isProcessing || isFailed)
+                  ? `/saju/result?id=${reading.id}&type=${reading.type}`
+                  : `/saju/shared/${reading.id}`
 
                 return (
                   <Card
@@ -214,7 +218,7 @@ export default function MyPage() {
                   >
                     <div className="flex items-start gap-3">
                       <Link
-                        href={`/saju/result?id=${reading.id}&type=${reading.type}`}
+                        href={readingUrl}
                         className="flex items-start gap-3 flex-1 min-w-0"
                       >
                         <span className="text-2xl" aria-hidden="true">{TYPE_ICONS[reading.type]}</span>
