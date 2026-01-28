@@ -626,6 +626,21 @@ export default function SajuInputPage() {
           }
         </Button>
 
+        {/* 저장된 인물이 있으면 취소 버튼 표시 */}
+        {persons.length > 0 && (
+          <Button
+            type="button"
+            variant="ghost"
+            fullWidth
+            onClick={() => {
+              setShowInputForm(false)
+              setSelectingFor(null)
+              resetForm()
+            }}
+          >
+            취소
+          </Button>
+        )}
       </div>
     </form>
   )
