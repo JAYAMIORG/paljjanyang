@@ -66,15 +66,23 @@ export default async function Image({
     try {
       const supabase = createAdminClient()
       if (supabase) {
-        const { data: reading } = await supabase
+        const { data: reading, error } = await supabase
           .from('readings')
           .select('person1_bazi')
           .eq('id', readingId)
           .single()
 
-        if (reading?.person1_bazi) {
-          ganziKorean = getKoreanGanzi(reading.person1_bazi.day || '')
+        if (error) {
+          console.error('DB query error:', error.code, error.message)
         }
+
+        if (reading?.person1_bazi) {
+          const dayGanZhi = reading.person1_bazi.day || ''
+          ganziKorean = getKoreanGanzi(dayGanZhi)
+          console.log('OG Image - readingId:', readingId, 'dayGanZhi:', dayGanZhi, 'ganziKorean:', ganziKorean)
+        }
+      } else {
+        console.error('OG Image - createAdminClient returned null')
       }
     } catch (e) {
       console.error('DB fetch error:', e)
@@ -151,13 +159,17 @@ export default async function Image({
               height: '100%',
               backgroundColor: '#6B5B95',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
-              fontSize: 48,
+              fontSize: 32,
             }}
           >
-            팔자냥
+            <div>팔자냥</div>
+            <div style={{ fontSize: 16, marginTop: 10 }}>
+              id:{readingId?.slice(0, 8) || 'none'}, ganzi:{ganziKorean || 'null'}, url:{imageUrl ? 'set' : 'null'}
+            </div>
           </div>
         )}
       </div>
