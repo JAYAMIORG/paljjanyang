@@ -77,9 +77,10 @@ export default function SharedResultPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
-  const { share: shareKakao, isReady: isKakaoReady } = useKakaoShare()
+  const { createButton: createKakaoButton, isReady: isKakaoReady } = useKakaoShare()
   const shareCardRef = useRef<HTMLDivElement>(null)
   const [isShareLoading, setIsShareLoading] = useState(false)
+  const [kakaoButtonCreated, setKakaoButtonCreated] = useState(false)
 
   const [data, setData] = useState<SharedReadingResponse['data'] | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -246,9 +247,9 @@ export default function SharedResultPage() {
     }
   }
 
-  // 카카오 공유 - 카카오 SDK 사용 (데스크톱에서도 웹 팝업으로 폴백됨)
-  const handleKakaoShare = () => {
-    if (!data) return
+  // 카카오 공유 버튼 생성 (createDefaultButton 방식 - 팝업 차단 우회)
+  useEffect(() => {
+    if (!data || !isKakaoReady || kakaoButtonCreated) return
 
     const shareUrl = getShareUrl()
 
@@ -267,35 +268,28 @@ export default function SharedResultPage() {
     const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
     const ganziMatch = dayPillarAnimal.match(/\(([가-힣]{2})/)
     const ganziKorean = ganziMatch ? ganziMatch[1] : null
-    // 카카오 공유용 이미지는 JPG 사용 (WebP 미지원)
     const imageUrl = ganziKorean
       ? `${productionUrl}/images/animals/${encodeURIComponent(ganziKorean)}.jpg`
       : `${productionUrl}/images/og-default.png`
 
-    // 카카오 SDK 사용 (모바일: 앱, 데스크톱: 웹 팝업으로 폴백)
-    const shared = shareKakao({
-      title,
-      description,
-      imageUrl,
-      buttonText: '결과 보러가기',
-      shareUrl,
-    })
+    // 약간의 지연 후 버튼 생성 (DOM이 확실히 렌더링된 후)
+    const timer = setTimeout(() => {
+      const created = createKakaoButton({
+        container: '#kakao-share-btn',
+        title,
+        description,
+        imageUrl,
+        buttonText: '결과 보러가기',
+        shareUrl,
+      })
+      if (created) {
+        setKakaoButtonCreated(true)
+      }
+    }, 100)
 
-    // 카카오 SDK 실패 시 링크 복사 폴백
-    if (!shared) {
-      navigator.clipboard.writeText(shareUrl)
-        .then(() => alert('링크가 복사되었습니다!'))
-        .catch(() => {
-          const textArea = document.createElement('textarea')
-          textArea.value = shareUrl
-          document.body.appendChild(textArea)
-          textArea.select()
-          document.execCommand('copy')
-          document.body.removeChild(textArea)
-          alert('링크가 복사되었습니다!')
-        })
-    }
-  }
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, isKakaoReady, kakaoButtonCreated])
 
   if (isLoading) {
     return (
@@ -711,18 +705,21 @@ export default function SharedResultPage() {
                 )}
               </button>
 
-              <button
-                onClick={handleKakaoShare}
-                disabled={!isKakaoReady}
-                className={`w-14 h-14 flex items-center justify-center rounded-xl bg-[#FEE500] text-[#3C1E1E] transition-opacity ${
-                  isKakaoReady ? 'hover:opacity-90' : 'opacity-50 cursor-not-allowed'
+              {/* 카카오 공유 버튼 - SDK가 내부에 버튼 생성 */}
+              <div
+                id="kakao-share-btn"
+                className={`w-14 h-14 flex items-center justify-center rounded-xl bg-[#FEE500] text-[#3C1E1E] cursor-pointer transition-opacity hover:opacity-90 ${
+                  !isKakaoReady ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
                 title="카카오톡 공유"
               >
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 3c-5.52 0-10 3.59-10 8 0 2.84 1.89 5.33 4.71 6.72-.17.64-.68 2.53-.78 2.92-.12.49.18.48.38.35.16-.1 2.49-1.68 3.49-2.36.72.11 1.46.17 2.2.17 5.52 0 10-3.59 10-8s-4.48-8-10-8z"/>
-                </svg>
-              </button>
+                {/* SDK가 버튼을 생성하지 않은 경우 기본 아이콘 표시 */}
+                {!kakaoButtonCreated && (
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 3c-5.52 0-10 3.59-10 8 0 2.84 1.89 5.33 4.71 6.72-.17.64-.68 2.53-.78 2.92-.12.49.18.48.38.35.16-.1 2.49-1.68 3.49-2.36.72.11 1.46.17 2.2.17 5.52 0 10-3.59 10-8s-4.48-8-10-8z"/>
+                  </svg>
+                )}
+              </div>
 
               <button
                 onClick={handleCopyLink}
