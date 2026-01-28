@@ -56,7 +56,7 @@ export function LoadingScreen({
         )}
 
         {exitHint && (
-          <p className="text-caption text-text-light mt-4 pt-4 border-t border-gray-100">
+          <p className="text-small text-text-muted mt-4 pt-4 border-t border-gray-200">
             {exitHint}
           </p>
         )}

@@ -841,7 +841,7 @@ function ResultContent() {
           '운명을 해석하고 있어요...'
         }
         showProgress={isInterpretLoading}
-        subMessage={isInterpretLoading ? '최대 30초까지 걸릴 수 있어요' : undefined}
+        subMessage={isInterpretLoading ? '최대 60초까지 걸릴 수 있어요' : undefined}
         exitHint={isInterpretLoading ? '화면을 나가도 마이페이지에서 다시 확인할 수 있어요' : undefined}
       />
     )
