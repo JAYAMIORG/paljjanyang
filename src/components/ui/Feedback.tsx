@@ -14,6 +14,7 @@ interface LoadingScreenProps {
   useCharacter?: boolean
   showProgress?: boolean
   subMessage?: string
+  exitHint?: string  // 이탈 시 안내 메시지
 }
 
 export function LoadingScreen({
@@ -22,6 +23,7 @@ export function LoadingScreen({
   useCharacter = true,
   showProgress = false,
   subMessage,
+  exitHint,
 }: LoadingScreenProps) {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -51,6 +53,12 @@ export function LoadingScreen({
               <div className="h-full bg-primary rounded-full animate-progress" />
             </div>
           </div>
+        )}
+
+        {exitHint && (
+          <p className="text-caption text-text-light mt-4 pt-4 border-t border-gray-100">
+            {exitHint}
+          </p>
         )}
       </div>
     </div>
