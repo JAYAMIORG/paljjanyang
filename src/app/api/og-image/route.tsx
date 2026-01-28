@@ -55,8 +55,8 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // 이미지 URL 생성 (WebP 형식)
-  const imageFileName = ganziKorean ? `${ganziKorean}.webp` : null
+  // 이미지 URL 생성 (PNG 형식 - ImageResponse가 WebP를 제대로 처리하지 못함)
+  const imageFileName = ganziKorean ? `${ganziKorean}.png` : null
   const imageUrl = imageFileName
     ? `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
     : null
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
         {imageData ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={`data:image/webp;base64,${Buffer.from(imageData).toString('base64')}`}
+            src={`data:image/png;base64,${Buffer.from(imageData).toString('base64')}`}
             alt=""
             style={{
               width: '100%',
