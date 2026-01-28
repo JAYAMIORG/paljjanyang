@@ -61,6 +61,8 @@ export default async function Image({
 
   // 1. id 파라미터가 있으면 API를 통해 조회
   const readingId = typeof params?.id === 'string' ? params.id : null
+  let debugInfo = `id:${readingId?.slice(0, 8) || 'none'}`
+
   if (readingId) {
     try {
       const apiUrl = `${productionUrl}/api/saju/shared/${readingId}`
@@ -73,13 +75,19 @@ export default async function Image({
       })
       clearTimeout(timeoutId)
 
+      debugInfo += `,status:${apiResponse.status}`
+
       if (apiResponse.ok) {
         const data = await apiResponse.json()
+        debugInfo += `,success:${data.success}`
         if (data.success && data.data?.bazi?.day) {
-          ganziKorean = getKoreanGanzi(data.data.bazi.day)
+          const dayGanZhi = data.data.bazi.day
+          ganziKorean = getKoreanGanzi(dayGanZhi)
+          debugInfo += `,day:${dayGanZhi},ganzi:${ganziKorean || 'null'}`
         }
       }
     } catch (e) {
+      debugInfo += `,err:${e instanceof Error ? e.message : 'unknown'}`
       console.error('API fetch error:', e)
     }
   }
@@ -153,13 +161,15 @@ export default async function Image({
               height: '100%',
               backgroundColor: '#6B5B95',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
               fontSize: 48,
             }}
           >
-            팔자냥
+            <div>팔자냥</div>
+            <div style={{ fontSize: 14, marginTop: 10 }}>{debugInfo}</div>
           </div>
         )}
       </div>
