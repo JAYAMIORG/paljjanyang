@@ -28,12 +28,38 @@ export interface SharedReadingResponse {
     dominantElement: string
     weakElement: string
     dayPillarAnimal: string
+    dayNaYin: string
     daYun: Array<{
       startAge: number
       endAge: number
       ganZhi: string
     }>
     createdAt: string
+    // 궁합용 추가 필드
+    name1?: string
+    name2?: string
+    gender?: string
+    gender2?: string
+    person2?: {
+      bazi: {
+        year: string
+        month: string
+        day: string
+        hour: string | null
+      }
+      wuXing: {
+        wood: number
+        fire: number
+        earth: number
+        metal: number
+        water: number
+      }
+      dayMaster: string
+      dayMasterKorean: string
+      zodiacEmoji: string
+      dominantElement: string
+      weakElement: string
+    }
   }
   error?: {
     code: string
@@ -126,7 +152,7 @@ export async function GET(
       )
     }
 
-    // 결과 조회 (person 정보 포함)
+    // 결과 조회 (person 정보 포함, 궁합용 person2 포함)
     const { data: reading, error } = await supabase
       .from('readings')
       .select(`
@@ -138,13 +164,22 @@ export async function GET(
         person1_wuxing,
         person1_day_master,
         person1_id,
+        person2_bazi,
+        person2_wuxing,
+        person2_day_master,
+        person2_id,
         created_at,
         persons:person1_id (
+          name,
           birth_year,
           birth_month,
           birth_day,
           birth_hour,
           is_lunar,
+          gender
+        ),
+        person2:person2_id (
+          name,
           gender
         )
       `)
@@ -186,8 +221,9 @@ export async function GET(
     const dominantElement = WUXING_KOREAN[dominantEntry[0]] || dominantEntry[0]
     const weakElement = WUXING_KOREAN[weakEntry[0]] || weakEntry[0]
 
-    // 대운 계산
+    // 대운 계산 및 납음 가져오기
     let daYun: Array<{ startAge: number; endAge: number; ganZhi: string }> = []
+    let dayNaYin = ''
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const person = reading.persons as any
@@ -217,6 +253,9 @@ export async function GET(
           eightChar = lunar.getEightChar()
         }
 
+        // 일주 납음 가져오기
+        dayNaYin = eightChar.getDayNaYin() || ''
+
         const genderValue = person.gender === 'male' ? 1 : 0
         const yun = eightChar.getYun(genderValue)
         const daYunList = yun.getDaYun(10)
@@ -228,6 +267,44 @@ export async function GET(
         }))
       } catch (e) {
         console.error('DaYun calculation error:', e)
+      }
+    }
+
+    // 궁합용 person2 데이터 구성
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const person2Info = reading.person2 as any
+    let person2Data: {
+      bazi: { year: string; month: string; day: string; hour: string | null }
+      wuXing: { wood: number; fire: number; earth: number; metal: number; water: number }
+      dayMaster: string
+      dayMasterKorean: string
+      zodiacEmoji: string
+      dominantElement: string
+      weakElement: string
+    } | undefined = undefined
+
+    if (reading.type === 'compatibility' && reading.person2_bazi && reading.person2_wuxing) {
+      const p2DayMaster = reading.person2_day_master || ''
+      const p2DayMasterInfo = DAY_MASTER_MAP[p2DayMaster] || { korean: p2DayMaster, emoji: '🐱' }
+      const p2WuXing = reading.person2_wuxing || { wood: 20, fire: 20, earth: 20, metal: 20, water: 20 }
+      const p2Entries = Object.entries(p2WuXing) as [string, number][]
+      const p2DominantEntry = p2Entries.reduce((a, b) => a[1] > b[1] ? a : b)
+      const p2WeakEntry = p2Entries.reduce((a, b) => a[1] < b[1] ? a : b)
+      const rawBazi2 = reading.person2_bazi || { year: '', month: '', day: '', time: null }
+
+      person2Data = {
+        bazi: {
+          year: rawBazi2.year || '',
+          month: rawBazi2.month || '',
+          day: rawBazi2.day || '',
+          hour: rawBazi2.time || null,
+        },
+        wuXing: p2WuXing,
+        dayMaster: p2DayMaster,
+        dayMasterKorean: p2DayMasterInfo.korean,
+        zodiacEmoji: p2DayMasterInfo.emoji,
+        dominantElement: WUXING_KOREAN[p2DominantEntry[0]] || p2DominantEntry[0],
+        weakElement: WUXING_KOREAN[p2WeakEntry[0]] || p2WeakEntry[0],
       }
     }
 
@@ -246,8 +323,15 @@ export async function GET(
         dominantElement,
         weakElement,
         dayPillarAnimal,
+        dayNaYin,
         daYun,
         createdAt: reading.created_at,
+        // 궁합용 추가 데이터
+        name1: person?.name || undefined,
+        name2: person2Info?.name || undefined,
+        gender: person?.gender || undefined,
+        gender2: person2Info?.gender || undefined,
+        person2: person2Data,
       },
     })
   } catch (error) {
