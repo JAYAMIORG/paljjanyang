@@ -88,8 +88,8 @@ export async function generateMetadata({
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
 
-  // OG 이미지 URL 생성 (result 페이지의 OG 이미지 엔드포인트 활용)
-  const ogImageUrl = `${appUrl}/saju/result/opengraph-image?id=${id}`
+  // OG 이미지 URL 생성 (API 엔드포인트 활용)
+  const ogImageUrl = `${appUrl}/api/og-image?id=${id}`
 
   return {
     title,
