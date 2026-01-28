@@ -78,7 +78,7 @@ function LoginContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header showBack useHistoryBack title="시작하기" showAuth={false} />
+      <Header showBack backHref="/home" title="시작하기" showAuth={false} />
 
       <main className="px-4 py-8 max-w-lg mx-auto">
         <div className="text-center mb-8">
