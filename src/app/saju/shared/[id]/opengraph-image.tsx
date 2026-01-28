@@ -32,97 +32,123 @@ export const size = {
 export const contentType = 'image/png'
 
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
-
-  let ganziKorean: string | null = null
-
-  // DB에서 조회
   try {
-    const supabase = createAdminClient()
-    if (supabase) {
-      const { data: reading } = await supabase
-        .from('readings')
-        .select('person1_bazi')
-        .eq('id', id)
-        .single()
+    const { id } = await params
+    const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
 
-      if (reading?.person1_bazi) {
-        ganziKorean = getKoreanGanzi(reading.person1_bazi.day || '')
-      }
-    }
-  } catch (e) {
-    console.error('DB fetch error:', e)
-  }
+    let ganziKorean: string | null = null
 
-  const imageFileName = ganziKorean ? `${ganziKorean}.webp` : null
-  const imageUrl = imageFileName
-    ? `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
-    : null
-
-  // 이미지 가져오기
-  let imageData: ArrayBuffer | null = null
-  if (imageUrl) {
+    // DB에서 조회
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      const supabase = createAdminClient()
+      if (supabase) {
+        const { data: reading } = await supabase
+          .from('readings')
+          .select('person1_bazi')
+          .eq('id', id)
+          .single()
 
-      const imageResponse = await fetch(imageUrl, {
-        signal: controller.signal,
-        headers: { 'Accept': 'image/*' },
-      })
-      clearTimeout(timeoutId)
-
-      if (imageResponse.ok) {
-        imageData = await imageResponse.arrayBuffer()
-      } else {
-        console.error('Image fetch failed:', imageResponse.status, imageUrl)
+        if (reading?.person1_bazi) {
+          ganziKorean = getKoreanGanzi(reading.person1_bazi.day || '')
+        }
       }
     } catch (e) {
-      console.error('Failed to fetch image:', e)
+      console.error('DB fetch error:', e)
     }
-  }
 
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-        }}
-      >
-        {imageData ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={`data:image/webp;base64,${Buffer.from(imageData).toString('base64')}`}
-            alt=""
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              backgroundColor: '#6B5B95',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: 48,
-            }}
-          >
-            팔자냥
-          </div>
-        )}
-      </div>
-    ),
-    {
-      ...size,
+    const imageFileName = ganziKorean ? `${ganziKorean}.webp` : null
+    const imageUrl = imageFileName
+      ? `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
+      : null
+
+    // 이미지 가져오기
+    let imageData: ArrayBuffer | null = null
+    if (imageUrl) {
+      try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 5000)
+
+        const imageResponse = await fetch(imageUrl, {
+          signal: controller.signal,
+          headers: { 'Accept': 'image/*' },
+        })
+        clearTimeout(timeoutId)
+
+        if (imageResponse.ok) {
+          imageData = await imageResponse.arrayBuffer()
+        } else {
+          console.error('Image fetch failed:', imageResponse.status, imageUrl)
+        }
+      } catch (e) {
+        console.error('Failed to fetch image:', e)
+      }
     }
-  )
+
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+          }}
+        >
+          {imageData ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={`data:image/webp;base64,${Buffer.from(imageData).toString('base64')}`}
+              alt=""
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#6B5B95',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: 48,
+              }}
+            >
+              팔자냥
+            </div>
+          )}
+        </div>
+      ),
+      {
+        ...size,
+      }
+    )
+  } catch (e) {
+    console.error('OG Image generation error:', e)
+    // Fallback image
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            backgroundColor: '#6B5B95',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: 48,
+          }}
+        >
+          팔자냥
+        </div>
+      ),
+      {
+        ...size,
+      }
+    )
+  }
 }
