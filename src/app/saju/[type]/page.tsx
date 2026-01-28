@@ -162,6 +162,29 @@ export default function SajuInputPage() {
   const [personToDelete, setPersonToDelete] = useState<Person | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  // 입력 폼 상태에 따른 브라우저 히스토리 처리
+  useEffect(() => {
+    // 입력 폼이 열릴 때 히스토리 추가 (저장된 인물이 있는 경우에만)
+    if (showInputForm && persons.length > 0) {
+      window.history.pushState({ inputForm: true }, '')
+    }
+  }, [showInputForm, persons.length])
+
+  // 브라우저 뒤로가기 감지
+  useEffect(() => {
+    const handlePopState = () => {
+      // 입력 폼이 열려있고 저장된 인물이 있으면 프로필 목록으로 돌아감
+      if (showInputForm && persons.length > 0) {
+        setShowInputForm(false)
+        setSelectingFor(null)
+        resetForm()
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [showInputForm, persons.length])
+
   // 저장된 인물 목록 조회
   useEffect(() => {
     const fetchPersons = async () => {
@@ -625,22 +648,6 @@ export default function SajuInputPage() {
             : `${info.icon} 내 만세력 확인하기`
           }
         </Button>
-
-        {/* 저장된 인물이 있으면 취소 버튼 표시 */}
-        {persons.length > 0 && (
-          <Button
-            type="button"
-            variant="ghost"
-            fullWidth
-            onClick={() => {
-              setShowInputForm(false)
-              setSelectingFor(null)
-              resetForm()
-            }}
-          >
-            취소
-          </Button>
-        )}
       </div>
     </form>
   )
