@@ -179,7 +179,6 @@ export default function LandingPage() {
             <p className="font-medium text-text-muted">ChartIQ</p>
             <p>대표자: 박재호 | 사업자등록번호: 794-29-01712</p>
             <p>주소: 경기도 화성시 동탄지성로 295</p>
-            <p>전화: 010-5148-4187</p>
           </div>
           <div className="flex gap-2 mt-4 border-t border-gray-200">
             <Link href="/terms" className="text-caption text-text-light hover:text-text-muted transition-colors px-2 py-3 min-h-[44px] flex items-center">이용약관</Link>

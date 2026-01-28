@@ -188,7 +188,6 @@ export default function TermsPage() {
               <p>상호: ChartIQ</p>
               <p>대표자: 박재호</p>
               <p>주소: 동탄지성로 295</p>
-              <p>연락처: 010-5148-4187</p>
               <p>이메일: abc@abc.com</p>
             </div>
           </section>

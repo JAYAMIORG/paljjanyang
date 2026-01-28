@@ -8,13 +8,7 @@ export function JsonLd() {
     url: baseUrl,
     logo: `${baseUrl}/images/logo-opened.webp`,
     description: '프리미엄 사주 서비스를 제공하는 ChartIQ입니다.',
-    contactPoint: {
-      '@type': 'ContactPoint',
-      telephone: '+82-10-5148-4187',
-      contactType: 'customer service',
-      availableLanguage: 'Korean',
-    },
-  }
+      }
 
   const localBusinessSchema = {
     '@context': 'https://schema.org',
@@ -23,7 +17,6 @@ export function JsonLd() {
     image: `${baseUrl}/images/logo-opened.webp`,
     '@id': baseUrl,
     url: baseUrl,
-    telephone: '010-5148-4187',
     address: {
       '@type': 'PostalAddress',
       streetAddress: '동탄지성로 295',
