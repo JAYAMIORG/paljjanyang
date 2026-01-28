@@ -41,6 +41,7 @@ function calculateDayPillar(year: number, month: number, day: number, isLunar: b
 }
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 export const alt = '팔자냥 사주 결과'
 export const size = {
   width: 1200,
@@ -53,14 +54,14 @@ export default async function Image({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const params = await searchParams
+  const params = searchParams ? await searchParams : {}
   const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
 
   // 쿼리 파라미터에서 생년월일 추출
-  const year = Number(params.year) || 0
-  const month = Number(params.month) || 0
-  const day = Number(params.day) || 0
-  const isLunar = params.lunar === '1'
+  const year = Number(params?.year) || 0
+  const month = Number(params?.month) || 0
+  const day = Number(params?.day) || 0
+  const isLunar = params?.lunar === '1'
 
   let ganziKorean: string | null = null
 

@@ -315,6 +315,12 @@ function ResultContent() {
       try {
         // 로그인 체크 (인증 로딩 완료 후)
         if (!user) {
+          // savedId가 있으면 공유 페이지로 리다이렉트 (비로그인 사용자도 볼 수 있음)
+          if (savedId) {
+            router.replace(`/saju/shared/${savedId}`)
+            return
+          }
+          // savedId가 없으면 로그인 필요 (새 분석은 코인이 필요하므로)
           const currentUrl = `/saju/result?${searchParams.toString()}`
           router.push(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`)
           return
@@ -430,8 +436,13 @@ function ResultContent() {
         const checkData = await checkResponse.json()
         if (checkData.success && checkData.data?.exists && checkData.data?.readingId) {
           // 기존 기록이 있으면 해당 기록으로 리다이렉트
-          const loaded = await fetchSavedReading(checkData.data.readingId)
-          if (loaded) {
+          const existingReadingId = checkData.data.readingId
+          const loadResult = await fetchSavedReading(existingReadingId)
+          if (loadResult.loaded) {
+            // URL에 reading ID 추가 (공유 시 비로그인 사용자도 볼 수 있도록)
+            const newSearchParams = new URLSearchParams(searchParams.toString())
+            newSearchParams.set('id', existingReadingId)
+            router.replace(`/saju/result?${newSearchParams.toString()}`, { scroll: false })
             setIsLoading(false)
             return
           }
@@ -493,6 +504,13 @@ function ResultContent() {
         if (!coinResult.success) {
           setIsLoading(false)
           return
+        }
+
+        // URL에 reading ID 추가 (공유 시 비로그인 사용자도 볼 수 있도록)
+        if (coinResult.readingId) {
+          const newSearchParams = new URLSearchParams(searchParams.toString())
+          newSearchParams.set('id', coinResult.readingId)
+          router.replace(`/saju/result?${newSearchParams.toString()}`, { scroll: false })
         }
 
         // 상태 업데이트 - isInterpretLoading을 먼저 true로 설정하여 플래시 방지
