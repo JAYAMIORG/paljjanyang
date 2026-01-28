@@ -269,6 +269,7 @@ export async function POST(request: Request) {
       type,
       status: 'processing',
       person1_id: person1Id,
+      person1_name: person1.name || '나',
       person1_bazi: person1.sajuResult.bazi,
       person1_wuxing: person1.sajuResult.wuXing,
       person1_day_master: person1.sajuResult.dayMaster,
@@ -285,6 +286,7 @@ export async function POST(request: Request) {
     // 궁합인 경우 person2 정보 추가
     if (type === 'compatibility' && person2) {
       readingData.person2_id = person2Id
+      readingData.person2_name = person2.name || '상대방'
       readingData.person2_bazi = person2.sajuResult.bazi
       readingData.person2_wuxing = person2.sajuResult.wuXing
       readingData.person2_day_master = person2.sajuResult.dayMaster

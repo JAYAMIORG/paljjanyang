@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
         interpretation,
         created_at,
         person1_id,
+        person1_name,
         persons:person1_id (
           name,
           birth_year,
@@ -105,11 +106,14 @@ export async function GET(request: NextRequest) {
         ? `${person.birth_year}.${person.birth_month}.${person.birth_day}`
         : ''
 
+      // person1_name 우선, 없으면 persons 조인 결과, 둘 다 없으면 '나'
+      const personName = r.person1_name || person?.name || '나'
+
       return {
         id: r.id,
         type: r.type as ReadingHistoryItem['type'],
         koreanGanji: r.korean_ganji || '',
-        personName: person?.name || '나',
+        personName,
         birthDate,
         createdAt: r.created_at,
         interpretation: typeof r.interpretation === 'object' && r.interpretation !== null
