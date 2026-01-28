@@ -1,26 +1,4 @@
 import { ImageResponse } from 'next/og'
-import { createAdminClient } from '@/lib/supabase/admin'
-
-// 천간 한글 매핑
-const TIANGAN_KOREAN: Record<string, string> = {
-  '甲': '갑', '乙': '을', '丙': '병', '丁': '정', '戊': '무',
-  '己': '기', '庚': '경', '辛': '신', '壬': '임', '癸': '계',
-}
-
-// 지지 한글 매핑
-const DIZHI_KOREAN: Record<string, string> = {
-  '子': '자', '丑': '축', '寅': '인', '卯': '묘', '辰': '진', '巳': '사',
-  '午': '오', '未': '미', '申': '신', '酉': '유', '戌': '술', '亥': '해',
-}
-
-// 간지에서 한글 간지 추출 (예: 庚戌 → 경술)
-function getKoreanGanzi(ganZhi: string): string | null {
-  if (!ganZhi || ganZhi.length !== 2) return null
-  const tianganKorean = TIANGAN_KOREAN[ganZhi[0]]
-  const dizhiKorean = DIZHI_KOREAN[ganZhi[1]]
-  if (!tianganKorean || !dizhiKorean) return null
-  return `${tianganKorean}${dizhiKorean}`
-}
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -32,44 +10,33 @@ export const size = {
 export const contentType = 'image/png'
 
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
-  let debugInfo = 'start'
   try {
-    const resolvedParams = await params
-    const id = resolvedParams?.id || 'no-id'
-    debugInfo = `id:${id.substring(0, 8)}`
+    const { id } = await params
     const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
 
+    // API를 통해 데이터 가져오기 (DB 직접 조회 대신)
     let ganziKorean: string | null = null
 
-    // DB에서 조회
-    const supabase = createAdminClient()
-    debugInfo += supabase ? ',db:ok' : ',db:null'
+    try {
+      const apiResponse = await fetch(`${productionUrl}/api/saju/shared/${id}`, {
+        cache: 'no-store',
+      })
 
-    if (supabase) {
-      try {
-        const { data: reading, error } = await supabase
-          .from('readings')
-          .select('person1_bazi')
-          .eq('id', id)
-          .single()
-
-        if (error) {
-          debugInfo += `,qErr:${error.code}`
-        } else if (reading?.person1_bazi) {
-          const day = reading.person1_bazi.day || ''
-          ganziKorean = getKoreanGanzi(day)
-          debugInfo += `,day:${day},gz:${ganziKorean || 'null'}`
-        } else {
-          debugInfo += ',noData'
+      if (apiResponse.ok) {
+        const data = await apiResponse.json()
+        if (data.success && data.data?.dayPillarAnimal) {
+          // dayPillarAnimal에서 한글 간지 추출 (예: "황금 돼지(기해일주)" → "기해")
+          const match = data.data.dayPillarAnimal.match(/\(([가-힣]{2})/)
+          ganziKorean = match ? match[1] : null
         }
-      } catch (e) {
-        debugInfo += ',dbEx'
       }
+    } catch (e) {
+      console.error('API fetch error:', e)
     }
 
-    const imageFileName = ganziKorean ? `${ganziKorean}.webp` : null
-    const imageUrl = imageFileName
-      ? `${productionUrl}/images/animals/${encodeURIComponent(imageFileName)}`
+    // 이미지 URL 생성
+    const imageUrl = ganziKorean
+      ? `${productionUrl}/images/animals/${encodeURIComponent(ganziKorean)}.webp`
       : null
 
     // 이미지 가져오기
@@ -77,18 +44,12 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     if (imageUrl) {
       try {
         const imageResponse = await fetch(imageUrl)
-
         if (imageResponse.ok) {
           imageData = await imageResponse.arrayBuffer()
-          debugInfo += `,img:${imageData.byteLength}`
-        } else {
-          debugInfo += `,imgErr:${imageResponse.status}`
         }
       } catch (e) {
-        debugInfo += ',imgEx'
+        console.error('Image fetch error:', e)
       }
-    } else {
-      debugInfo += ',noUrl'
     }
 
     return new ImageResponse(
@@ -118,14 +79,13 @@ export default async function Image({ params }: { params: Promise<{ id: string }
                 height: '100%',
                 backgroundColor: '#6B5B95',
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'white',
+                fontSize: 48,
               }}
             >
-              <div style={{ fontSize: 48 }}>팔자냥</div>
-              <div style={{ fontSize: 14, marginTop: 10 }}>{debugInfo}</div>
+              팔자냥
             </div>
           )}
         </div>
@@ -135,9 +95,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
       }
     )
   } catch (e) {
-    const errorMsg = e instanceof Error ? e.message : 'Unknown error'
-    console.error('OG Image generation error:', e)
-    // Fallback image with error info for debugging
+    console.error('OG Image error:', e)
     return new ImageResponse(
       (
         <div
@@ -146,15 +104,13 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             height: '100%',
             backgroundColor: '#6B5B95',
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             color: 'white',
             fontSize: 48,
           }}
         >
-          <div>팔자냥</div>
-          <div style={{ fontSize: 16, marginTop: 20 }}>Error: {errorMsg}</div>
+          팔자냥
         </div>
       ),
       {
