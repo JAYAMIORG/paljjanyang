@@ -43,11 +43,11 @@ export default function LandingPage() {
               priority
             />
           </div>
-          <p className="mb-4 text-base max-[400px]:text-base sm:text-xl" style={{ fontFamily: 'GanaChocolate, sans-serif' }}>
+          <p className="mb-4" style={{ fontFamily: 'GanaChocolate, sans-serif', fontSize: '30px', color: '#3a3a3a', textShadow: '2px 2px 3px rgba(0, 0, 0, 0.15)' }}>
             880원으로 보는,<br />
             지금 내 인생에 필요한 사주
           </p>
-          <p className="mb-8 text-sm max-[400px]:text-sm sm:text-base" style={{ fontFamily: 'GanaChocolate, sans-serif' }}>
+          <p className="mb-8" style={{ fontFamily: 'GanaChocolate, sans-serif', fontSize: '20px', color: '#3a3a3a', textShadow: '2px 2px 3px rgba(0, 0, 0, 0.12)' }}>
             40년 경력 역술가의 노하우를 담았습니다.
           </p>
 
