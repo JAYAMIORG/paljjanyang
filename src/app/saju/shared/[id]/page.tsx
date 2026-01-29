@@ -552,18 +552,18 @@ export default function SharedResultPage() {
               <p className="text-heading font-bold text-primary">
                 {data.dayPillarAnimal}
               </p>
-              {/* 납음 + 한줄 특징 */}
+              {/* 한줄 특징 */}
               {(() => {
-                const naYinInfo = data.dayNaYin ? getNaYinInfo(data.dayNaYin) : null
                 const personalInterp = interpretation as PersonalInterpretation | null
-                // LLM 특징이 있으면 사용, 없으면 납음 설명의 첫 부분 사용
-                const characteristic = personalInterp?.dayPillar?.characteristic || naYinInfo?.description?.split(',')[0] || ''
+                const naYinInfo = data.dayNaYin ? getNaYinInfo(data.dayNaYin) : null
+                // LLM 특징이 있으면 사용, 없으면 납음 설명 사용
+                const characteristic = personalInterp?.dayPillar?.characteristic || naYinInfo?.description || ''
 
-                if (!naYinInfo?.korean) return null
+                if (!characteristic) return null
 
                 return (
                   <p className="text-body text-accent font-medium mt-2">
-                    {naYinInfo.korean}: {characteristic}
+                    {characteristic}
                   </p>
                 )
               })()}

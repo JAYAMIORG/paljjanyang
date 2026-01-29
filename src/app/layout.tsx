@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Noto_Serif_KR } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/react'
 import './globals.css'
 import { JsonLd } from '@/components/seo/JsonLd'
 
@@ -126,6 +127,7 @@ export default function RootLayout({
         <main className="mx-auto max-w-[500px] min-h-screen">
           {children}
         </main>
+        <Analytics />
       </body>
     </html>
   )
