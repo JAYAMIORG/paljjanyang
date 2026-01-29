@@ -22,8 +22,10 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
   const isHomePage = pathname === '/home'
 
   const handleSignOut = async () => {
-    await signOut()
-    router.push('/')
+    if (window.confirm('로그아웃 하시겠어요?')) {
+      await signOut()
+      router.push('/')
+    }
   }
 
   const renderBackElement = () => {
