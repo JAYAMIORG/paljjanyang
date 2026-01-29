@@ -686,9 +686,8 @@ export default function SharedResultPage() {
           }
         })()}
 
-        {/* 공유 - 오늘의 운세 제외 */}
-        {type !== 'daily' && (
-          <Card>
+        {/* 공유하기 */}
+        <Card>
             <h3 className="text-subheading font-semibold text-text mb-4">
               친구에게 공유하기
             </h3>
@@ -738,7 +737,6 @@ export default function SharedResultPage() {
               친구에게 결과를 공유해보세요
             </p>
           </Card>
-        )}
 
         {/* 나도 사주 보러가기 버튼 */}
         <Button

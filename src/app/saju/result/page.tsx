@@ -1197,8 +1197,7 @@ function ResultContent() {
           <FallbackInterpretation result={result} />
         )}
 
-        {/* 공유 - 오늘의 운세 제외 */}
-        {type !== 'daily' && (
+        {/* 공유하기 */}
         <Card>
           <h3 className="text-subheading font-semibold text-text mb-4">
             친구에게 공유하기
@@ -1254,7 +1253,6 @@ function ResultContent() {
             </p>
           )}
         </Card>
-        )}
 
         {/* 다른 사주 보기 버튼 */}
         <Button
