@@ -43,7 +43,7 @@ export default function LandingPage() {
               priority
             />
           </div>
-          <p className="mb-4" style={{ fontFamily: 'GanaChocolate, sans-serif', fontSize: '26px', color: '#3a3a3a' }}>
+          <p className="mb-4" style={{ fontFamily: 'GanaChocolate, sans-serif', fontSize: '25px', color: '#3a3a3a' }}>
             880원으로 보는,<br />
             지금 내 인생에 꼭 필요한 사주
           </p>
