@@ -20,6 +20,7 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
   const pathname = usePathname()
   const { user, loading, signOut, isConfigured } = useAuth()
   const isHomePage = pathname === '/home'
+  const isMyPage = pathname === '/mypage'
 
   const handleSignOut = async () => {
     if (window.confirm('로그아웃 하시겠어요?')) {
@@ -105,12 +106,14 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
                     마이페이지
                   </Link>
                 )}
-                <button
-                  onClick={handleSignOut}
-                  className="text-small text-text-light hover:text-text-muted transition-colors"
-                >
-                  로그아웃
-                </button>
+                {isMyPage && (
+                  <button
+                    onClick={handleSignOut}
+                    className="text-small text-text-light hover:text-text-muted transition-colors"
+                  >
+                    로그아웃
+                  </button>
+                )}
               </div>
             ) : (
               <div className="flex items-center gap-2">
