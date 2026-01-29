@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks'
 import { BackIcon } from '@/components/ui/Icons'
 
@@ -17,7 +17,9 @@ interface HeaderProps {
 
 export function Header({ showBack = false, title, backHref = '/', useHistoryBack = false, showAuth = true, hideMyPageLink = false }: HeaderProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const { user, loading, signOut, isConfigured } = useAuth()
+  const isHomePage = pathname === '/home'
 
   const handleSignOut = async () => {
     await signOut()
@@ -74,6 +76,14 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
               <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-2">
+                {!isHomePage && (
+                  <Link
+                    href="/home"
+                    className="text-small text-text-muted hover:text-primary transition-colors"
+                  >
+                    홈
+                  </Link>
+                )}
                 {!hideMyPageLink && (
                   <Link
                     href="/mypage"
