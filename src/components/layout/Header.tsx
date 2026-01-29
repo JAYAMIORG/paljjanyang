@@ -77,12 +77,15 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
             ) : user ? (
               <div className="flex items-center gap-2">
                 {!isHomePage && (
-                  <Link
-                    href="/home"
-                    className="text-small text-text-muted hover:text-primary transition-colors"
-                  >
-                    홈
-                  </Link>
+                  <>
+                    <Link
+                      href="/home"
+                      className="text-small text-text-muted hover:text-primary transition-colors"
+                    >
+                      홈
+                    </Link>
+                    <span className="text-text-light">/</span>
+                  </>
                 )}
                 {!hideMyPageLink && (
                   <Link
