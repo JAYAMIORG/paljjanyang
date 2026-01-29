@@ -295,8 +295,14 @@ function PreviewContent() {
             <Card variant="highlighted">
               <p className="text-center text-small text-primary font-semibold mb-2">{name1}</p>
               <div className="text-center mb-4">
-                <span className="text-3xl">{result.zodiacEmoji}</span>
-                <h2 className="text-subheading font-semibold text-text mt-1">
+                <Image
+                  src={`/images/zodiac/${encodeURIComponent(result.zodiac)}.webp`}
+                  alt={result.zodiac}
+                  width={150}
+                  height={150}
+                  className="mx-auto rounded-xl"
+                />
+                <h2 className="text-subheading font-semibold text-text">
                   {result.zodiac}
                 </h2>
               </div>
@@ -318,8 +324,14 @@ function PreviewContent() {
             <Card variant="highlighted">
               <p className="text-center text-small text-primary font-semibold mb-2">{name2}</p>
               <div className="text-center mb-4">
-                <span className="text-3xl">{result2.zodiacEmoji}</span>
-                <h2 className="text-subheading font-semibold text-text mt-1">
+                <Image
+                  src={`/images/zodiac/${encodeURIComponent(result2.zodiac)}.webp`}
+                  alt={result2.zodiac}
+                  width={150}
+                  height={150}
+                  className="mx-auto rounded-xl"
+                />
+                <h2 className="text-subheading font-semibold text-text">
                   {result2.zodiac}
                 </h2>
               </div>
@@ -355,8 +367,14 @@ function PreviewContent() {
             {/* 사주팔자 카드 */}
             <Card variant="highlighted">
               <div className="text-center mb-3">
-                <span className="text-3xl">{result.zodiacEmoji}</span>
-                <h2 className="text-subheading font-semibold text-text mt-1">
+                <Image
+                  src={`/images/zodiac/${encodeURIComponent(result.zodiac)}.webp`}
+                  alt={result.zodiac}
+                  width={150}
+                  height={150}
+                  className="mx-auto rounded-xl"
+                />
+                <h2 className="text-subheading font-semibold text-text">
                   {result.zodiac}
                 </h2>
               </div>

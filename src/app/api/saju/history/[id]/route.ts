@@ -48,6 +48,7 @@ export interface ReadingDetailResponse {
     dayMaster: string
     dayMasterKorean: string
     zodiacEmoji: string
+    zodiac: string // 띠 (예: 쥐띠, 소띠)
     dominantElement: string
     weakElement: string
     dayPillarAnimal: string
@@ -111,6 +112,29 @@ function getJiaziAnimalName(ganZhi: string): string {
   const dizhiInfo = DIZHI_INFO[ganZhi[1]]
   if (!tianganInfo || !dizhiInfo) return ''
   return `${tianganInfo.color} ${dizhiInfo.animal}(${tianganInfo.korean}${dizhiInfo.korean}일주)`
+}
+
+// 지지 → 띠 매핑 (이미지 파일명과 일치)
+const DIZHI_TO_ZODIAC: Record<string, string> = {
+  '子': '쥐띠',
+  '丑': '소띠',
+  '寅': '호랑이띠',
+  '卯': '토끼띠',
+  '辰': '용띠',
+  '巳': '뱀띠',
+  '午': '말띠',
+  '未': '양띠',
+  '申': '원숭이띠',
+  '酉': '닭띠',
+  '戌': '개띠',
+  '亥': '돼지띠',
+}
+
+// 연주(年柱)에서 띠 가져오기
+function getZodiacFromYearPillar(yearPillar: string): string {
+  if (!yearPillar || yearPillar.length !== 2) return ''
+  const dizhi = yearPillar[1] // 지지는 두 번째 글자
+  return DIZHI_TO_ZODIAC[dizhi] || ''
 }
 
 // 일간(day master)에 따른 한글명과 이모지 매핑
@@ -246,6 +270,7 @@ export async function GET(
     // 일주 동물 별칭 (예: 황말, 백개)
     const bazi = reading.person1_bazi || { year: '', month: '', day: '', time: null }
     const dayPillarAnimal = getJiaziAnimalName(bazi.day || '')
+    const zodiac = getZodiacFromYearPillar(bazi.year || '')
 
     // 궁합인 경우 person2 데이터 준비
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -286,6 +311,7 @@ export async function GET(
         dayMaster,
         dayMasterKorean: dayMasterInfo.korean,
         zodiacEmoji: dayMasterInfo.emoji,
+        zodiac,
         dominantElement,
         weakElement,
         dayPillarAnimal,
