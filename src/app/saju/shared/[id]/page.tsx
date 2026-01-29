@@ -229,10 +229,10 @@ export default function SharedResultPage() {
     }
   }
 
-  // 공유 URL 생성
+  // 공유 URL 생성 (항상 production URL 사용 - 카카오 도메인 검증)
   const getShareUrl = () => {
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
-    return `${baseUrl}/saju/shared/${id}`
+    const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
+    return `${productionUrl}/saju/shared/${id}`
   }
 
   // 링크 복사

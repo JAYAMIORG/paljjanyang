@@ -781,11 +781,11 @@ function ResultContent() {
     }
   }
 
-  // 공유 URL 생성
+  // 공유 URL 생성 (항상 production URL 사용 - 카카오 도메인 검증)
   const getShareUrl = () => {
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    const productionUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://palzza.app'
     if (readingId) {
-      return `${baseUrl}/saju/shared/${readingId}`
+      return `${productionUrl}/saju/shared/${readingId}`
     }
     return typeof window !== 'undefined' ? window.location.href : ''
   }
