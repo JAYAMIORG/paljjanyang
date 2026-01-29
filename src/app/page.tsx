@@ -26,7 +26,7 @@ export default function LandingPage() {
         />
         <div className="relative max-w-[500px] mx-auto">
           {/* 로고 */}
-          <div className="mb-5 w-full flex justify-center sparkle-container">
+          <div className="mb-5 mt-8 w-full flex justify-center sparkle-container">
             <span className="sparkle-star">✦</span>
             <span className="sparkle-star">✦</span>
             <span className="sparkle-star">✦</span>
@@ -43,11 +43,11 @@ export default function LandingPage() {
               priority
             />
           </div>
-          <p className="mb-4" style={{ fontFamily: 'GanaChocolate, sans-serif', fontSize: '24px', color: '#3a3a3a' }}>
+          <p className="mb-4" style={{ fontFamily: 'GanaChocolate, sans-serif', fontSize: '23px', color: '#3a3a3a' }}>
             880원으로 보는,<br />
             지금 내 인생에 꼭 필요한 사주
           </p>
-          <p className="mb-8" style={{ fontFamily: 'GanaChocolate, sans-serif', fontSize: '16px', color: '#3a3a3a' }}>
+          <p className="mb-8" style={{ fontFamily: 'GanaChocolate, sans-serif', fontSize: '15px', color: '#3a3a3a' }}>
             40년 경력 역술가의 노하우를 담았습니다.
           </p>
 
