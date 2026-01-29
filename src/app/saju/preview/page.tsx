@@ -418,36 +418,39 @@ function PreviewContent() {
           </>
         )}
 
-        {/* CTA 버튼 */}
-        <div className="pt-2">
-          <Button
-            fullWidth
-            size="lg"
-            onClick={handleViewResult}
-            disabled={hasExistingRecord === null}
-          >
-            {hasExistingRecord === null
-              ? '확인 중...'
-              : hasExistingRecord
-                ? existingRecordStatus === 'processing'
-                  ? (isCompatibility ? '💕 궁합 분석 이어보기' : '🔮 분석 이어보기')
-                  : (isCompatibility ? '💕 이전 궁합 결과 보기' : '🔮 이전 분석 결과 보기')
-                : (isCompatibility ? '💕 궁합 분석 보기 (1코인)' : '🔮 전체 해석 보기 (1코인)')
-            }
-          </Button>
-          {/* 보유 코인 또는 기존 기록 안내 */}
-          <p className="text-center text-caption text-text-light mt-2">
-            {hasExistingRecord === null
-              ? '기존 분석 기록을 확인하고 있어요...'
-              : hasExistingRecord
-                ? existingRecordStatus === 'processing'
-                  ? '⏳ 분석 중인 기록이 있어요'
-                  : '✨ 이미 분석한 기록이 있어요'
-                : `보유 코인: ${coinBalance !== null ? coinBalance : '...'} 🪙`
-            }
-          </p>
-        </div>
+        {/* CTA 버튼 높이만큼 여백 */}
+        <div className="h-28"></div>
       </main>
+
+      {/* CTA 버튼 - Sticky */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-gray-100 px-4 py-3 max-w-lg mx-auto">
+        <Button
+          fullWidth
+          size="lg"
+          onClick={handleViewResult}
+          disabled={hasExistingRecord === null}
+        >
+          {hasExistingRecord === null
+            ? '확인 중...'
+            : hasExistingRecord
+              ? existingRecordStatus === 'processing'
+                ? (isCompatibility ? '💕 궁합 분석 이어보기' : '🔮 분석 이어보기')
+                : (isCompatibility ? '💕 이전 궁합 결과 보기' : '🔮 이전 분석 결과 보기')
+              : (isCompatibility ? '💕 궁합 분석 보기 (1코인)' : '🔮 전체 해석 보기 (1코인)')
+          }
+        </Button>
+        {/* 보유 코인 또는 기존 기록 안내 */}
+        <p className="text-center text-caption text-text-light mt-2">
+          {hasExistingRecord === null
+            ? '기존 분석 기록을 확인하고 있어요...'
+            : hasExistingRecord
+              ? existingRecordStatus === 'processing'
+                ? '⏳ 분석 중인 기록이 있어요'
+                : '✨ 이미 분석한 기록이 있어요'
+              : `보유 코인: ${coinBalance !== null ? coinBalance : '...'} 🪙`
+          }
+        </p>
+      </div>
     </div>
   )
 }
