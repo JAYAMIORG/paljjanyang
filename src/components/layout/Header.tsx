@@ -28,13 +28,21 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
     }
   }
 
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      router.back()
+    } else {
+      router.push('/home')
+    }
+  }
+
   const renderBackElement = () => {
     const className = "flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] -ml-2 rounded-full hover:bg-gray-100 transition-colors"
 
     if (useHistoryBack) {
       return (
         <button
-          onClick={() => router.back()}
+          onClick={handleBack}
           aria-label="뒤로 가기"
           className={className}
         >
@@ -105,12 +113,25 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
                 </button>
               </div>
             ) : (
-              <Link
-                href="/auth/login"
-                className="text-small font-medium text-primary hover:underline px-2 py-3 min-h-[44px] flex items-center"
-              >
-                로그인
-              </Link>
+              <div className="flex items-center gap-2">
+                {!isHomePage && (
+                  <>
+                    <Link
+                      href="/home"
+                      className="text-small text-text-muted hover:text-primary transition-colors"
+                    >
+                      홈
+                    </Link>
+                    <span className="text-text-light">/</span>
+                  </>
+                )}
+                <Link
+                  href="/auth/login"
+                  className="text-small font-medium text-primary hover:underline"
+                >
+                  로그인
+                </Link>
+              </div>
             )}
           </div>
         )}
