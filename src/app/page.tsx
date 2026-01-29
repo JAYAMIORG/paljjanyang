@@ -18,15 +18,15 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative px-6 pt-16 pb-12 text-center min-h-svh flex flex-col justify-center">
+      <section className="relative px-6 text-center min-h-svh flex flex-col justify-center">
         {/* 배경 이미지 */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-90"
           style={{ backgroundImage: "url('/images/main-bg-4.webp')" }}
         />
-        <div className="relative max-w-[500px] mx-auto">
+        <div className="relative max-w-[500px] mx-auto translate-y-[5%]">
           {/* 로고 */}
-          <div className="mb-5 mt-8 w-full flex justify-center sparkle-container">
+          <div className="mb-5 w-full flex justify-center sparkle-container">
             <span className="sparkle-star">✦</span>
             <span className="sparkle-star">✦</span>
             <span className="sparkle-star">✦</span>
@@ -43,11 +43,11 @@ export default function LandingPage() {
               priority
             />
           </div>
-          <p className="mb-4" style={{ fontFamily: 'GanaChocolate, sans-serif', fontSize: '23px', color: '#3a3a3a' }}>
+          <p className="mb-4 text-[19px] sm:text-[23px]" style={{ fontFamily: 'GanaChocolate, sans-serif', color: '#3a3a3a' }}>
             880원으로 보는,<br />
             지금 내 인생에 꼭 필요한 사주
           </p>
-          <p className="mb-8" style={{ fontFamily: 'GanaChocolate, sans-serif', fontSize: '15px', color: '#3a3a3a' }}>
+          <p className="mb-8 text-[13px] sm:text-[15px]" style={{ fontFamily: 'GanaChocolate, sans-serif', color: '#3a3a3a' }}>
             40년 경력 역술가의 노하우를 담았습니다.
           </p>
 
