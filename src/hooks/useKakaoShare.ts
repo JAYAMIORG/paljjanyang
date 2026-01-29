@@ -96,6 +96,8 @@ export function useKakaoShare() {
 
       const baseUrl = window.location.origin
       const contentUrl = shareUrl || window.location.href
+      const finalImageUrl = imageUrl || `${baseUrl}/images/animals/test.jpg`
+      const isMobileNow = isMobileDevice()
 
       try {
         // Kakao.Share가 없으면 Kakao.Link 사용 (구버전 호환)
@@ -105,12 +107,50 @@ export function useKakaoShare() {
           return false
         }
 
+        // PC에서는 카카오톡 웹 공유 페이지 사용 (팝업)
+        if (!isMobileNow) {
+          const kakaoKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
+          // 카카오 웹 공유 URL 생성
+          const templateArgs = {
+            objectType: 'feed',
+            content: {
+              title,
+              description,
+              imageUrl: finalImageUrl,
+              link: {
+                mobileWebUrl: contentUrl,
+                webUrl: contentUrl,
+              },
+            },
+            buttons: [
+              {
+                title: buttonText,
+                link: {
+                  mobileWebUrl: contentUrl,
+                  webUrl: contentUrl,
+                },
+              },
+            ],
+          }
+
+          // 카카오 피커(친구 선택) 웹 공유
+          const pickerUrl = `https://sharer.kakao.com/talk/friends/picker/link?app_key=${kakaoKey}&ka=sdk%2F1.43.0%20os%2Fjavascript%20sdk_type%2Fjavascript%20lang%2Fko-KR%20device%2FWin32%20origin%2F${encodeURIComponent(window.location.origin)}&link_ver=4.0&template_object=${encodeURIComponent(JSON.stringify(templateArgs))}`
+
+          const popup = window.open(pickerUrl, 'kakao_share', 'width=480,height=700,scrollbars=yes')
+          if (popup) {
+            popup.focus()
+            return true
+          }
+          return false
+        }
+
+        // 모바일에서는 SDK 사용 (앱 실행)
         shareMethod({
           objectType: 'feed',
           content: {
             title,
             description,
-            imageUrl: imageUrl || `${baseUrl}/images/animals/test.jpg`,
+            imageUrl: finalImageUrl,
             link: {
               mobileWebUrl: contentUrl,
               webUrl: contentUrl,
