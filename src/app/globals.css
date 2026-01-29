@@ -169,6 +169,94 @@
   animation: progress-indeterminate 2s ease-in-out infinite;
 }
 
+/* 반짝이는 별빛 효과 */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.sparkle-container {
+  position: relative;
+}
+
+.sparkle-container::before,
+.sparkle-container::after {
+  content: '✦';
+  position: absolute;
+  color: #FFD700;
+  font-size: 32px;
+  animation: sparkle 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.sparkle-container::before {
+  top: 10%;
+  left: 5%;
+  animation-delay: 0s;
+}
+
+.sparkle-container::after {
+  top: 15%;
+  right: 8%;
+  animation-delay: 0.7s;
+}
+
+/* 추가 별빛 (span으로 구현) */
+.sparkle-star {
+  position: absolute;
+  color: #FFD700;
+  animation: sparkle 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.sparkle-star:nth-child(1) {
+  top: 25%;
+  left: 12%;
+  font-size: 30px;
+  animation-delay: 0.3s;
+}
+
+.sparkle-star:nth-child(2) {
+  top: 8%;
+  right: 15%;
+  font-size: 34px;
+  animation-delay: 1s;
+}
+
+.sparkle-star:nth-child(3) {
+  top: 30%;
+  right: 5%;
+  font-size: 28px;
+  animation-delay: 1.5s;
+}
+
+.sparkle-star:nth-child(4) {
+  top: 5%;
+  left: 20%;
+  font-size: 32px;
+  animation-delay: 0.5s;
+}
+
+.sparkle-star:nth-child(5) {
+  top: 18%;
+  left: 3%;
+  font-size: 26px;
+  animation-delay: 0.8s;
+}
+
+.sparkle-star:nth-child(6) {
+  top: 12%;
+  right: 3%;
+  font-size: 28px;
+  animation-delay: 1.3s;
+}
+
 /* Base Styles */
 body {
   background-color: var(--color-background);

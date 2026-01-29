@@ -26,7 +26,13 @@ export default function LandingPage() {
         />
         <div className="relative max-w-[500px] mx-auto">
           {/* 로고 */}
-          <div className="mb-5 w-full flex justify-center">
+          <div className="mb-5 w-full flex justify-center sparkle-container">
+            <span className="sparkle-star">✦</span>
+            <span className="sparkle-star">✦</span>
+            <span className="sparkle-star">✦</span>
+            <span className="sparkle-star">✦</span>
+            <span className="sparkle-star">✦</span>
+            <span className="sparkle-star">✦</span>
             <Image
               src={isEyeOpen ? '/images/logo-opened.webp' : '/images/logo-closed.webp'}
               alt="팔자냥"
