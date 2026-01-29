@@ -100,6 +100,54 @@ export function JsonLd() {
     },
   }
 
+  // 사이트 네비게이션 (사이트링크용)
+  const siteNavigationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: [
+      {
+        '@type': 'SiteNavigationElement',
+        position: 1,
+        name: '개인 사주',
+        description: '사주팔자와 대운을 기반으로 한 인생 전체 분석',
+        url: `${baseUrl}/home`,
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        position: 2,
+        name: '2026 신년운세',
+        description: '세운과 월운을 기반으로 한 올해 월별 운세',
+        url: `${baseUrl}/home`,
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        position: 3,
+        name: '궁합',
+        description: '두 사람의 사주 궁합 분석',
+        url: `${baseUrl}/home`,
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        position: 4,
+        name: '연애운',
+        description: '연애와 결혼 관련 운세 분석',
+        url: `${baseUrl}/home`,
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        position: 5,
+        name: '이용약관',
+        url: `${baseUrl}/terms`,
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        position: 6,
+        name: '개인정보처리방침',
+        url: `${baseUrl}/privacy`,
+      },
+    ],
+  }
+
   return (
     <>
       <script
@@ -117,6 +165,10 @@ export function JsonLd() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(siteNavigationSchema) }}
       />
     </>
   )
