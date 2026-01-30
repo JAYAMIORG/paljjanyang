@@ -71,10 +71,28 @@ function parseJsonResponse(text: string): DailyInterpretation | null {
   }
 }
 
-// 오늘 날짜 문자열 (YYYY-MM-DD)
-function getTodayString(): string {
-  const today = new Date()
-  return today.toISOString().split('T')[0]
+// 한국 시간 기준 오늘 날짜 정보
+function getKoreaTodayInfo(): {
+  dateString: string      // YYYY-MM-DD (캐시 키용)
+  startUTC: string        // 오늘 00:00 KST in UTC (DB 쿼리용)
+  endUTC: string          // 오늘 23:59:59 KST in UTC (DB 쿼리용)
+} {
+  const now = new Date()
+  const KST_OFFSET = 9 * 60 * 60 * 1000
+
+  // 한국 시간으로 변환하여 날짜 추출
+  const koreaTime = new Date(now.getTime() + KST_OFFSET)
+  const dateString = koreaTime.toISOString().split('T')[0]
+
+  // 한국 자정 00:00:00을 UTC로 변환
+  const kstMidnight = new Date(`${dateString}T00:00:00+09:00`)
+  const kstEndOfDay = new Date(`${dateString}T23:59:59+09:00`)
+
+  return {
+    dateString,
+    startUTC: kstMidnight.toISOString(),
+    endUTC: kstEndOfDay.toISOString(),
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -123,7 +141,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const todayString = getTodayString()
+    const todayInfo = getKoreaTodayInfo()
 
     // birthDate 파싱 및 person 찾기/생성
     let resolvedPersonId: string | null = personId || null
@@ -179,8 +197,8 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .eq('type', 'daily')
       .eq('korean_ganji', sajuResult.koreanGanji)
-      .gte('created_at', `${todayString}T00:00:00`)
-      .lt('created_at', `${todayString}T23:59:59`)
+      .gte('created_at', todayInfo.startUTC)
+      .lt('created_at', todayInfo.endUTC)
       .order('created_at', { ascending: false })
       .limit(1)
       .single()
@@ -213,7 +231,7 @@ export async function POST(request: NextRequest) {
       type: 'daily',
       bazi: sajuResult.bazi,
       gender,
-      date: todayString,
+      date: todayInfo.dateString,
     })
 
     const adminClient = createAdminClient()

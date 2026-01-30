@@ -23,10 +23,8 @@ export function Header({ showBack = false, title, backHref = '/', useHistoryBack
   const isMyPage = pathname === '/mypage'
 
   const handleSignOut = async () => {
-    if (window.confirm('로그아웃 하시겠어요?')) {
-      await signOut()
-      router.push('/')
-    }
+    await signOut()
+    router.push('/')
   }
 
   const handleBack = () => {
