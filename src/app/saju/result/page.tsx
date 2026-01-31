@@ -332,7 +332,9 @@ function ResultContent() {
             }
             // processing 또는 failed 상태인 경우 해석 재시도
             if (needsInterpretation && savedData) {
+              // 로딩 상태를 유지하면서 해석 시작
               setIsLoading(false)
+              setIsInterpretLoading(true) // 해석 로딩 화면 표시
               // hasSavedRef.current가 true이고 readingId가 설정되어 있으므로
               // useEffect에서 자동으로 해석을 시도함
             } else {
@@ -551,6 +553,64 @@ function ResultContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, user])
 
+  // LLM 해석 요청 함수 (useCallback으로 추출 - visibilitychange에서도 사용)
+  const fetchInterpretation = useCallback(async (
+    currentResult: SajuResult,
+    currentResult2: SajuResult | null,
+    currentReadingId: string
+  ) => {
+    setIsInterpretLoading(true)
+    let isRedirecting = false
+    try {
+      // 저장된 reading에서 불러온 값 우선 사용, 없으면 URL 파라미터 사용
+      const effectiveGender = savedGender || gender
+      const effectiveGender2 = savedGender2 || gender2
+      const effectiveName1 = savedName1 || name1
+      const effectiveName2 = savedName2 || name2
+
+      // 궁합인 경우 두 사람 정보 모두 전달 + readingId 추가
+      const requestBody = isCompatibility
+        ? {
+            type,
+            sajuResult: currentResult,
+            gender: effectiveGender,
+            sajuResult2: currentResult2,
+            gender2: effectiveGender2,
+            name1: effectiveName1,
+            name2: effectiveName2,
+            readingId: currentReadingId,
+          }
+        : {
+            type,
+            sajuResult: currentResult,
+            gender: effectiveGender,
+            readingId: currentReadingId,
+          }
+
+      const response = await fetch('/api/saju/interpret', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        // 해석 완료 - 공유 페이지로 리다이렉트 (로딩 상태 유지)
+        isRedirecting = true
+        router.replace(`/saju/shared/${currentReadingId}`)
+        return
+      }
+      // LLM 실패해도 reading은 이미 저장되어 있음 (status='processing')
+    } catch {
+      // LLM 실패해도 reading은 이미 저장되어 있음 (status='processing')
+    } finally {
+      // 리다이렉트 중이면 로딩 상태 유지 (플래시 방지)
+      if (!isRedirecting) {
+        setIsInterpretLoading(false)
+      }
+    }
+  }, [savedGender, savedGender2, savedName1, savedName2, gender, gender2, name1, name2, isCompatibility, type, router])
+
   // LLM 해석 요청 (선저장 후해석 패턴: readingId가 있는 경우만 실행)
   useEffect(() => {
     if (!result || !user) return
@@ -565,62 +625,9 @@ function ResultContent() {
     // (새로 계산된 결과에서 use-coin을 통해 reading이 생성된 경우)
     if (!readingId || !hasSavedRef.current) return
 
-    const fetchInterpretation = async () => {
-      setIsInterpretLoading(true)
-      let isRedirecting = false
-      try {
-        // 저장된 reading에서 불러온 값 우선 사용, 없으면 URL 파라미터 사용
-        const effectiveGender = savedGender || gender
-        const effectiveGender2 = savedGender2 || gender2
-        const effectiveName1 = savedName1 || name1
-        const effectiveName2 = savedName2 || name2
-
-        // 궁합인 경우 두 사람 정보 모두 전달 + readingId 추가
-        const requestBody = isCompatibility
-          ? {
-              type,
-              sajuResult: result,
-              gender: effectiveGender,
-              sajuResult2: result2,
-              gender2: effectiveGender2,
-              name1: effectiveName1,
-              name2: effectiveName2,
-              readingId, // 선저장된 reading ID
-            }
-          : {
-              type,
-              sajuResult: result,
-              gender: effectiveGender,
-              readingId, // 선저장된 reading ID
-            }
-
-        const response = await fetch('/api/saju/interpret', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody),
-        })
-
-        const data = await response.json()
-        if (data.success) {
-          // 해석 완료 - 공유 페이지로 리다이렉트 (로딩 상태 유지)
-          isRedirecting = true
-          router.replace(`/saju/shared/${readingId}`)
-          return
-        }
-        // LLM 실패해도 reading은 이미 저장되어 있음 (status='processing')
-      } catch {
-        // LLM 실패해도 reading은 이미 저장되어 있음 (status='processing')
-      } finally {
-        // 리다이렉트 중이면 로딩 상태 유지 (플래시 방지)
-        if (!isRedirecting) {
-          setIsInterpretLoading(false)
-        }
-      }
-    }
-
-    fetchInterpretation()
+    fetchInterpretation(result, result2, readingId)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result, result2, readingId, savedGender, savedGender2])
+  }, [result, result2, readingId, fetchInterpretation])
 
   // 공유 보상 수령 여부 확인
   useEffect(() => {
@@ -640,6 +647,86 @@ function ResultContent() {
 
     checkShareRewardStatus()
   }, [user])
+
+  // 앱 전환 후 복귀 시 reading 상태 재확인 (visibilitychange)
+  useEffect(() => {
+    // readingId가 있을 때만 동작
+    if (!readingId) return
+
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        // 이미 interpretation이 있으면 스킵
+        if (interpretation) return
+
+        // 이미 해석 중이면 스킵
+        if (isInterpretLoading) return
+
+        // 앱으로 돌아왔을 때 reading 상태 재확인
+        try {
+          const response = await fetch(`/api/saju/history/${readingId}`)
+          const data = await response.json()
+
+          if (data.success && data.data) {
+            const status = data.data.status || 'completed'
+
+            // 해석이 완료되었으면 shared 페이지로 리다이렉트
+            if (data.data.interpretation && status === 'completed') {
+              router.replace(`/saju/shared/${readingId}`)
+              return
+            }
+
+            // 아직 processing 중이거나 failed 상태면 해석 재시도
+            if (status === 'processing' || status === 'failed') {
+              // result가 있으면 바로 해석 시도
+              if (result) {
+                hasSavedRef.current = true
+                fetchInterpretation(result, result2, readingId)
+              } else {
+                // result가 없으면 result 설정 후 해석 시도
+                const result1 = buildResultFromData(data.data)
+                let result2Value: SajuResult | null = null
+
+                // 궁합인 경우 두 번째 사람도 설정
+                if (data.data.type === 'compatibility' && data.data.person2) {
+                  const p2 = data.data.person2
+                  result2Value = {
+                    bazi: p2.bazi,
+                    wuXing: p2.wuXing,
+                    dayMaster: p2.dayMaster,
+                    dayMasterKorean: p2.dayMasterKorean,
+                    koreanGanji: '',
+                    zodiacEmoji: p2.zodiacEmoji,
+                    dominantElement: p2.dominantElement,
+                    weakElement: p2.weakElement,
+                    shiShen: { yearGan: '', monthGan: '', hourGan: null },
+                    zodiac: '',
+                    naYin: '',
+                    dayPillarAnimal: '',
+                    dayNaYin: '',
+                  }
+                  setResult2(result2Value)
+                }
+
+                setResult(result1)
+                hasSavedRef.current = true
+
+                // 직접 해석 호출 (state 업데이트 기다리지 않고)
+                fetchInterpretation(result1, result2Value, readingId)
+              }
+            }
+          }
+        } catch {
+          // 에러 무시
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [readingId, interpretation, router, result, result2, isInterpretLoading, fetchInterpretation])
 
   // 공유 보상 요청
   const claimShareReward = async () => {
