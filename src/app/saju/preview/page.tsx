@@ -313,10 +313,10 @@ function PreviewContent() {
                 </h2>
               </div>
               <div className="grid grid-cols-4 gap-2 text-center mb-2">
-                <PillarCard label="년주" value={result.bazi.year} />
-                <PillarCard label="월주" value={result.bazi.month} />
-                <PillarCard label="일주" value={result.bazi.day} />
                 <PillarCard label="시주" value={result.bazi.hour || '—'} disabled={!result.bazi.hour} />
+                <PillarCard label="일주" value={result.bazi.day} />
+                <PillarCard label="월주" value={result.bazi.month} />
+                <PillarCard label="년주" value={result.bazi.year} />
               </div>
               <p className="text-center text-caption text-text-muted">{result.koreanGanji}</p>
               {result.isLeapMonth && (
@@ -345,10 +345,10 @@ function PreviewContent() {
                 </h2>
               </div>
               <div className="grid grid-cols-4 gap-2 text-center mb-2">
-                <PillarCard label="년주" value={result2.bazi.year} />
-                <PillarCard label="월주" value={result2.bazi.month} />
-                <PillarCard label="일주" value={result2.bazi.day} />
                 <PillarCard label="시주" value={result2.bazi.hour || '—'} disabled={!result2.bazi.hour} />
+                <PillarCard label="일주" value={result2.bazi.day} />
+                <PillarCard label="월주" value={result2.bazi.month} />
+                <PillarCard label="년주" value={result2.bazi.year} />
               </div>
               <p className="text-center text-caption text-text-muted">{result2.koreanGanji}</p>
               {result2.isLeapMonth && (
@@ -393,14 +393,14 @@ function PreviewContent() {
 
               {/* 사주팔자 표시 */}
               <div className="grid grid-cols-4 gap-2 text-center mb-3">
-                <PillarCard label="년주" value={result.bazi.year} />
-                <PillarCard label="월주" value={result.bazi.month} />
-                <PillarCard label="일주" value={result.bazi.day} />
                 <PillarCard
                   label="시주"
                   value={result.bazi.hour || '—'}
                   disabled={!result.bazi.hour}
                 />
+                <PillarCard label="일주" value={result.bazi.day} />
+                <PillarCard label="월주" value={result.bazi.month} />
+                <PillarCard label="년주" value={result.bazi.year} />
               </div>
 
               <p className="text-center text-caption text-text-muted">
