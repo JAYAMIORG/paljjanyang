@@ -1250,36 +1250,20 @@ function ResultContent() {
               </svg>
             </button>
           </div>
-          {!shareRewardClaimed ? (
-            <p className="text-center text-small text-accent mt-3">
-              공유하면 1코인 적립!
-            </p>
-          ) : (
-            <p className="text-center text-small text-text-muted mt-3">
-              친구에게 결과를 공유해보세요
-            </p>
-          )}
+          <p className="text-center text-small text-text-muted mt-3">
+            친구에게 결과를 공유해보세요
+          </p>
         </Card>
 
-        {/* 다른 사주 보기 버튼 */}
+        {/* 나도 사주 보러가기 버튼 */}
         <Button
-          variant="secondary"
           fullWidth
           onClick={() => router.push('/home')}
         >
-          다른 사주 보러가기
+          나도 사주 보러가기
         </Button>
       </main>
 
-      {/* 공유 보상 토스트 */}
-      {showRewardToast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 animate-bounce">
-          <div className="bg-primary text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2">
-            <span className="text-xl">🎉</span>
-            <span className="font-medium">1코인 적립 완료!</span>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
