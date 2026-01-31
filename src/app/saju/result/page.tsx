@@ -940,7 +940,7 @@ function ResultContent() {
           '운명을 해석하고 있어요...'
         }
         showProgress={isWaitingForInterpretation}
-        subMessage={isWaitingForInterpretation ? '최대 60초까지 걸릴 수 있어요' : undefined}
+        subMessage={isWaitingForInterpretation ? '화면을 끄거나 이탈하지마세요' : undefined}
         exitHint={isWaitingForInterpretation ? '화면 이탈 시, 마이페이지에서 확인 가능해요' : undefined}
       />
     )
