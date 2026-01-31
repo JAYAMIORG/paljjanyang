@@ -562,12 +562,13 @@ export default function SajuInputPage() {
             <input
               type="radio"
               name="calendar"
-              checked={formData.isLunar && !formData.isLeapMonth}
+              checked={formData.isLunar}
               onChange={() => setFormData({ ...formData, isLunar: true, isLeapMonth: false })}
               className="w-4 h-4 text-primary focus:ring-primary"
             />
             <span className="text-body text-text">음력</span>
           </label>
+          {/* 음력(윤달) 버튼 - 추후 필요 시 활성화
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
@@ -578,6 +579,7 @@ export default function SajuInputPage() {
             />
             <span className="text-body text-text">음력(윤달)</span>
           </label>
+          */}
         </div>
 
         {/* 썸머타임 안내 */}
