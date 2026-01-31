@@ -29,6 +29,9 @@ export async function POST(request: NextRequest) {
       birthHour: body.birthHour !== null && body.birthHour !== undefined
         ? Number(body.birthHour)
         : null,
+      birthMinute: body.birthMinute !== null && body.birthMinute !== undefined
+        ? Number(body.birthMinute)
+        : 0,
       isLunar: Boolean(body.isLunar),
       isLeapMonth: Boolean(body.isLeapMonth),
       gender: body.gender as 'male' | 'female',

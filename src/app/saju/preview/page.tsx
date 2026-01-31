@@ -34,6 +34,7 @@ function PreviewContent() {
         const month = searchParams.get('month')
         const day = searchParams.get('day')
         const hour = searchParams.get('hour')
+        const minute = searchParams.get('minute')
         const lunar = searchParams.get('lunar')
         const gender = searchParams.get('gender')
 
@@ -52,6 +53,7 @@ function PreviewContent() {
             birthMonth: parseInt(month),
             birthDay: parseInt(day),
             birthHour: hour && parseInt(hour) >= 0 ? parseInt(hour) : null,
+            birthMinute: minute ? parseInt(minute) : 0,
             isLunar: lunar === '1',
             isLeapMonth: false,
             gender,
@@ -74,6 +76,7 @@ function PreviewContent() {
           const month2 = searchParams.get('month2')
           const day2 = searchParams.get('day2')
           const hour2 = searchParams.get('hour2')
+          const minute2 = searchParams.get('minute2')
           const lunar2 = searchParams.get('lunar2')
           const gender2 = searchParams.get('gender2')
 
@@ -91,6 +94,7 @@ function PreviewContent() {
               birthMonth: parseInt(month2),
               birthDay: parseInt(day2),
               birthHour: hour2 && parseInt(hour2) >= 0 ? parseInt(hour2) : null,
+              birthMinute: minute2 ? parseInt(minute2) : 0,
               isLunar: lunar2 === '1',
               isLeapMonth: false,
               gender: gender2,

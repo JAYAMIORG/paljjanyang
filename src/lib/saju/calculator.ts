@@ -48,7 +48,7 @@ function adjustToTrueSolarTime(
  * lunar-typescript 라이브러리를 사용하여 사주 정보를 계산합니다.
  */
 export function calculateSaju(request: SajuCalculateRequest): SajuResult {
-  const { birthYear, birthMonth, birthDay, birthHour, isLunar, isLeapMonth, gender } = request
+  const { birthYear, birthMonth, birthDay, birthHour, birthMinute, isLunar, isLeapMonth, gender } = request
 
   // Solar/Lunar 객체 생성
   let lunar: Lunar
@@ -67,18 +67,33 @@ export function calculateSaju(request: SajuCalculateRequest): SajuResult {
   }
 
   // 시간이 있는 경우 시간 포함하여 재계산 (진태양시 보정 적용)
+  // 전통 방식: 진태양시 보정으로 날짜가 바뀌더라도 일주는 원래 입력한 날짜 사용
+  // 시주만 보정된 시간으로 계산
   let eightChar
+  let eightCharForTime // 시주 계산용 (진태양시 보정 적용)
+
   if (birthHour !== null && birthHour !== undefined) {
-    // 진태양시 보정 적용 (서울 기준)
+    // 원래 날짜 + 시간으로 년주/월주/일주 계산
+    const solarOriginal = Solar.fromYmdHms(
+      lunar.getSolar().getYear(),
+      lunar.getSolar().getMonth(),
+      lunar.getSolar().getDay(),
+      birthHour,
+      birthMinute ?? 0,
+      0
+    )
+    eightChar = solarOriginal.getLunar().getEightChar()
+
+    // 진태양시 보정 적용하여 시주만 계산 (서울 기준)
     const adjusted = adjustToTrueSolarTime(
       lunar.getSolar().getYear(),
       lunar.getSolar().getMonth(),
       lunar.getSolar().getDay(),
       birthHour,
-      0
+      birthMinute ?? 0
     )
 
-    const solarWithTime = Solar.fromYmdHms(
+    const solarAdjusted = Solar.fromYmdHms(
       adjusted.year,
       adjusted.month,
       adjusted.day,
@@ -86,17 +101,19 @@ export function calculateSaju(request: SajuCalculateRequest): SajuResult {
       adjusted.minute,
       0
     )
-    eightChar = solarWithTime.getLunar().getEightChar()
+    eightCharForTime = solarAdjusted.getLunar().getEightChar()
   } else {
     eightChar = lunar.getEightChar()
+    eightCharForTime = eightChar
   }
 
   // 사주팔자 추출
+  // 년주/월주/일주는 원래 날짜 기준, 시주는 진태양시 보정된 시간 기준
   const bazi: Bazi = {
     year: eightChar.getYear(),
     month: eightChar.getMonth(),
     day: eightChar.getDay(),
-    hour: birthHour !== null && birthHour !== undefined ? eightChar.getTime() : null,
+    hour: birthHour !== null && birthHour !== undefined ? eightCharForTime.getTime() : null,
   }
 
   // 한글 간지 생성
@@ -107,14 +124,14 @@ export function calculateSaju(request: SajuCalculateRequest): SajuResult {
   const dayMasterWuXing = getDayMasterWuXing(dayMaster)
   const dayMasterKorean = `${TIANGAN_KOREAN[dayMaster] || dayMaster}${dayMasterWuXing}`
 
-  // 오행 분석
-  const wuXing = calculateWuXing(eightChar, birthHour !== null && birthHour !== undefined)
+  // 오행 분석 (시주는 진태양시 보정된 것 사용)
+  const wuXing = calculateWuXingWithSeparateTime(eightChar, eightCharForTime, birthHour !== null && birthHour !== undefined)
 
-  // 십신
+  // 십신 (시주 십신은 진태양시 보정된 것 사용)
   const shiShen: ShiShen = {
     yearGan: eightChar.getYearShiShenGan(),
     monthGan: eightChar.getMonthShiShenGan(),
-    hourGan: birthHour !== null && birthHour !== undefined ? eightChar.getTimeShiShenGan() : null,
+    hourGan: birthHour !== null && birthHour !== undefined ? eightCharForTime.getTimeShiShenGan() : null,
   }
 
   // 띠
@@ -231,6 +248,71 @@ function calculateWuXing(eightChar: ReturnType<Lunar['getEightChar']>, hasHour: 
   })
 
   // 백분율로 변환
+  const total = Object.values(count).reduce((a, b) => a + b, 0)
+
+  return {
+    wood: Math.round((count.wood / total) * 100),
+    fire: Math.round((count.fire / total) * 100),
+    earth: Math.round((count.earth / total) * 100),
+    metal: Math.round((count.metal / total) * 100),
+    water: Math.round((count.water / total) * 100),
+  }
+}
+
+/**
+ * 오행 비율 계산 (시주는 별도 eightChar에서 가져옴)
+ * 전통 방식: 년주/월주/일주는 원래 날짜, 시주는 진태양시 보정된 시간
+ */
+function calculateWuXingWithSeparateTime(
+  eightChar: ReturnType<Lunar['getEightChar']>,
+  eightCharForTime: ReturnType<Lunar['getEightChar']>,
+  hasHour: boolean
+): WuXing {
+  const elements: string[] = []
+
+  // 년주 (원래 날짜 기준)
+  elements.push(eightChar.getYearGan())
+  elements.push(eightChar.getYearZhi())
+
+  // 월주 (원래 날짜 기준)
+  elements.push(eightChar.getMonthGan())
+  elements.push(eightChar.getMonthZhi())
+
+  // 일주 (원래 날짜 기준)
+  elements.push(eightChar.getDayGan())
+  elements.push(eightChar.getDayZhi())
+
+  // 시주 (진태양시 보정된 시간 기준)
+  if (hasHour) {
+    elements.push(eightCharForTime.getTimeGan())
+    elements.push(eightCharForTime.getTimeZhi())
+  }
+
+  // 오행별 개수 카운트
+  const count = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 }
+
+  const ganWuXing: Record<string, keyof typeof count> = {
+    '甲': 'wood', '乙': 'wood',
+    '丙': 'fire', '丁': 'fire',
+    '戊': 'earth', '己': 'earth',
+    '庚': 'metal', '辛': 'metal',
+    '壬': 'water', '癸': 'water',
+  }
+
+  const zhiWuXing: Record<string, keyof typeof count> = {
+    '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood',
+    '辰': 'earth', '巳': 'fire', '午': 'fire', '未': 'earth',
+    '申': 'metal', '酉': 'metal', '戌': 'earth', '亥': 'water',
+  }
+
+  elements.forEach((el) => {
+    if (ganWuXing[el]) {
+      count[ganWuXing[el]]++
+    } else if (zhiWuXing[el]) {
+      count[zhiWuXing[el]]++
+    }
+  })
+
   const total = Object.values(count).reduce((a, b) => a + b, 0)
 
   return {

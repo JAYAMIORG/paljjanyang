@@ -259,6 +259,7 @@ export default function SajuInputPage() {
     month: person.birth_month.toString(),
     day: person.birth_day.toString(),
     hour: (person.birth_hour ?? -1).toString(),
+    minute: '0',  // 저장된 인물은 minute 정보가 없으므로 0으로 처리
     lunar: person.is_lunar ? '1' : '0',
     gender: person.gender,
   })
@@ -266,12 +267,13 @@ export default function SajuInputPage() {
   // 폼 데이터를 URL 파라미터로 변환
   const formToParams = () => {
     const { year, month, day } = parseBirthDate(formData.birthDate)
-    const { hour } = parseBirthTime(formData.birthTime)
+    const { hour, minute } = parseBirthTime(formData.birthTime)
     return {
       year,
       month,
       day,
       hour: hour || '-1',
+      minute: minute || '0',
       lunar: formData.isLunar ? '1' : '0',
       gender: formData.gender,
     }
@@ -322,6 +324,7 @@ export default function SajuInputPage() {
       month: params1.month,
       day: params1.day,
       hour: params1.hour,
+      minute: params1.minute,
       lunar: params1.lunar,
       gender: params1.gender,
       name1: selectedPerson1.name,
@@ -330,6 +333,7 @@ export default function SajuInputPage() {
       month2: params2.month,
       day2: params2.day,
       hour2: params2.hour,
+      minute2: params2.minute,
       lunar2: params2.lunar,
       gender2: params2.gender,
       name2: selectedPerson2.name,

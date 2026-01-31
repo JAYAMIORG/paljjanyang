@@ -3,9 +3,10 @@ export interface SajuCalculateRequest {
   birthYear: number
   birthMonth: number
   birthDay: number
-  birthHour?: number | null  // 0-23, null이면 시주 제외
-  isLunar: boolean           // 음력 여부
-  isLeapMonth: boolean       // 윤달 여부
+  birthHour?: number | null    // 0-23, null이면 시주 제외
+  birthMinute?: number | null  // 0-59, 진태양시 보정에 사용
+  isLunar: boolean             // 음력 여부
+  isLeapMonth: boolean         // 윤달 여부
   gender: 'male' | 'female'
 }
 
