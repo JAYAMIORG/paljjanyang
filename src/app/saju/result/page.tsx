@@ -927,9 +927,8 @@ function ResultContent() {
   // 해석 대기 중 여부 판단:
   // - isInterpretLoading이 true이거나
   // - readingId가 있고 result가 있는데 interpretation이 없는 경우 (아직 해석 완료 안됨)
-  // - 오늘의 운세(daily)는 제외 (interpretation이 API 응답에 포함됨)
   const isWaitingForInterpretation = isInterpretLoading ||
-    (!!readingId && !!result && !interpretation && type !== 'daily')
+    (!!readingId && !!result && !interpretation)
 
   // 인증 로딩, 사주 계산 중, LLM 해석 로딩 중일 때 전체 로딩 화면 표시
   if (authLoading || isLoading || isWaitingForInterpretation) {
