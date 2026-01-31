@@ -480,8 +480,8 @@ function BaziGrid({ bazi }: { bazi: { year: string; month: string; day: string; 
           return (
             <div key={`gan-${pillar.label}`} className="text-center">
               <div className="rounded-lg p-2 bg-gray-100 opacity-40">
-                <p className="text-xl font-serif text-gray-400">—</p>
-                <p className="text-[10px] text-gray-400">—</p>
+                <p className="text-2xl font-bold text-gray-400">—</p>
+                <p className="text-xs font-medium text-gray-400">—</p>
               </div>
             </div>
           )
@@ -495,8 +495,8 @@ function BaziGrid({ bazi }: { bazi: { year: string; month: string; day: string; 
         return (
           <div key={`gan-${pillar.label}`} className="text-center">
             <div className={`rounded-lg p-2 ${bgColor}`}>
-              <p className={`text-xl font-serif ${textColor}`}>{gan}</p>
-              <p className={`text-[10px] ${textColor} opacity-90`}>
+              <p className={`text-2xl font-bold ${textColor}`}>{gan}</p>
+              <p className={`text-xs font-medium ${textColor} opacity-90`}>
                 {ganInfo.yinYang}{ganInfo.korean}, {ganInfo.elementKr}
               </p>
             </div>
@@ -510,8 +510,8 @@ function BaziGrid({ bazi }: { bazi: { year: string; month: string; day: string; 
           return (
             <div key={`zhi-${pillar.label}`} className="text-center">
               <div className="rounded-lg p-2 bg-gray-100 opacity-40">
-                <p className="text-xl font-serif text-gray-400">—</p>
-                <p className="text-[10px] text-gray-400">—</p>
+                <p className="text-2xl font-bold text-gray-400">—</p>
+                <p className="text-xs font-medium text-gray-400">—</p>
               </div>
             </div>
           )
@@ -525,8 +525,8 @@ function BaziGrid({ bazi }: { bazi: { year: string; month: string; day: string; 
         return (
           <div key={`zhi-${pillar.label}`} className="text-center">
             <div className={`rounded-lg p-2 ${bgColor}`}>
-              <p className={`text-xl font-serif ${textColor}`}>{zhi}</p>
-              <p className={`text-[10px] ${textColor} opacity-90`}>
+              <p className={`text-2xl font-bold ${textColor}`}>{zhi}</p>
+              <p className={`text-xs font-medium ${textColor} opacity-90`}>
                 {zhiInfo.yinYang}{zhiInfo.korean}, {zhiInfo.elementKr}
               </p>
             </div>
