@@ -314,7 +314,6 @@ function PreviewContent() {
                 </h2>
               </div>
               <BaziGrid bazi={result.bazi} />
-              <p className="text-center text-caption text-text-muted mt-2">{result.koreanGanji}</p>
               {result.isLeapMonth && (
                 <p className="text-center text-caption text-primary mt-1">※ 윤달(閏月) 적용</p>
               )}
@@ -341,7 +340,6 @@ function PreviewContent() {
                 </h2>
               </div>
               <BaziGrid bazi={result2.bazi} />
-              <p className="text-center text-caption text-text-muted">{result2.koreanGanji}</p>
               {result2.isLeapMonth && (
                 <p className="text-center text-caption text-primary mt-1">※ 윤달(閏月) 적용</p>
               )}
@@ -384,10 +382,6 @@ function PreviewContent() {
 
               {/* 사주팔자 2x4 그리드 */}
               <BaziGrid bazi={result.bazi} />
-
-              <p className="text-center text-caption text-text-muted mt-3">
-                {result.koreanGanji}
-              </p>
 
               {/* 윤달 적용 안내 */}
               {result.isLeapMonth && (
