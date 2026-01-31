@@ -63,6 +63,9 @@ export interface SajuResult {
   naYin: string        // 납음 (예: 山頭火)
   dayPillarAnimal: string  // 일주 동물 별칭 (예: 황말, 백호)
   dayNaYin: string     // 일주 납음 (예: 钗钏金)
+
+  // 시간 보정 정보
+  summerTimeApplied?: boolean  // 썸머타임 적용 여부
 }
 
 // API 응답

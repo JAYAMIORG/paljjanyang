@@ -50,6 +50,17 @@ function getRelationshipLabel(value: string): string {
   return option?.label || value
 }
 
+// 썸머타임 적용 연도 목록
+const SUMMER_TIME_YEARS = [
+  1948, 1949, 1950, 1951,  // 1차: 미군정 및 건국 초기
+  1955, 1956, 1957, 1958, 1959, 1960,  // 2차: 1950년대
+  1987, 1988,  // 3차: 올림픽 전후
+]
+
+function isSummerTimeYear(year: number): boolean {
+  return SUMMER_TIME_YEARS.includes(year)
+}
+
 export default function SajuInputPage() {
   const router = useRouter()
   const params = useParams()
@@ -550,6 +561,15 @@ export default function SajuInputPage() {
             <span className="text-body text-text">음력</span>
           </label>
         </div>
+
+        {/* 썸머타임 안내 */}
+        {birthYear.length === 4 && isSummerTimeYear(parseInt(birthYear)) && (
+          <p className="text-small text-accent-rose mt-3 text-center">
+            ※ {birthYear}년은 썸머타임(일광절약시간) 적용 연도입니다.
+            <br />
+            출생 시간 입력 시 자동으로 -60분 추가 보정됩니다.
+          </p>
+        )}
       </Card>
 
       {/* 태어난 시간 */}

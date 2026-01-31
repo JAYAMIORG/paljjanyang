@@ -16,23 +16,60 @@ import {
 import { getJiaziAnimalName } from './constants'
 
 /**
- * 진태양시 보정 (서울 기준)
- * 한국 표준시(KST)는 동경 135도 기준이지만, 서울은 동경 127도
- * 차이: 8도 × 4분/도 = 32분
- * 표준시에서 32분을 빼서 진태양시로 보정
+ * 한국 썸머타임(일광절약시간제) 적용 기간
+ * 썸머타임 기간에는 시계가 1시간 앞당겨져 있으므로 -60분 추가 보정 필요
+ */
+const SUMMER_TIME_PERIODS: Array<{ year: number; start: { month: number; day: number }; end: { month: number; day: number } }> = [
+  // 1차: 미군정 및 건국 초기 (1948-1951)
+  { year: 1948, start: { month: 6, day: 1 }, end: { month: 9, day: 12 } },
+  { year: 1949, start: { month: 4, day: 3 }, end: { month: 9, day: 10 } },
+  { year: 1950, start: { month: 4, day: 1 }, end: { month: 9, day: 9 } },
+  { year: 1951, start: { month: 5, day: 6 }, end: { month: 9, day: 8 } },
+  // 2차: 이승만 정부 (1955-1960)
+  { year: 1955, start: { month: 5, day: 5 }, end: { month: 9, day: 8 } },
+  { year: 1956, start: { month: 5, day: 20 }, end: { month: 9, day: 29 } },
+  { year: 1957, start: { month: 5, day: 5 }, end: { month: 9, day: 21 } },
+  { year: 1958, start: { month: 5, day: 4 }, end: { month: 9, day: 20 } },
+  { year: 1959, start: { month: 5, day: 3 }, end: { month: 9, day: 19 } },
+  { year: 1960, start: { month: 5, day: 1 }, end: { month: 9, day: 17 } },
+  // 3차: 서울 올림픽 (1987-1988)
+  { year: 1987, start: { month: 5, day: 10 }, end: { month: 10, day: 10 } },
+  { year: 1988, start: { month: 5, day: 8 }, end: { month: 10, day: 8 } },
+]
+
+/**
+ * 썸머타임 적용 여부 확인
+ */
+function isSummerTimePeriod(year: number, month: number, day: number): boolean {
+  const period = SUMMER_TIME_PERIODS.find(p => p.year === year)
+  if (!period) return false
+
+  const startDate = new Date(year, period.start.month - 1, period.start.day)
+  const endDate = new Date(year, period.end.month - 1, period.end.day)
+  const checkDate = new Date(year, month - 1, day)
+
+  return checkDate >= startDate && checkDate <= endDate
+}
+
+/**
+ * 진태양시 보정 (서울 기준 + 썸머타임)
+ * - 서울 경도 보정: -32분 (동경 135도 → 127도)
+ * - 썸머타임 보정: -60분 (해당 기간에만)
  */
 function adjustToTrueSolarTime(
   year: number,
   month: number,
   day: number,
   hour: number,
-  minute: number = 0
+  minute: number = 0,
+  applySummerTime: boolean = false
 ): { year: number; month: number; day: number; hour: number; minute: number } {
   const TRUE_SOLAR_TIME_OFFSET = 32 // 서울 기준 보정값 (분)
+  const SUMMER_TIME_OFFSET = applySummerTime ? 60 : 0 // 썸머타임 보정값 (분)
 
   // Date 객체를 사용하여 시간 계산
   const date = new Date(year, month - 1, day, hour, minute)
-  date.setMinutes(date.getMinutes() - TRUE_SOLAR_TIME_OFFSET)
+  date.setMinutes(date.getMinutes() - TRUE_SOLAR_TIME_OFFSET - SUMMER_TIME_OFFSET)
 
   return {
     year: date.getFullYear(),
@@ -66,6 +103,12 @@ export function calculateSaju(request: SajuCalculateRequest): SajuResult {
     lunar = solar.getLunar()
   }
 
+  // 썸머타임 적용 여부 확인 (양력 날짜 기준)
+  const solarYear = lunar.getSolar().getYear()
+  const solarMonth = lunar.getSolar().getMonth()
+  const solarDay = lunar.getSolar().getDay()
+  const summerTimeApplied = isSummerTimePeriod(solarYear, solarMonth, solarDay)
+
   // 시간이 있는 경우 시간 포함하여 재계산 (진태양시 보정 적용)
   // 전통 방식: 진태양시 보정으로 날짜가 바뀌더라도 일주는 원래 입력한 날짜 사용
   // 시주만 보정된 시간으로 계산
@@ -75,22 +118,23 @@ export function calculateSaju(request: SajuCalculateRequest): SajuResult {
   if (birthHour !== null && birthHour !== undefined) {
     // 원래 날짜 + 시간으로 년주/월주/일주 계산
     const solarOriginal = Solar.fromYmdHms(
-      lunar.getSolar().getYear(),
-      lunar.getSolar().getMonth(),
-      lunar.getSolar().getDay(),
+      solarYear,
+      solarMonth,
+      solarDay,
       birthHour,
       birthMinute ?? 0,
       0
     )
     eightChar = solarOriginal.getLunar().getEightChar()
 
-    // 진태양시 보정 적용하여 시주만 계산 (서울 기준)
+    // 진태양시 보정 적용하여 시주만 계산 (서울 기준 + 썸머타임)
     const adjusted = adjustToTrueSolarTime(
-      lunar.getSolar().getYear(),
-      lunar.getSolar().getMonth(),
-      lunar.getSolar().getDay(),
+      solarYear,
+      solarMonth,
+      solarDay,
       birthHour,
-      birthMinute ?? 0
+      birthMinute ?? 0,
+      summerTimeApplied  // 썸머타임 적용 여부 전달
     )
 
     const solarAdjusted = Solar.fromYmdHms(
@@ -168,6 +212,7 @@ export function calculateSaju(request: SajuCalculateRequest): SajuResult {
     naYin,
     dayPillarAnimal,
     dayNaYin,
+    summerTimeApplied,
   }
 }
 

@@ -317,6 +317,9 @@ function PreviewContent() {
                 <PillarCard label="시주" value={result.bazi.hour || '—'} disabled={!result.bazi.hour} />
               </div>
               <p className="text-center text-caption text-text-muted">{result.koreanGanji}</p>
+              {result.summerTimeApplied && (
+                <p className="text-center text-caption text-accent-rose mt-1">※ 썸머타임 적용</p>
+              )}
             </Card>
 
             {/* 하트 아이콘 */}
@@ -346,6 +349,9 @@ function PreviewContent() {
                 <PillarCard label="시주" value={result2.bazi.hour || '—'} disabled={!result2.bazi.hour} />
               </div>
               <p className="text-center text-caption text-text-muted">{result2.koreanGanji}</p>
+              {result2.summerTimeApplied && (
+                <p className="text-center text-caption text-accent-rose mt-1">※ 썸머타임 적용</p>
+              )}
             </Card>
 
             {/* 두 사람 일간 비교 */}
@@ -398,6 +404,13 @@ function PreviewContent() {
               <p className="text-center text-caption text-text-muted">
                 {result.koreanGanji}
               </p>
+
+              {/* 썸머타임 적용 안내 */}
+              {result.summerTimeApplied && (
+                <p className="text-center text-caption text-accent-rose mt-2">
+                  ※ 썸머타임(일광절약시간) 적용 (-60분 추가 보정)
+                </p>
+              )}
 
               {/* 일간 정보 - 카드 내부로 통합 */}
               <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-center gap-3">
