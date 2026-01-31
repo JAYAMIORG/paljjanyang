@@ -97,14 +97,14 @@ function EmailLoginContent() {
           </form>
         </Card>
 
-        {/* 회원가입 링크 */}
+        {/* SNS 로그인 안내 */}
         <p className="text-center text-body text-text-muted mt-6">
           아직 계정이 없으신가요?{' '}
           <Link
-            href={`/auth/signup${redirect !== '/home' ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}
+            href={`/auth/login${redirect !== '/home' ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}
             className="text-primary font-medium hover:underline"
           >
-            회원가입
+            카카오/Google로 시작하기
           </Link>
         </p>
       </main>

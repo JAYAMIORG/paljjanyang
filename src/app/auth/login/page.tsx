@@ -72,10 +72,6 @@ function LoginContent() {
     ? `/auth/email-login?redirect=${encodeURIComponent(redirect)}`
     : '/auth/email-login'
 
-  const signupHref = redirect !== '/home'
-    ? `/auth/signup?redirect=${encodeURIComponent(redirect)}`
-    : '/auth/signup'
-
   return (
     <div className="min-h-screen bg-background">
       <Header showBack backHref="/home" title="시작하기" showAuth={false} />
@@ -191,12 +187,9 @@ function LoginContent() {
           </Button>
         </Link>
 
-        {/* 회원가입 링크 */}
+        {/* 안내 문구 */}
         <p className="text-center text-body text-text-muted mt-6">
-          아직 계정이 없으신가요?{' '}
-          <Link href={signupHref} className="text-primary font-medium hover:underline">
-            회원가입
-          </Link>
+          카카오 또는 Google로 간편하게 시작하세요
         </p>
       </main>
     </div>
