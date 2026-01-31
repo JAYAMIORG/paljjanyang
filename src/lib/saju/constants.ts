@@ -128,3 +128,51 @@ export const NAYIN_INFO: Record<string, { korean: string; description: string }>
 export function getNaYinInfo(naYin: string): { korean: string; description: string } {
   return NAYIN_INFO[naYin] || { korean: naYin, description: '' }
 }
+
+// 천간 오행 매핑
+export const TIANGAN_WUXING: Record<string, { element: string; elementKr: string; yinYang: '+' | '-'; korean: string }> = {
+  '甲': { element: 'wood', elementKr: '나무木', yinYang: '+', korean: '갑' },
+  '乙': { element: 'wood', elementKr: '나무木', yinYang: '-', korean: '을' },
+  '丙': { element: 'fire', elementKr: '불火', yinYang: '+', korean: '병' },
+  '丁': { element: 'fire', elementKr: '불火', yinYang: '-', korean: '정' },
+  '戊': { element: 'earth', elementKr: '흙土', yinYang: '+', korean: '무' },
+  '己': { element: 'earth', elementKr: '흙土', yinYang: '-', korean: '기' },
+  '庚': { element: 'metal', elementKr: '쇠金', yinYang: '+', korean: '경' },
+  '辛': { element: 'metal', elementKr: '쇠金', yinYang: '-', korean: '신' },
+  '壬': { element: 'water', elementKr: '물水', yinYang: '+', korean: '임' },
+  '癸': { element: 'water', elementKr: '물水', yinYang: '-', korean: '계' },
+}
+
+// 지지 오행 매핑
+export const DIZHI_WUXING: Record<string, { element: string; elementKr: string; yinYang: '+' | '-'; korean: string }> = {
+  '子': { element: 'water', elementKr: '물水', yinYang: '+', korean: '자' },
+  '丑': { element: 'earth', elementKr: '흙土', yinYang: '-', korean: '축' },
+  '寅': { element: 'wood', elementKr: '나무木', yinYang: '+', korean: '인' },
+  '卯': { element: 'wood', elementKr: '나무木', yinYang: '-', korean: '묘' },
+  '辰': { element: 'earth', elementKr: '흙土', yinYang: '+', korean: '진' },
+  '巳': { element: 'fire', elementKr: '불火', yinYang: '+', korean: '사' },
+  '午': { element: 'fire', elementKr: '불火', yinYang: '-', korean: '오' },
+  '未': { element: 'earth', elementKr: '흙土', yinYang: '-', korean: '미' },
+  '申': { element: 'metal', elementKr: '쇠金', yinYang: '+', korean: '신' },
+  '酉': { element: 'metal', elementKr: '쇠金', yinYang: '-', korean: '유' },
+  '戌': { element: 'earth', elementKr: '흙土', yinYang: '+', korean: '술' },
+  '亥': { element: 'water', elementKr: '물水', yinYang: '-', korean: '해' },
+}
+
+// 오행별 배경색 (CSS class용)
+export const WUXING_BG_COLORS: Record<string, string> = {
+  wood: 'bg-green-500',
+  fire: 'bg-red-400',
+  earth: 'bg-yellow-400',
+  metal: 'bg-gray-300',
+  water: 'bg-blue-400',
+}
+
+// 오행별 텍스트색 (CSS class용)
+export const WUXING_TEXT_COLORS: Record<string, string> = {
+  wood: 'text-white',
+  fire: 'text-white',
+  earth: 'text-gray-800',
+  metal: 'text-gray-800',
+  water: 'text-white',
+}

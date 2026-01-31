@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { Header } from '@/components/layout'
 import { Button, Card, LoadingScreen, ErrorScreen, WuXingRadarChart } from '@/components/ui'
 import { useAuth } from '@/hooks'
+import { TIANGAN_WUXING, DIZHI_WUXING, WUXING_BG_COLORS, WUXING_TEXT_COLORS } from '@/lib/saju/constants'
 import type { SajuResult } from '@/types/saju'
 
 function PreviewContent() {
@@ -312,13 +313,8 @@ function PreviewContent() {
                   {result.zodiac}
                 </h2>
               </div>
-              <div className="grid grid-cols-4 gap-2 text-center mb-2">
-                <PillarCard label="시주" value={result.bazi.hour || '—'} disabled={!result.bazi.hour} />
-                <PillarCard label="일주" value={result.bazi.day} />
-                <PillarCard label="월주" value={result.bazi.month} />
-                <PillarCard label="년주" value={result.bazi.year} />
-              </div>
-              <p className="text-center text-caption text-text-muted">{result.koreanGanji}</p>
+              <BaziGrid bazi={result.bazi} />
+              <p className="text-center text-caption text-text-muted mt-2">{result.koreanGanji}</p>
               {result.isLeapMonth && (
                 <p className="text-center text-caption text-primary mt-1">※ 윤달(閏月) 적용</p>
               )}
@@ -344,12 +340,7 @@ function PreviewContent() {
                   {result2.zodiac}
                 </h2>
               </div>
-              <div className="grid grid-cols-4 gap-2 text-center mb-2">
-                <PillarCard label="시주" value={result2.bazi.hour || '—'} disabled={!result2.bazi.hour} />
-                <PillarCard label="일주" value={result2.bazi.day} />
-                <PillarCard label="월주" value={result2.bazi.month} />
-                <PillarCard label="년주" value={result2.bazi.year} />
-              </div>
+              <BaziGrid bazi={result2.bazi} />
               <p className="text-center text-caption text-text-muted">{result2.koreanGanji}</p>
               {result2.isLeapMonth && (
                 <p className="text-center text-caption text-primary mt-1">※ 윤달(閏月) 적용</p>
@@ -391,19 +382,10 @@ function PreviewContent() {
                 </h2>
               </div>
 
-              {/* 사주팔자 표시 */}
-              <div className="grid grid-cols-4 gap-2 text-center mb-3">
-                <PillarCard
-                  label="시주"
-                  value={result.bazi.hour || '—'}
-                  disabled={!result.bazi.hour}
-                />
-                <PillarCard label="일주" value={result.bazi.day} />
-                <PillarCard label="월주" value={result.bazi.month} />
-                <PillarCard label="년주" value={result.bazi.year} />
-              </div>
+              {/* 사주팔자 2x4 그리드 */}
+              <BaziGrid bazi={result.bazi} />
 
-              <p className="text-center text-caption text-text-muted">
+              <p className="text-center text-caption text-text-muted mt-3">
                 {result.koreanGanji}
               </p>
 
@@ -474,21 +456,83 @@ function PreviewContent() {
   )
 }
 
-function PillarCard({
-  label,
-  value,
-  disabled = false,
-}: {
-  label: string
-  value: string
-  disabled?: boolean
-}) {
+// 사주팔자 2x4 그리드 컴포넌트
+function BaziGrid({ bazi }: { bazi: { year: string; month: string; day: string; hour: string | null } }) {
+  const pillars = [
+    { label: '시주', value: bazi.hour },
+    { label: '일주', value: bazi.day },
+    { label: '월주', value: bazi.month },
+    { label: '년주', value: bazi.year },
+  ]
+
   return (
-    <div className={`${disabled ? 'opacity-40' : ''}`}>
-      <p className="text-caption text-text-muted mb-1">{label}</p>
-      <div className="bg-white rounded-lg p-2 border border-gray-100">
-        <p className="text-heading font-serif text-primary">{value}</p>
-      </div>
+    <div className="grid grid-cols-4 gap-2">
+      {/* 라벨 행 */}
+      {pillars.map((pillar) => (
+        <div key={`label-${pillar.label}`} className="text-center">
+          <p className="text-caption text-text-muted">{pillar.label}</p>
+        </div>
+      ))}
+
+      {/* 천간 행 */}
+      {pillars.map((pillar) => {
+        if (!pillar.value) {
+          return (
+            <div key={`gan-${pillar.label}`} className="text-center">
+              <div className="rounded-lg p-2 bg-gray-100 opacity-40">
+                <p className="text-xl font-serif text-gray-400">—</p>
+                <p className="text-[10px] text-gray-400">—</p>
+              </div>
+            </div>
+          )
+        }
+        const gan = pillar.value[0]
+        const ganInfo = TIANGAN_WUXING[gan]
+        if (!ganInfo) return null
+        const bgColor = WUXING_BG_COLORS[ganInfo.element]
+        const textColor = WUXING_TEXT_COLORS[ganInfo.element]
+
+        return (
+          <div key={`gan-${pillar.label}`} className="text-center">
+            <div className={`rounded-lg p-2 ${bgColor}`}>
+              <p className={`text-xl font-serif ${textColor}`}>{gan}</p>
+              <p className={`text-[10px] ${textColor} opacity-90`}>
+                {ganInfo.yinYang}{ganInfo.korean}, {ganInfo.elementKr}
+              </p>
+            </div>
+          </div>
+        )
+      })}
+
+      {/* 지지 행 */}
+      {pillars.map((pillar) => {
+        if (!pillar.value) {
+          return (
+            <div key={`zhi-${pillar.label}`} className="text-center">
+              <div className="rounded-lg p-2 bg-gray-100 opacity-40">
+                <p className="text-xl font-serif text-gray-400">—</p>
+                <p className="text-[10px] text-gray-400">—</p>
+              </div>
+            </div>
+          )
+        }
+        const zhi = pillar.value[1]
+        const zhiInfo = DIZHI_WUXING[zhi]
+        if (!zhiInfo) return null
+        const bgColor = WUXING_BG_COLORS[zhiInfo.element]
+        const textColor = WUXING_TEXT_COLORS[zhiInfo.element]
+
+        return (
+          <div key={`zhi-${pillar.label}`} className="text-center">
+            <div className={`rounded-lg p-2 ${bgColor}`}>
+              <p className={`text-xl font-serif ${textColor}`}>{zhi}</p>
+              <p className={`text-[10px] ${textColor} opacity-90`}>
+                {zhiInfo.yinYang}{zhiInfo.korean}, {zhiInfo.elementKr}
+              </p>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
