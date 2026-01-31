@@ -941,7 +941,7 @@ function ResultContent() {
         }
         showProgress={isWaitingForInterpretation}
         subMessage={isWaitingForInterpretation ? '화면을 끄거나 이탈하지마세요' : undefined}
-        exitHint={isWaitingForInterpretation ? '화면 이탈 시, 마이페이지에서 확인 가능해요' : undefined}
+        exitHint={isWaitingForInterpretation ? '결과는 마이페이지에서 다시 확인 가능해요' : undefined}
       />
     )
   }
