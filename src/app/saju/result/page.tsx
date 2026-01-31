@@ -924,8 +924,15 @@ function ResultContent() {
     }
   }
 
+  // 해석 대기 중 여부 판단:
+  // - isInterpretLoading이 true이거나
+  // - readingId가 있고 result가 있는데 interpretation이 없는 경우 (아직 해석 완료 안됨)
+  // - 오늘의 운세(daily)는 제외 (interpretation이 API 응답에 포함됨)
+  const isWaitingForInterpretation = isInterpretLoading ||
+    (!!readingId && !!result && !interpretation && type !== 'daily')
+
   // 인증 로딩, 사주 계산 중, LLM 해석 로딩 중일 때 전체 로딩 화면 표시
-  if (authLoading || isLoading || isInterpretLoading) {
+  if (authLoading || isLoading || isWaitingForInterpretation) {
     return (
       <LoadingScreen
         message={
@@ -933,9 +940,9 @@ function ResultContent() {
           isLoading ? '사주를 계산하고 있어요...' :
           '운명을 해석하고 있어요...'
         }
-        showProgress={isInterpretLoading}
-        subMessage={isInterpretLoading ? '최대 60초까지 걸릴 수 있어요' : undefined}
-        exitHint={isInterpretLoading ? '화면 이탈 시, 마이페이지에서 확인 가능해요' : undefined}
+        showProgress={isWaitingForInterpretation}
+        subMessage={isWaitingForInterpretation ? '최대 60초까지 걸릴 수 있어요' : undefined}
+        exitHint={isWaitingForInterpretation ? '화면 이탈 시, 마이페이지에서 확인 가능해요' : undefined}
       />
     )
   }
