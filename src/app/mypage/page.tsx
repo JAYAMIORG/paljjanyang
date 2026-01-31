@@ -289,6 +289,13 @@ export default function MyPage() {
             <span className="text-body text-text">환불 정책</span>
             <ChevronRightIcon />
           </Link>
+          <a
+            href="mailto:palzza.official@gmail.com?subject=[팔자냥] 문의하기"
+            className="w-full flex items-center justify-between p-4 bg-white rounded-xl hover:bg-gray-50 transition-colors"
+          >
+            <span className="text-body text-text">문의하기</span>
+            <ChevronRightIcon />
+          </a>
         </div>
 
       </main>
