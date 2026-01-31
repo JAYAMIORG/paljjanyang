@@ -102,6 +102,12 @@ bazi/
 - `POST /api/payment/initiate` - 결제 시작
 - `POST /api/payment/confirm` - 결제 확인
 
+## Git Guidelines
+
+- **git push는 사용자가 명시적으로 요청할 때만 실행**
+- 커밋은 자유롭게 하되, push는 반드시 사용자 요청 시에만 수행
+- 커밋 메시지는 한글로 작성 가능
+
 ## Coding Conventions
 
 ### TypeScript/React
