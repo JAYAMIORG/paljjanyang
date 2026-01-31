@@ -66,6 +66,9 @@ export interface SajuResult {
 
   // 시간 보정 정보
   summerTimeApplied?: boolean  // 썸머타임 적용 여부
+
+  // 음력 정보
+  isLeapMonth?: boolean  // 윤달 여부
 }
 
 // API 응답

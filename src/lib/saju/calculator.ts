@@ -92,11 +92,9 @@ export function calculateSaju(request: SajuCalculateRequest): SajuResult {
 
   if (isLunar) {
     // 음력 입력인 경우
-    lunar = Lunar.fromYmd(birthYear, birthMonth, birthDay)
-    if (isLeapMonth) {
-      // 윤달 처리 - lunar-typescript에서 윤달은 별도 처리 필요
-      // 현재는 기본 처리
-    }
+    // lunar-typescript에서 윤달은 음수 월로 표현 (예: 윤2월 = -2)
+    const lunarMonth = isLeapMonth ? -birthMonth : birthMonth
+    lunar = Lunar.fromYmd(birthYear, lunarMonth, birthDay)
   } else {
     // 양력 입력인 경우
     const solar = Solar.fromYmd(birthYear, birthMonth, birthDay)
@@ -213,6 +211,7 @@ export function calculateSaju(request: SajuCalculateRequest): SajuResult {
     dayPillarAnimal,
     dayNaYin,
     summerTimeApplied,
+    isLeapMonth,
   }
 }
 

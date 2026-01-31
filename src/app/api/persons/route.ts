@@ -11,6 +11,7 @@ export interface Person {
   birth_day: number
   birth_hour: number | null
   is_lunar: boolean
+  is_leap_month: boolean
   gender: string
   created_at: string
 }
@@ -139,7 +140,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { name, relationship, birthYear, birthMonth, birthDay, birthHour, isLunar, gender } = body
+    const { name, relationship, birthYear, birthMonth, birthDay, birthHour, isLunar, isLeapMonth, gender } = body
 
     // 입력값 검증
     const validation = validatePersonInput({
@@ -176,7 +177,7 @@ export async function POST(request: Request) {
         birth_day: birthDay,
         birth_hour: birthHour ?? null,
         is_lunar: isLunar ?? false,
-        is_leap_month: false,
+        is_leap_month: isLeapMonth ?? false,
         gender,
       })
       .select()

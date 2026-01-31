@@ -113,6 +113,7 @@ function ResultContent() {
   const hour = searchParams.get('hour')
   const minute = searchParams.get('minute')
   const lunar = searchParams.get('lunar')
+  const leapMonth = searchParams.get('leapMonth')
   const savedId = searchParams.get('id') // 저장된 결과 ID
 
   // 타입별 분기
@@ -127,6 +128,7 @@ function ResultContent() {
   const hour2 = searchParams.get('hour2')
   const minute2 = searchParams.get('minute2')
   const lunar2 = searchParams.get('lunar2')
+  const leapMonth2 = searchParams.get('leapMonth2')
 
   // 코인 차감 함수 (선저장 후해석 패턴: reading 생성 + 코인 차감)
   const deductCoin = async (
@@ -367,7 +369,7 @@ function ResultContent() {
               birthHour: hour && parseInt(hour) >= 0 ? parseInt(hour) : null,
               birthMinute: minute ? parseInt(minute) : 0,
               isLunar: lunar === '1',
-              isLeapMonth: false,
+              isLeapMonth: leapMonth === '1',
               gender,
             }),
           })
@@ -472,7 +474,7 @@ function ResultContent() {
             birthHour: hour && parseInt(hour) >= 0 ? parseInt(hour) : null,
             birthMinute: minute ? parseInt(minute) : 0,
             isLunar: lunar === '1',
-            isLeapMonth: false,
+            isLeapMonth: leapMonth === '1',
             gender,
           }),
         })
@@ -498,7 +500,7 @@ function ResultContent() {
               birthHour: hour2 && parseInt(hour2) >= 0 ? parseInt(hour2) : null,
               birthMinute: minute2 ? parseInt(minute2) : 0,
               isLunar: lunar2 === '1',
-              isLeapMonth: false,
+              isLeapMonth: leapMonth2 === '1',
               gender: gender2,
             }),
           })

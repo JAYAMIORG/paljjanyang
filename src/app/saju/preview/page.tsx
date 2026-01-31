@@ -36,6 +36,7 @@ function PreviewContent() {
         const hour = searchParams.get('hour')
         const minute = searchParams.get('minute')
         const lunar = searchParams.get('lunar')
+        const leapMonth = searchParams.get('leapMonth')
         const gender = searchParams.get('gender')
 
         if (!year || !month || !day || !gender) {
@@ -55,7 +56,7 @@ function PreviewContent() {
             birthHour: hour && parseInt(hour) >= 0 ? parseInt(hour) : null,
             birthMinute: minute ? parseInt(minute) : 0,
             isLunar: lunar === '1',
-            isLeapMonth: false,
+            isLeapMonth: leapMonth === '1',
             gender,
           }),
         })
@@ -78,6 +79,7 @@ function PreviewContent() {
           const hour2 = searchParams.get('hour2')
           const minute2 = searchParams.get('minute2')
           const lunar2 = searchParams.get('lunar2')
+          const leapMonth2 = searchParams.get('leapMonth2')
           const gender2 = searchParams.get('gender2')
 
           if (!year2 || !month2 || !day2 || !gender2) {
@@ -96,7 +98,7 @@ function PreviewContent() {
               birthHour: hour2 && parseInt(hour2) >= 0 ? parseInt(hour2) : null,
               birthMinute: minute2 ? parseInt(minute2) : 0,
               isLunar: lunar2 === '1',
-              isLeapMonth: false,
+              isLeapMonth: leapMonth2 === '1',
               gender: gender2,
             }),
           })
@@ -317,8 +319,8 @@ function PreviewContent() {
                 <PillarCard label="시주" value={result.bazi.hour || '—'} disabled={!result.bazi.hour} />
               </div>
               <p className="text-center text-caption text-text-muted">{result.koreanGanji}</p>
-              {result.summerTimeApplied && (
-                <p className="text-center text-caption text-accent-rose mt-1">※ 썸머타임 적용</p>
+              {result.isLeapMonth && (
+                <p className="text-center text-caption text-primary mt-1">※ 윤달(閏月) 적용</p>
               )}
             </Card>
 
@@ -349,8 +351,8 @@ function PreviewContent() {
                 <PillarCard label="시주" value={result2.bazi.hour || '—'} disabled={!result2.bazi.hour} />
               </div>
               <p className="text-center text-caption text-text-muted">{result2.koreanGanji}</p>
-              {result2.summerTimeApplied && (
-                <p className="text-center text-caption text-accent-rose mt-1">※ 썸머타임 적용</p>
+              {result2.isLeapMonth && (
+                <p className="text-center text-caption text-primary mt-1">※ 윤달(閏月) 적용</p>
               )}
             </Card>
 
@@ -405,15 +407,15 @@ function PreviewContent() {
                 {result.koreanGanji}
               </p>
 
-              {/* 썸머타임 적용 안내 */}
-              {result.summerTimeApplied && (
-                <p className="text-center text-caption text-accent-rose mt-2">
-                  ※ 썸머타임(일광절약시간) 적용 (-60분 추가 보정)
+              {/* 윤달 적용 안내 */}
+              {result.isLeapMonth && (
+                <p className="text-center text-caption text-primary mt-2">
+                  ※ 윤달(閏月) 적용
                 </p>
               )}
 
               {/* 일간 정보 - 카드 내부로 통합 */}
-              <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-center gap-3">
+              <div className="mt-4 border-t border-gray-100 flex items-center justify-center gap-3">
                 <span className="text-3xl font-serif">{result.dayMaster}</span>
                 <div>
                   <p className="text-subheading font-semibold text-text">{result.dayMasterKorean}</p>

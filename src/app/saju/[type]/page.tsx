@@ -15,6 +15,7 @@ interface Person {
   birth_day: number
   birth_hour: number | null
   is_lunar: boolean
+  is_leap_month: boolean
   gender: string
   created_at: string
 }
@@ -85,6 +86,7 @@ export default function SajuInputPage() {
     birthDate: '', // YYYYMMDD 형식으로 저장
     birthTime: '', // HHMM 형식으로 저장 (빈 문자열 = 모름)
     isLunar: false,
+    isLeapMonth: false, // 윤달 여부
     gender: '' as 'male' | 'female' | '',
     saveInfo: true, // 정보 저장 여부
   })
@@ -272,6 +274,7 @@ export default function SajuInputPage() {
     hour: (person.birth_hour ?? -1).toString(),
     minute: '0',  // 저장된 인물은 minute 정보가 없으므로 0으로 처리
     lunar: person.is_lunar ? '1' : '0',
+    leapMonth: person.is_leap_month ? '1' : '0',
     gender: person.gender,
   })
 
@@ -286,6 +289,7 @@ export default function SajuInputPage() {
       hour: hour || '-1',
       minute: minute || '0',
       lunar: formData.isLunar ? '1' : '0',
+      leapMonth: formData.isLeapMonth ? '1' : '0',
       gender: formData.gender,
     }
   }
@@ -337,6 +341,7 @@ export default function SajuInputPage() {
       hour: params1.hour,
       minute: params1.minute,
       lunar: params1.lunar,
+      leapMonth: params1.leapMonth,
       gender: params1.gender,
       name1: selectedPerson1.name,
       // Person 2
@@ -346,6 +351,7 @@ export default function SajuInputPage() {
       hour2: params2.hour,
       minute2: params2.minute,
       lunar2: params2.lunar,
+      leapMonth2: params2.leapMonth,
       gender2: params2.gender,
       name2: selectedPerson2.name,
     })
@@ -376,6 +382,7 @@ export default function SajuInputPage() {
             birthDay: parseInt(day),
             birthHour: hour === '' ? null : parseInt(hour),
             isLunar: formData.isLunar,
+            isLeapMonth: formData.isLeapMonth,
             gender: formData.gender,
           }),
         })
@@ -427,6 +434,7 @@ export default function SajuInputPage() {
       birthDate: '',
       birthTime: '',
       isLunar: false,
+      isLeapMonth: false,
       gender: '',
       saveInfo: true,
     })
@@ -539,13 +547,13 @@ export default function SajuInputPage() {
         />
 
         {/* 음력/양력 */}
-        <div className="flex gap-4 mt-4 justify-center">
+        <div className="flex gap-3 mt-4 justify-center flex-wrap">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
               name="calendar"
               checked={!formData.isLunar}
-              onChange={() => setFormData({ ...formData, isLunar: false })}
+              onChange={() => setFormData({ ...formData, isLunar: false, isLeapMonth: false })}
               className="w-4 h-4 text-primary focus:ring-primary"
             />
             <span className="text-body text-text">양력</span>
@@ -554,11 +562,21 @@ export default function SajuInputPage() {
             <input
               type="radio"
               name="calendar"
-              checked={formData.isLunar}
-              onChange={() => setFormData({ ...formData, isLunar: true })}
+              checked={formData.isLunar && !formData.isLeapMonth}
+              onChange={() => setFormData({ ...formData, isLunar: true, isLeapMonth: false })}
               className="w-4 h-4 text-primary focus:ring-primary"
             />
             <span className="text-body text-text">음력</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="calendar"
+              checked={formData.isLunar && formData.isLeapMonth}
+              onChange={() => setFormData({ ...formData, isLunar: true, isLeapMonth: true })}
+              className="w-4 h-4 text-primary focus:ring-primary"
+            />
+            <span className="text-body text-text">음력(윤달)</span>
           </label>
         </div>
 
@@ -808,7 +826,7 @@ export default function SajuInputPage() {
                     <p className="font-semibold text-text">{person.name}</p>
                     <p className="text-small text-text-muted">
                       {getRelationshipLabel(person.relationship)} · {person.birth_year}.{person.birth_month}.{person.birth_day}
-                      {person.is_lunar && ' (음력)'}
+                      {person.is_lunar && (person.is_leap_month ? ' (음력 윤달)' : ' (음력)')}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
