@@ -556,8 +556,11 @@ export default function SajuInputPage() {
         <p className="text-small text-text-muted mb-1">
           4자리로 입력하세요 (ex. 0930, 1700)
         </p>
-        <p className="text-small text-text-muted mb-3">
+        <p className="text-small text-text-muted mb-1">
           시간을 모르면 비워두세요
+        </p>
+        <p className="text-small text-text-light mb-3">
+          ※ 진태양시 보정 적용 (서울 기준 -32분)
         </p>
         <div className="relative">
           <input

@@ -16,6 +16,34 @@ import {
 import { getJiaziAnimalName } from './constants'
 
 /**
+ * 진태양시 보정 (서울 기준)
+ * 한국 표준시(KST)는 동경 135도 기준이지만, 서울은 동경 127도
+ * 차이: 8도 × 4분/도 = 32분
+ * 표준시에서 32분을 빼서 진태양시로 보정
+ */
+function adjustToTrueSolarTime(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number = 0
+): { year: number; month: number; day: number; hour: number; minute: number } {
+  const TRUE_SOLAR_TIME_OFFSET = 32 // 서울 기준 보정값 (분)
+
+  // Date 객체를 사용하여 시간 계산
+  const date = new Date(year, month - 1, day, hour, minute)
+  date.setMinutes(date.getMinutes() - TRUE_SOLAR_TIME_OFFSET)
+
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate(),
+    hour: date.getHours(),
+    minute: date.getMinutes(),
+  }
+}
+
+/**
  * 사주팔자 계산기
  * lunar-typescript 라이브러리를 사용하여 사주 정보를 계산합니다.
  */
@@ -38,15 +66,24 @@ export function calculateSaju(request: SajuCalculateRequest): SajuResult {
     lunar = solar.getLunar()
   }
 
-  // 시간이 있는 경우 시간 포함하여 재계산
+  // 시간이 있는 경우 시간 포함하여 재계산 (진태양시 보정 적용)
   let eightChar
   if (birthHour !== null && birthHour !== undefined) {
-    const solarWithTime = Solar.fromYmdHms(
+    // 진태양시 보정 적용 (서울 기준)
+    const adjusted = adjustToTrueSolarTime(
       lunar.getSolar().getYear(),
       lunar.getSolar().getMonth(),
       lunar.getSolar().getDay(),
       birthHour,
-      0,
+      0
+    )
+
+    const solarWithTime = Solar.fromYmdHms(
+      adjusted.year,
+      adjusted.month,
+      adjusted.day,
+      adjusted.hour,
+      adjusted.minute,
       0
     )
     eightChar = solarWithTime.getLunar().getEightChar()
